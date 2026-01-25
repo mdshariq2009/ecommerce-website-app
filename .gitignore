@@ -12,7 +12,7 @@ application-secrets.properties
 # MAVEN
 # ========================================
 target/
-!.mvn/wrapper/maven-wrapper.jar
+# !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 pom.xml.tag

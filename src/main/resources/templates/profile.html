@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile - E-Commerce Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        .profile-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+        
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+            border: 2px solid #f3f4f6;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .profile-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f9fafb 0%, #e0e7ff 100%);
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            font-weight: 800;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .section-header:hover {
+            background: #f9fafb;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            color: #1f2937;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-icon {
+            font-size: 1.5rem;
+            color: #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            padding: 0 2rem 2rem 2rem;
+            display: none;
+        }
+
+        .section-content.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .saved-card {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            position: relative;
+        }
+        
+        .card-number {
+            font-family: monospace;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            margin: 1rem 0;
+        }
+
+        .default-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #10b981;
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        #card-element, #edit-card-element {
+            border: 2px solid #e5e7eb;
+            padding: 1.2rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        #card-element.StripeElement--focus, #edit-card-element.StripeElement--focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        #card-errors, #edit-card-errors {
+            color: #ef4444;
+            margin: 1rem 0;
+            font-weight: 600;
+            padding: 0.8rem;
+            background: #fee2e2;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        #card-errors.show, #edit-card-errors.show {
+            display: block;
+        }
+
+        .custom-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+            z-index: 10000;
+            min-width: 400px;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .custom-modal.show {
+            display: block;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+        }
+        
+        .modal-overlay.show {
+            display: block;
+        }
+
+        .info-box {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            border-radius: 8px;
+            color: #1e40af;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .card-actions button {
+            flex: 1;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-default {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-default:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-default:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-remove {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-remove:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Confirmation Modal -->
+    <div class="modal-overlay" id="confirmOverlay"></div>
+    <div class="custom-modal" id="confirmModal">
+        <div id="confirmIcon" style="font-size:4rem;margin-bottom:1rem;">❓</div>
+        <h3 id="confirmTitle" style="font-size:1.6rem;margin-bottom:1rem;color:#1f2937;">Confirm Action</h3>
+        <p id="confirmMessage" style="color:#6b7280;font-size:1.1rem;margin-bottom:2rem;">Are you sure?</p>
+        <div style="display:flex;gap:1rem;">
+            <button onclick="cancelConfirm()" class="btn" style="flex:1;background:linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">Cancel</button>
+            <button id="confirmYesBtn" class="btn btn-danger" style="flex:1;">Confirm</button>
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div class="modal-overlay" id="alertOverlay" onclick="closeAlert()"></div>
+    <div class="custom-modal" id="alertModal">
+        <div id="alertIcon" style="font-size:4rem;margin-bottom:1rem;">✅</div>
+        <h3 id="alertTitle" style="font-size:1.6rem;margin-bottom:1rem;color:#1f2937;">Success</h3>
+        <p id="alertMessage" style="color:#6b7280;font-size:1.1rem;margin-bottom:2rem;">Operation completed</p>
+        <button onclick="closeAlert()" class="btn" style="width:auto;padding:0.8rem 2.5rem;">OK</button>
+    </div>
+
+    <nav class="navbar">
+        <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
+        <div class="nav-links">
+            <a href="/">Home</a>
+                        <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
+            <a href="/web/products">Products</a>
+            <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
+            <a href="/web/orders">My Orders</a>
+            <a href="/web/profile" class="active">Profile</a>
+
+            <a href="/web/profile" id="userName" style="cursor:pointer;text-decoration:none;"></a>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="profile-container">
+        <div class="page-header">
+            <h1 class="page-title">👤 My Profile</h1>
+            <p class="page-subtitle">Manage your account settings and preferences</p>
+        </div>
+
+        <!-- Profile Summary Card (Always Visible) -->
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar" id="avatarInitial">U</div>
+                <div>
+                    <h2 id="profileName" style="font-size:2rem;color:#1f2937;margin-bottom:0.5rem;">User Name</h2>
+                    <p id="profileEmail" style="color:#6b7280;font-size:1.1rem;margin:0;">user@example.com</p>
+                    <p id="profileRole" style="color:#667eea;font-weight:600;margin-top:0.5rem;"></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Edit Profile Section (Collapsible) -->
+        <div class="profile-card">
+            <div class="section-header" onclick="toggleSection('profileSection')">
+                <div class="section-title">👤 Personal Information</div>
+                <div class="toggle-icon" id="profileToggle">▼</div>
+            </div>
+            <div class="section-content" id="profileSection">
+                <form id="profileForm">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" id="phoneNumber" placeholder="(123) 456-7890">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="email" disabled style="background:#f3f4f6;cursor:not-allowed;">
+                        <small style="color:#6b7280;">Email cannot be changed</small>
+                    </div>
+                    <button type="submit" class="btn">Save Profile Changes</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Change Password Section (Collapsible) -->
+        <div class="profile-card">
+            <div class="section-header" onclick="toggleSection('passwordSection')">
+                <div class="section-title">🔒 Change Password</div>
+                <div class="toggle-icon" id="passwordToggle">▼</div>
+            </div>
+            <div class="section-content" id="passwordSection">
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" id="currentPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="newPassword" required minlength="6">
+                        <small style="color:#6b7280;">Minimum 6 characters</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" id="confirmPassword" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn">Change Password</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Payment Methods Section (Collapsible) -->
+        <div class="profile-card">
+            <div class="section-header" onclick="toggleSection('paymentSection')">
+                <div class="section-title">💳 Payment Methods</div>
+                <div class="toggle-icon" id="paymentToggle">▼</div>
+            </div>
+            <div class="section-content" id="paymentSection">
+                <!-- Saved Cards List -->
+                <div id="savedCardsSection" style="display:none;">
+                    <div id="savedCardsList"></div>
+                    
+                    <!-- Add Another Card Button -->
+                    <button onclick="toggleAddPayment()" class="btn" style="width:100%;margin-top:1rem;">
+                        ➕ Add Another Payment Method
+                    </button>
+                </div>
+
+                <!-- No Payment Section -->
+                <div id="noPaymentSection">
+                    <div style="background:#f9fafb;padding:2rem;border-radius:12px;text-align:center;border:2px dashed #e5e7eb;">
+                        <p style="color:#6b7280;margin-bottom:1.5rem;font-size:1.1rem;">No saved payment methods</p>
+                        <button onclick="toggleAddPayment()" class="btn" style="width:auto;padding:0.8rem 2rem;">
+                            ➕ Add Payment Method
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Edit Card Section -->
+                <div id="editCardSection" style="display:none;margin-top:1.5rem;padding:2rem;background:#fef3c7;border-radius:12px;border-left:4px solid #f59e0b;">
+                    <h4 style="margin-bottom:1rem;color:#92400e;font-weight:700;">✏️ Edit Payment Method</h4>
+                    <div class="info-box" style="background:#fee2e2;border-left-color:#ef4444;color:#7f1d1d;">
+                        <p style="margin:0;font-weight:600;">⚠️ Security Notice</p>
+                        <p style="margin:0.5rem 0 0 0;font-size:0.9rem;">To update your card, you'll need to re-enter the complete card details for security.</p>
+                    </div>
+                    <p style="color:#92400e;margin-bottom:1rem;">Editing card ending in: <strong><span id="editCardLast4">****</span></strong></p>
+                    <form id="editCardForm">
+                        <div class="form-group">
+                            <label style="color:#92400e;font-weight:600;">New Card Details</label>
+                            <div id="edit-card-element"></div>
+                            <div id="edit-card-errors"></div>
+                        </div>
+                        <div class="form-group">
+                            <label style="display:flex;align-items:center;cursor:pointer;color:#92400e;font-weight:600;">
+                                <input type="checkbox" id="editSetAsDefaultCheckbox" style="margin-right:0.5rem;width:18px;height:18px;cursor:pointer;">
+                                <span>Set as default payment method</span>
+                            </label>
+                        </div>
+                        <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+                            <button type="submit" class="btn btn-success" id="updateCardBtn" style="flex:1;">💾 Update Card</button>
+                            <button type="button" onclick="cancelEditCard()" class="btn" style="flex:1;background:linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Add Payment Section -->
+                <div id="addPaymentSection" style="display:none;margin-top:1.5rem;padding:2rem;background:#f0fdf4;border-radius:12px;border-left:4px solid #10b981;">
+                    <h4 style="margin-bottom:1rem;color:#065f46;font-weight:700;">💳 Add New Payment Method</h4>
+                    <div class="info-box" style="background:#fef3c7;border-left-color:#f59e0b;color:#92400e;">
+                        <p style="margin:0;font-weight:600;">🔒 Secure Card Entry</p>
+                        <p style="margin:0.5rem 0 0 0;font-size:0.9rem;">Your card details are encrypted and processed securely by Stripe.</p>
+                    </div>
+                    <form id="paymentForm">
+                        <div class="form-group">
+                            <label style="color:#065f46;font-weight:600;">Card Details</label>
+                            <div id="card-element"></div>
+                            <div id="card-errors" role="alert"></div>
+                        </div>
+                        <div class="form-group">
+                            <label style="display:flex;align-items:center;cursor:pointer;color:#065f46;font-weight:600;">
+                                <input type="checkbox" id="setAsDefaultCheckbox" checked style="margin-right:0.5rem;width:18px;height:18px;cursor:pointer;">
+                                <span>Set as default payment method</span>
+                            </label>
+                            <small style="color:#6b7280;">The default card will be auto-selected during checkout</small>
+                        </div>
+                        <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+                            <button type="submit" class="btn btn-success" id="saveCardBtn" style="flex:1;">💾 Save Card</button>
+                            <button type="button" onclick="toggleAddPayment()" class="btn" style="flex:1;background:linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        const token = localStorage.getItem('token');
+        let confirmCallback = null;
+        let stripe = null;
+        let cardElement = null;
+        let editCardElement = null;
+        let editingPaymentMethodId = null;
+
+        if (!user || !token) {
+            window.location.href = '/web/login';
+        }
+
+        // Initialize Stripe
+        const publishableKey = 'pk_test_51P8P6C1Lz1tbrsScBvmtlELHa8m6YFzQT2jMhKkxqC33Fr4yBVH6TrHRiUiGI9yzPWrifrYEMc0SzlqRXWgoETwY00Bzf7FsZf';
+        stripe = Stripe(publishableKey);
+
+        // Toggle Section
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId);
+            const toggle = document.getElementById(sectionId.replace('Section', 'Toggle'));
+            
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                toggle.classList.remove('expanded');
+            } else {
+                content.classList.add('show');
+                toggle.classList.add('expanded');
+            }
+        }
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = count;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        function initNavbar() {
+            updateCartCount();
+            document.getElementById('userName').textContent = 'Hi, ' + user.name;
+            
+            if (user.role === 'ADMIN') {
+                document.getElementById('adminLink').style.display = 'inline-block';
+            }
+        }
+
+        function showAlert(title, message, icon = '✅', iconColor = '#10b981') {
+            document.getElementById('alertIcon').textContent = icon;
+            document.getElementById('alertIcon').style.color = iconColor;
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertOverlay').classList.add('show');
+            document.getElementById('alertModal').classList.add('show');
+        }
+
+        function closeAlert() {
+            document.getElementById('alertModal').classList.remove('show');
+            document.getElementById('alertOverlay').classList.remove('show');
+        }
+
+        function showConfirm(title, message, icon, iconColor, callback) {
+            confirmCallback = callback;
+            document.getElementById('confirmIcon').textContent = icon;
+            document.getElementById('confirmIcon').style.color = iconColor;
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmOverlay').classList.add('show');
+            document.getElementById('confirmModal').classList.add('show');
+        }
+
+        function cancelConfirm() {
+            document.getElementById('confirmModal').classList.remove('show');
+            document.getElementById('confirmOverlay').classList.remove('show');
+            confirmCallback = null;
+        }
+
+        document.getElementById('confirmYesBtn').onclick = function() {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            cancelConfirm();
+        };
+
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/profile', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                if (response.ok) {
+                    const profile = await response.json();
+                    
+                    document.getElementById('profileName').textContent = profile.name;
+                    document.getElementById('profileEmail').textContent = profile.email;
+                    document.getElementById('profileRole').textContent = profile.role === 'ADMIN' ? '👑 Administrator' : '👤 Customer';
+                    document.getElementById('avatarInitial').textContent = profile.name.charAt(0).toUpperCase();
+                    
+                    document.getElementById('name').value = profile.name;
+                    document.getElementById('email').value = profile.email;
+                    document.getElementById('phoneNumber').value = profile.phoneNumber || '';
+                    
+                    loadPaymentMethods();
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        async function loadPaymentMethods() {
+            try {
+                const response = await fetch('/api/profile/payment-methods', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                if (response.ok) {
+                    const paymentMethods = await response.json();
+                    console.log('💳 Payment methods loaded:', paymentMethods.length);
+                    
+                    if (paymentMethods.length === 0) {
+                        document.getElementById('savedCardsSection').style.display = 'none';
+                        document.getElementById('noPaymentSection').style.display = 'block';
+                    } else {
+                        displayPaymentMethods(paymentMethods);
+                        document.getElementById('savedCardsSection').style.display = 'block';
+                        document.getElementById('noPaymentSection').style.display = 'none';
+                    }
+                    
+                    document.getElementById('addPaymentSection').style.display = 'none';
+                    document.getElementById('editCardSection').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading payment methods:', error);
+            }
+        }
+
+        function displayPaymentMethods(methods) {
+            const html = methods.map(pm => `
+                <div class="saved-card" id="card-${pm.id}">
+                    ${pm.isDefault ? '<div class="default-badge">DEFAULT</div>' : ''}
+                    <div style="display:flex;justify-content:space-between;align-items:start;">
+                        <div style="flex:1;">
+                            <p style="margin:0;font-size:0.9rem;opacity:0.8;">Saved Card</p>
+                            <div class="card-number">
+                                ---- ---- ---- <span>${pm.cardLastFour}</span>
+                            </div>
+                            <p style="margin:0;font-size:0.95rem;opacity:0.9;font-weight:600;">${(pm.cardBrand || 'CARD').toUpperCase()}</p>
+                        </div>
+                    </div>
+                    <div class="card-actions" style="grid-template-columns: 1fr 1fr 1fr;display:grid;">
+                        <button class="btn-edit" onclick="showEditCard(${pm.id}, '${pm.cardLastFour}', ${pm.isDefault})">
+                            Edit
+                        </button>
+                        <button class="btn-default" onclick="setAsDefault(${pm.id})" ${pm.isDefault ? 'disabled' : ''}>
+                            ${pm.isDefault ? 'Default' : 'Set As Default'}
+                        </button>
+                        <button class="btn-remove" onclick="confirmDeleteSpecificPayment(${pm.id}, '${pm.cardLastFour}')">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('savedCardsList').innerHTML = html;
+        }
+
+        function showEditCard(paymentMethodId, last4, isDefault) {
+            editingPaymentMethodId = paymentMethodId;
+            
+            document.getElementById('editCardLast4').textContent = last4;
+            document.getElementById('editSetAsDefaultCheckbox').checked = isDefault;
+            
+            // Hide all cards and show edit section
+            document.getElementById('savedCardsSection').style.opacity = '0.3';
+            document.getElementById('editCardSection').style.display = 'block';
+            document.getElementById('addPaymentSection').style.display = 'none';
+            
+            if (!editCardElement) {
+                initEditCardElement();
+            }
+        }
+
+        function cancelEditCard() {
+            editingPaymentMethodId = null;
+            document.getElementById('savedCardsSection').style.opacity = '1';
+            document.getElementById('editCardSection').style.display = 'none';
+            document.getElementById('editCardForm').reset();
+            if (editCardElement) {
+                editCardElement.clear();
+            }
+        }
+
+        function initEditCardElement() {
+            const elements = stripe.elements();
+            editCardElement = elements.create('card', {
+                style: {
+                    base: {
+                        fontSize: '16px',
+                        color: '#1f2937',
+                        fontFamily: 'Inter, sans-serif',
+                        fontWeight: '500',
+                        '::placeholder': { color: '#9ca3af' }
+                    },
+                    invalid: { color: '#ef4444' }
+                }
+            });
+            
+            editCardElement.mount('#edit-card-element');
+
+            editCardElement.on('change', (event) => {
+                const displayError = document.getElementById('edit-card-errors');
+                if (event.error) {
+                    displayError.textContent = '❌ ' + event.error.message;
+                    displayError.classList.add('show');
+                } else {
+                    displayError.textContent = '';
+                    displayError.classList.remove('show');
+                }
+            });
+        }
+
+        document.getElementById('editCardForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!editCardElement || !editingPaymentMethodId) {
+                showAlert('Error', 'Card element not initialized', '❌', '#ef4444');
+                return;
+            }
+
+            const updateCardBtn = document.getElementById('updateCardBtn');
+            const isDefault = document.getElementById('editSetAsDefaultCheckbox').checked;
+            
+            updateCardBtn.disabled = true;
+            updateCardBtn.innerHTML = '🔄 Updating...';
+
+            try {
+                // First, delete the old payment method
+                await fetch('/api/profile/payment-method/' + editingPaymentMethodId, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                // Create new setup intent
+                const setupResponse = await fetch('/api/payment/create-setup-intent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                if (!setupResponse.ok) {
+                    throw new Error('Failed to create setup intent');
+                }
+
+                const { clientSecret } = await setupResponse.json();
+
+                const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
+                    payment_method: {
+                        card: editCardElement,
+                        billing_details: {
+                            name: user.name,
+                            email: user.email,
+                        },
+                    },
+                });
+
+                if (error) {
+                    showAlert('Update Failed', error.message, '❌', '#ef4444');
+                    updateCardBtn.disabled = false;
+                    updateCardBtn.innerHTML = '💾 Update Card';
+                    return;
+                }
+
+                if (setupIntent.status === 'succeeded') {
+                    const paymentMethodId = setupIntent.payment_method;
+                    
+                    const detailsResponse = await fetch('/api/payment/get-payment-method-details?paymentMethodId=' + paymentMethodId, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    
+                    let cardBrand = 'card';
+                    let last4 = '0000';
+                    
+                    if (detailsResponse.ok) {
+                        const details = await detailsResponse.json();
+                        cardBrand = details.brand || 'card';
+                        last4 = details.last4 || '0000';
+                    }
+
+                    const saveResponse = await fetch('/api/profile/save-stripe-payment-method', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({
+                            paymentMethodId: paymentMethodId,
+                            cardBrand: cardBrand,
+                            cardLast4: last4,
+                            billingZip: '',
+                            isDefault: isDefault
+                        })
+                    });
+
+                    if (saveResponse.ok) {
+                        showAlert('Card Updated ✅', 'Payment method updated successfully! Card ending in ' + last4, '💳', '#10b981');
+                        
+                        setTimeout(() => {
+                            closeAlert();
+                            cancelEditCard();
+                            loadPaymentMethods();
+                        }, 2000);
+                    } else {
+                        showAlert('Save Failed', 'Failed to update payment method', '❌', '#ef4444');
+                    }
+                }
+
+            } catch (error) {
+                showAlert('Error', 'Error updating payment method: ' + error.message, '❌', '#ef4444');
+            } finally {
+                updateCardBtn.disabled = false;
+                updateCardBtn.innerHTML = '💾 Update Card';
+            }
+        });
+
+        async function setAsDefault(paymentMethodId) {
+            try {
+                const response = await fetch('/api/profile/set-default-payment-method/' + paymentMethodId, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                if (response.ok) {
+                    showAlert('Default Updated ✅', 'This card is now your default payment method', '⭐', '#10b981');
+                    setTimeout(() => {
+                        closeAlert();
+                        loadPaymentMethods();
+                    }, 1500);
+                } else {
+                    showAlert('Update Failed', 'Failed to set as default', '❌', '#ef4444');
+                }
+            } catch (error) {
+                showAlert('Error', 'Error updating default payment', '❌', '#ef4444');
+            }
+        }
+
+        function confirmDeleteSpecificPayment(paymentMethodId, last4) {
+            showConfirm(
+                'Remove Payment Method?',
+                'Are you sure you want to remove card ending in ' + last4 + '?',
+                '⚠️',
+                '#f59e0b',
+                () => deleteSpecificPayment(paymentMethodId)
+            );
+        }
+
+        async function deleteSpecificPayment(paymentMethodId) {
+            try {
+                const response = await fetch('/api/profile/payment-method/' + paymentMethodId, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                if (response.ok) {
+                    showAlert('Card Removed ✅', 'Payment method has been removed', '🗑️', '#10b981');
+                    setTimeout(() => {
+                        closeAlert();
+                        loadPaymentMethods();
+                    }, 1500);
+                } else {
+                    showAlert('Delete Failed', 'Failed to remove payment method', '❌', '#ef4444');
+                }
+            } catch (error) {
+                showAlert('Error', 'Error removing payment method', '❌', '#ef4444');
+            }
+        }
+
+        function toggleAddPayment() {
+            const section = document.getElementById('addPaymentSection');
+            const isShowing = section.style.display === 'block';
+            
+            if (isShowing) {
+                section.style.display = 'none';
+                document.getElementById('paymentForm').reset();
+                if (cardElement) {
+                    cardElement.clear();
+                }
+            } else {
+                section.style.display = 'block';
+                document.getElementById('editCardSection').style.display = 'none';
+                
+                if (!cardElement) {
+                    initCardElement();
+                }
+            }
+        }
+
+        function initCardElement() {
+            const elements = stripe.elements();
+            cardElement = elements.create('card', {
+                style: {
+                    base: {
+                        fontSize: '16px',
+                        color: '#1f2937',
+                        fontFamily: 'Inter, sans-serif',
+                        fontWeight: '500',
+                        '::placeholder': { color: '#9ca3af' }
+                    },
+                    invalid: { color: '#ef4444' }
+                }
+            });
+            
+            cardElement.mount('#card-element');
+
+            cardElement.on('change', (event) => {
+                const displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.textContent = '❌ ' + event.error.message;
+                    displayError.classList.add('show');
+                } else {
+                    displayError.textContent = '';
+                    displayError.classList.remove('show');
+                }
+            });
+        }
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const profileData = {
+                name: document.getElementById('name').value,
+                phoneNumber: document.getElementById('phoneNumber').value
+            };
+
+            try {
+                const response = await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(profileData)
+                });
+
+                if (response.ok) {
+                    const updatedUser = await response.json();
+                    
+                    user.name = updatedUser.name;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    
+                    document.getElementById('profileName').textContent = updatedUser.name;
+                    document.getElementById('avatarInitial').textContent = updatedUser.name.charAt(0).toUpperCase();
+                    document.getElementById('userName').textContent = 'Hi, ' + updatedUser.name;
+                    
+                    showAlert('Profile Updated ✅', 'Your profile has been updated successfully', '✅', '#10b981');
+                } else {
+                    showAlert('Update Failed', 'Failed to update profile', '❌', '#ef4444');
+                }
+            } catch (error) {
+                showAlert('Error', 'Error updating profile', '❌', '#ef4444');
+            }
+        });
+
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (newPassword !== confirmPassword) {
+                showAlert('Password Mismatch', 'New passwords do not match', '❌', '#ef4444');
+                return;
+            }
+            
+            const passwordData = {
+                currentPassword: currentPassword,
+                newPassword: newPassword
+            };
+
+            try {
+                const response = await fetch('/api/profile/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(passwordData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('passwordForm').reset();
+                    showAlert('Password Changed ✅', 'Your password has been changed successfully.', '🔒', '#10b981');
+                } else {
+                    showAlert('Change Failed', data.error || 'Failed to change password', '❌', '#ef4444');
+                }
+            } catch (error) {
+                showAlert('Error', 'Error changing password', '❌', '#ef4444');
+            }
+        });
+
+        document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!cardElement) {
+                showAlert('Error', 'Card element not initialized', '❌', '#ef4444');
+                return;
+            }
+
+            const saveCardBtn = document.getElementById('saveCardBtn');
+            const isDefault = document.getElementById('setAsDefaultCheckbox').checked;
+            
+            saveCardBtn.disabled = true;
+            saveCardBtn.innerHTML = '🔄 Saving...';
+
+            try {
+                const setupResponse = await fetch('/api/payment/create-setup-intent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                if (!setupResponse.ok) {
+                    throw new Error('Failed to create setup intent');
+                }
+
+                const { clientSecret } = await setupResponse.json();
+
+                const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: user.name,
+                            email: user.email,
+                        },
+                    },
+                });
+
+                if (error) {
+                    showAlert('Card Save Failed', error.message, '❌', '#ef4444');
+                    saveCardBtn.disabled = false;
+                    saveCardBtn.innerHTML = '💾 Save Card';
+                    return;
+                }
+
+                if (setupIntent.status === 'succeeded') {
+                    const paymentMethodId = setupIntent.payment_method;
+                    
+                    const detailsResponse = await fetch('/api/payment/get-payment-method-details?paymentMethodId=' + paymentMethodId, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    
+                    let cardBrand = 'card';
+                    let last4 = '0000';
+                    
+                    if (detailsResponse.ok) {
+                        const details = await detailsResponse.json();
+                        cardBrand = details.brand || 'card';
+                        last4 = details.last4 || '0000';
+                    }
+
+                    const saveResponse = await fetch('/api/profile/save-stripe-payment-method', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({
+                            paymentMethodId: paymentMethodId,
+                            cardBrand: cardBrand,
+                            cardLast4: last4,
+                            billingZip: '',
+                            isDefault: isDefault
+                        })
+                    });
+
+                    if (saveResponse.ok) {
+                        const defaultText = isDefault ? ' and set as default' : '';
+                        showAlert('Card Saved ✅', 'Payment method saved successfully' + defaultText + '! Card ending in ' + last4, '💳', '#10b981');
+                        
+                        setTimeout(() => {
+                            closeAlert();
+                            toggleAddPayment();
+                            loadPaymentMethods();
+                        }, 2000);
+                    } else {
+                        showAlert('Save Failed', 'Failed to save payment method', '❌', '#ef4444');
+                    }
+                }
+
+            } catch (error) {
+                showAlert('Error', 'Error saving payment method: ' + error.message, '❌', '#ef4444');
+            } finally {
+                saveCardBtn.disabled = false;
+                saveCardBtn.innerHTML = '💾 Save Card';
+            }
+        });
+
+        // Initialize
+        initNavbar();
+        loadProfile();
+    </script>
+    <!-- Footer -->
+<footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">
+    <div style="max-width:1400px;margin:0 auto;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem;">
+            <!-- Company Info -->
+            <div>
+                <h3 style="font-size:1.5rem;margin-bottom:1rem;font-weight:800;">🛒 E-Commerce Store</h3>
+                <p style="color:#9ca3af;line-height:1.6;">Your trusted online shopping destination for quality products at great prices.</p>
+            </div>
+            
+            <!-- Quick Links -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Quick Links</h4>
+                <ul style="list-style:none;padding:0;">
+                    <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Home</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Products</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">My Orders</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Profile</a></li>
+                </ul>
+            </div>
+            
+            <!-- Customer Service -->
+                     <div>
+    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+    <ul style="list-style:none;padding:0;">
+        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+    </ul>
+</div>
+            
+            <!-- Contact -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Get in Touch</h4>
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">📧 support@ecommerce.com</p>
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">📱 1-800-SHOP-NOW</p>
+                <p style="color:#9ca3af;">📍 123 Commerce St, City, State 12345</p>
+            </div>
+        </div>
+        
+        <!-- Copyright Bar -->
+        <div style="border-top:1px solid #374151;padding-top:2rem;text-align:center;">
+            <p style="color:#9ca3af;margin-bottom:0.5rem;">
+                © <span id="currentYear"></span> E-Commerce Store. All rights reserved.
+            </p>
+            <p style="color:#6b7280;font-size:0.9rem;">
+                Powered by Stripe | Secure Shopping Experience
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Set current year automatically
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+</script>
+    
+</body>
+</html>

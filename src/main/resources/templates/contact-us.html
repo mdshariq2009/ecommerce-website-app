@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - E-Commerce Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f9fafb;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* Contact Grid */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .contact-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2.5rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 2px solid #f3f4f6;
+            transition: all 0.3s ease;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+
+        .contact-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .contact-card p {
+            color: #6b7280;
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+
+        .contact-card a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .contact-card a:hover {
+            text-decoration: underline;
+        }
+
+        /* Contact Form */
+        .contact-form-section {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 2px solid #f3f4f6;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .contact-form-section h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .contact-form-section .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 2.5rem;
+            font-size: 1.05rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 3rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Map Section */
+        .map-section {
+            margin-top: 4rem;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 2px solid #f3f4f6;
+        }
+
+        .map-placeholder {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        /* Modal Content */
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem 2.5rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s ease;
+            position: relative;
+        }
+
+        /* Modal Icon */
+        .modal-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            animation: scaleIn 0.5s ease 0.2s backwards;
+        }
+
+        /* Modal Title */
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            animation: slideUp 0.5s ease 0.3s backwards;
+        }
+
+        /* Modal Message */
+        .modal-message {
+            font-size: 1.1rem;
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            animation: slideUp 0.5s ease 0.4s backwards;
+        }
+
+        /* Modal Button */
+        .modal-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: slideUp 0.5s ease 0.5s backwards;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .modal-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .modal-button:active {
+            transform: translateY(-1px);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2rem;
+            }
+            
+            .contact-form-section {
+                padding: 2rem 1.5rem;
+            }
+
+            .modal-content {
+                padding: 2.5rem 2rem;
+            }
+
+            .modal-icon {
+                font-size: 4rem;
+            }
+
+            .modal-title {
+                font-size: 1.5rem;
+            }
+
+            .modal-message {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/web/products">Products</a>
+            <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
+            <a href="/web/orders" id="ordersLink" style="display:none;">My Orders</a>
+            <a href="/web/profile" id="profileLink" style="display:none;">Profile</a>
+            <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
+            <span id="userName"></span>
+            <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
+            <a href="/web/login" id="loginLink">Login</a>
+            <a href="/web/register" id="registerLink">Register</a>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>📞 Contact Us</h1>
+        <p>We're here to help! Get in touch with our customer support team</p>
+    </div>
+
+    <div class="main-container">
+        <!-- Contact Cards -->
+        <div class="contact-grid">
+            <div class="contact-card">
+                <div class="contact-icon">📧</div>
+                <h3>Email Us</h3>
+                <p>Our support team typically responds within 24 hours</p>
+                <p style="margin-top: 1rem;"><a href="mailto:support@ecommerce.com">support@ecommerce.com</a></p>
+            </div>
+
+            <div class="contact-card">
+                <div class="contact-icon">📱</div>
+                <h3>Call Us</h3>
+                <p>Monday - Friday: 9AM - 6PM EST<br>Saturday: 10AM - 4PM EST</p>
+                <p style="margin-top: 1rem;"><a href="tel:1-800-746-7669">1-800-SHOP-NOW</a></p>
+            </div>
+
+            <div class="contact-card">
+                <div class="contact-icon">💬</div>
+                <h3>Live Chat</h3>
+                <p>Chat with our support team in real-time during business hours</p>
+                <p style="margin-top: 1rem;"><a href="#" onclick="showChatModal(); return false;">Start Chat</a></p>
+            </div>
+
+            <div class="contact-card">
+                <div class="contact-icon">📍</div>
+                <h3>Visit Us</h3>
+                <p>123 Commerce Street<br>City, State 12345<br>United States</p>
+            </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="contact-form-section">
+            <h2>Send Us a Message</h2>
+            <p class="subtitle">Fill out the form below and we'll get back to you as soon as possible</p>
+            
+            <form id="contactForm" onsubmit="handleSubmit(event)">
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" required placeholder="John Doe">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required placeholder="john@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" placeholder="+1 (555) 123-4567">
+                </div>
+
+                <div class="form-group">
+                    <label for="subject">Subject *</label>
+                    <select id="subject" name="subject" required>
+                        <option value="">Select a subject</option>
+                        <option value="order">Order Inquiry</option>
+                        <option value="product">Product Question</option>
+                        <option value="shipping">Shipping & Delivery</option>
+                        <option value="return">Returns & Refunds</option>
+                        <option value="technical">Technical Support</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message *</label>
+                    <textarea id="message" name="message" required placeholder="Please describe your inquiry in detail..."></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">Send Message →</button>
+            </form>
+        </div>
+
+        <!-- Map Section -->
+        <div class="map-section">
+            <div class="map-placeholder">
+                🗺️ Store Location Map
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal (for form submission) -->
+    <div id="successModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-icon">✅</div>
+            <h2 class="modal-title">Message Sent Successfully!</h2>
+            <p class="modal-message">Thank you for contacting us. We'll get back to you within 24 hours.</p>
+            <button class="modal-button" onclick="closeModal('successModal')">Got it!</button>
+        </div>
+    </div>
+
+    <!-- Chat Modal (for live chat) -->
+    <div id="chatModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-icon">💬</div>
+            <h2 class="modal-title">Live Chat Coming Soon!</h2>
+            <p class="modal-message">Our live chat feature is currently under development. In the meantime, please use our contact form or email us directly.</p>
+            <button class="modal-button" onclick="closeModal('chatModal')">Okay</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">
+        <div style="max-width:1400px;margin:0 auto;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem;">
+                <div>
+                    <h3 style="font-size:1.5rem;margin-bottom:1rem;font-weight:800;">🛒 E-Commerce Store</h3>
+                    <p style="color:#9ca3af;line-height:1.6;">Your trusted online shopping destination for quality products at great prices.</p>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Quick Links</h4>
+                    <ul style="list-style:none;padding:0;">
+                        <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Home</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Products</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">My Orders</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Profile</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+                    <ul style="list-style:none;padding:0;">
+                        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Get in Touch</h4>
+                    <p style="color:#9ca3af;margin-bottom:0.5rem;">📧 support@ecommerce.com</p>
+                    <p style="color:#9ca3af;margin-bottom:0.5rem;">📱 1-800-SHOP-NOW</p>
+                    <p style="color:#9ca3af;">📍 123 Commerce St, City, State 12345</p>
+                </div>
+            </div>
+            
+            <div style="border-top:1px solid #374151;padding-top:2rem;text-align:center;">
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">
+                    © <span id="currentYear"></span> E-Commerce Store. All rights reserved.
+                </p>
+                <p style="color:#6b7280;font-size:0.9rem;">
+                    Powered by Stripe | Secure Shopping Experience
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = localStorage.getItem('token');
+
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cartCount').textContent = count;
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/';
+    }
+
+    function initNavbar() {
+        updateCartCount();
+        
+        if (user && token) {
+            document.getElementById('userName').textContent = 'Hi, ' + user.name;
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+            document.getElementById('ordersLink').style.display = 'inline-block';
+            document.getElementById('profileLink').style.display = 'inline-block';
+            document.getElementById('loginLink').style.display = 'none';
+            document.getElementById('registerLink').style.display = 'none';
+            
+            if (user.role === 'ADMIN') {
+                document.getElementById('adminLink').style.display = 'inline-block';
+            }
+        }
+    }
+
+    // Show Success Modal
+    function showSuccessModal() {
+        const modal = document.getElementById('successModal');
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Show Error Modal
+    function showErrorModal(message) {
+        const modal = document.getElementById('errorModal');
+        document.getElementById('errorMessage').textContent = message;
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Show Chat Modal
+    function showChatModal() {
+        const modal = document.getElementById('chatModal');
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Close Modal Function
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+    }
+
+    // Handle Form Submission
+    async function handleSubmit(event) {
+        event.preventDefault();
+        
+        console.log('🚀 Form submitted!');
+        
+        const submitBtn = event.target.querySelector('.submit-btn');
+        const originalText = submitBtn.textContent;
+        
+        // Disable button and show loading state
+        submitBtn.disabled = true;
+        submitBtn.textContent = '✉️ Sending...';
+        submitBtn.style.opacity = '0.7';
+        
+        // Collect form data
+        const formData = {
+            name: document.getElementById('name').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            subject: document.getElementById('subject').value,
+            message: document.getElementById('message').value.trim()
+        };
+        
+        console.log('📤 Sending data:', formData);
+        
+        try {
+            console.log('🔄 Making API call to /api/contact/submit...');
+            
+            const response = await fetch('/api/contact/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            console.log('📥 Response status:', response.status);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Server error:', errorText);
+                throw new Error('Server returned status ' + response.status);
+            }
+            
+            const result = await response.json();
+            console.log('✅ Response data:', result);
+            
+            if (result.status === 'success') {
+                console.log('✅ Success! Showing modal...');
+                // Show success modal
+                showSuccessModal();
+                // Reset form
+                document.getElementById('contactForm').reset();
+            } else {
+                console.log('⚠️ API returned error:', result.message);
+                // Show error modal
+                showErrorModal(result.message || 'Failed to send message. Please try again.');
+            }
+            
+        } catch (error) {
+            console.error('❌ Fetch error:', error);
+            showErrorModal('Network error. Please check your connection and try again.');
+        } finally {
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+            submitBtn.style.opacity = '1';
+        }
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modals = document.querySelectorAll('.modal-overlay.show');
+            modals.forEach(modal => {
+                modal.classList.remove('show');
+            });
+            document.body.style.overflow = 'auto';
+        }
+    });
+
+    initNavbar();
+    
+    console.log('✅ Contact page JavaScript loaded');
+</script>
+
+</body>
+</html>

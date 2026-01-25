@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <meta charset="UTF-8">
+    <title>Login - E-Commerce Store</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/web/products">Products</a>
+            <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
+            <a href="/web/register">Register</a>
+        </div>
+    </nav>
+
+    <div class="form-container">
+        <h2>Login to Your Account</h2>
+        <div id="message"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" required placeholder="Enter your email">
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" required placeholder="Enter your password">
+            </div>
+
+            <button type="submit" class="btn">Login</button>
+        </form>
+
+        <p style="text-align: center; margin-top: 1rem;">
+            Don't have an account? <a href="/web/register">Register here</a>
+        </p>
+    </div>
+
+    <script>
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = count;
+        }
+        updateCartCount();
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data));
+                    
+                    if (data.role === 'ADMIN') {
+                        window.location.href = '/';
+                    } else {
+                        window.location.href = '/';
+                    }
+                } else {
+                    document.getElementById('message').innerHTML = 
+                        '<div class="alert alert-error">Invalid email or password</div>';
+                }
+            } catch (error) {
+                document.getElementById('message').innerHTML = 
+                    '<div class="alert alert-error">Login failed. Please try again.</div>';
+            }
+        });
+    </script>
+    <!-- Footer -->
+<footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">
+    <div style="max-width:1400px;margin:0 auto;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem;">
+            <!-- Company Info -->
+            <div>
+                <h3 style="font-size:1.5rem;margin-bottom:1rem;font-weight:800;">🛒 E-Commerce Store</h3>
+                <p style="color:#9ca3af;line-height:1.6;">Your trusted online shopping destination for quality products at great prices.</p>
+            </div>
+            
+            <!-- Quick Links -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Quick Links</h4>
+                <ul style="list-style:none;padding:0;">
+                    <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Home</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Products</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">My Orders</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Profile</a></li>
+                </ul>
+            </div>
+            
+            <!-- Customer Service -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+                <ul style="list-style:none;padding:0;">
+                    <li style="margin-bottom:0.5rem;"><a href="#" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+                   
+                    <li style="margin-bottom:0.5rem;"><a href="#" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="#" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+                </ul>
+            </div>
+            
+            <!-- Contact -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Get in Touch</h4>
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">📧 support@ecommerce.com</p>
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">📱 1-800-SHOP-NOW</p>
+                <p style="color:#9ca3af;">📍 123 Commerce St, City, State 12345</p>
+            </div>
+        </div>
+        
+        <!-- Copyright Bar -->
+        <div style="border-top:1px solid #374151;padding-top:2rem;text-align:center;">
+            <p style="color:#9ca3af;margin-bottom:0.5rem;">
+                © <span id="currentYear"></span> E-Commerce Store. All rights reserved.
+            </p>
+            <p style="color:#6b7280;font-size:0.9rem;">
+                Powered by Stripe | Secure Shopping Experience
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Set current year automatically
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+</script>
+    
+</body>
+</html>

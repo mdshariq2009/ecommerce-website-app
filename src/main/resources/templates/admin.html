@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - E-Commerce Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .admin-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 2px solid #f3f4f6;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Filters Section */
+        .filters-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 2px solid #f3f4f6;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+
+        .filter-select, .search-input {
+            padding: 0.6rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus, .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-input {
+            min-width: 200px;
+        }
+
+        /* Section Cards */
+        .section-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+            border: 2px solid #f3f4f6;
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f9fafb 0%, #e0e7ff 100%);
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .section-header:hover {
+            background: linear-gradient(135deg, #f3f4f6 0%, #dbeafe 100%);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: #1f2937;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-icon {
+            font-size: 1.5rem;
+            color: #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            padding: 2rem;
+            display: none;
+        }
+
+        .section-content.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Orders Table */
+        .orders-table-wrapper {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 2px solid #f3f4f6;
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .orders-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .orders-table th {
+            padding: 1.2rem 1rem;
+            text-align: center;
+            font-weight: 700;
+            color: white;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: none;
+        }
+
+        .orders-table td {
+            padding: 1.2rem 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            text-align: center;
+        }
+
+        .orders-table tbody tr {
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .orders-table tbody tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        .orders-table tbody tr:hover {
+            background: #f3f4f6;
+            transform: scale(1.01);
+        }
+
+        .order-status {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-processing { background: #dbeafe; color: #1e40af; }
+        .status-shipped { background: #e0e7ff; color: #4338ca; }
+        .status-delivered { background: #d1fae5; color: #065f46; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+
+        /* Modals */
+        .custom-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+            z-index: 10000;
+            min-width: 600px;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow-y: auto;
+            text-align: center;
+        }
+        
+        .custom-modal.show {
+            display: block;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+        }
+        
+        .modal-overlay.show {
+            display: block;
+        }
+
+        .order-details-content {
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .detail-section {
+            margin: 1rem 0;
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .info-box {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            border-radius: 8px;
+            color: #1e40af;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+        }
+
+        input[id^="tracking"]:enabled {
+            background: #dbeafe !important;
+            border-color: #3b82f6 !important;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f4f6;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .action-btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-view {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #2563eb;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-update {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-update:hover {
+            background: #059669;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Alert Modal -->
+    <div class="modal-overlay" id="alertOverlay" onclick="closeCustomAlert()"></div>
+    <div class="custom-modal" id="customAlert">
+        <div id="alertIcon" style="font-size:4rem;margin-bottom:1rem;">✅</div>
+        <h3 id="alertTitle" style="font-size:1.8rem;margin-bottom:1rem;color:#1f2937;">Success</h3>
+        <p id="alertMessage" style="color:#6b7280;font-size:1.1rem;margin-bottom:2rem;">Operation completed successfully</p>
+        <div id="alertContent"></div>
+        <button class="btn" onclick="closeCustomAlert()" style="margin-top:1.5rem;width:auto;padding:0.8rem 2.5rem;">Close</button>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteOverlay" onclick="closeDeleteConfirm()"></div>
+    <div class="custom-modal" id="deleteConfirmModal" style="min-width:500px;">
+        <div style="font-size:4rem;margin-bottom:1rem;color:#ef4444;">⚠️</div>
+        <h3 style="color:#ef4444;font-size:1.8rem;margin-bottom:1rem;">Delete Order?</h3>
+        <p style="color:#6b7280;font-size:1.1rem;margin-bottom:1.5rem;">This action cannot be undone!</p>
+        <div id="deleteOrderInfo" style="background:#fee2e2;padding:1.5rem;border-radius:12px;margin:1.5rem 0;border-left:4px solid #ef4444;">
+            <p style="margin:0;color:#991b1b;"><strong>Order ID:</strong> #<span id="deleteOrderId"></span></p>
+            <p style="margin:0.5rem 0 0 0;color:#991b1b;"><strong>Customer:</strong> <span id="deleteCustomerName"></span></p>
+        </div>
+        <div style="display:flex;gap:1rem;margin-top:2rem;">
+            <button onclick="closeDeleteConfirm()" class="btn" style="flex:1;background:linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">Cancel</button>
+            <button onclick="deleteOrderConfirmed()" class="btn btn-danger" style="flex:1;">Yes, Delete Order</button>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/web/admin" class="active" id="adminLink" style="display:none;">Dashboard</a>
+            <a href="/web/products">Products</a>
+            <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
+            <a href="/web/orders" id="ordersLink" style="display:none;">My Orders</a>
+            <a href="/web/profile" id="profileLink" style="display:none;">Profile</a>
+            
+            <span id="userName"></span>
+            <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <div class="page-header">
+            <h1 class="page-title">👑 Admin Dashboard</h1>
+            <p class="page-subtitle">Manage your store, products, and orders</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-value" id="totalOrders">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="totalUsers">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🛍️</div>
+                <div class="stat-value" id="totalProducts">0</div>
+                <div class="stat-label">Total Products</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value">$<span id="totalRevenue">0</span></div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+
+        <!-- Shipping Settings Section -->
+        <div class="section-card">
+            <div class="section-header" onclick="toggleSection('shippingSection')">
+                <div class="section-title">Shipping Settings</div>
+                <div class="toggle-icon" id="shippingToggle">▼</div>
+            </div>
+            <div class="section-content" id="shippingSection">
+                <div style="background:#d1fae5;padding:1.5rem;border-radius:12px;margin-bottom:1.5rem;border-left:4px solid #10b981;">
+                    <p style="margin:0;color:#065f46;"><strong>ℹ️ Current Settings:</strong></p>
+                    <p style="margin:0.5rem 0 0 0;color:#065f46;">Shipping Cost: <strong>$<span id="currentShippingCost">10.00</span></strong></p>
+                    <p style="margin:0.5rem 0 0 0;color:#065f46;">Free Shipping Threshold: <strong>$<span id="currentThreshold">50.00</span></strong></p>
+                </div>
+                
+                <form id="shippingConfigForm">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
+                        <div class="form-group">
+                            <label>Shipping Cost ($)</label>
+                            <input type="number" id="shippingCost" step="0.01" min="0" required placeholder="e.g., 10.00">
+                            <small style="color:#6b7280;">Cost charged for orders below threshold</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Free Shipping Threshold ($)</label>
+                            <input type="number" id="freeShippingThreshold" step="0.01" min="0" required placeholder="e.g., 50.00">
+                            <small style="color:#6b7280;">Orders above this get free shipping</small>
+                        </div>
+                    </div>
+                    
+                    <div class="info-box">
+                        <p style="margin:0;font-weight:600;">💡 Example</p>
+                        <p style="margin:0.5rem 0 0 0;font-size:0.9rem;">
+                            If shipping cost is $10 and threshold is $50, customers pay $10 for orders under $50, and get free shipping for $50+
+                        </p>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success" style="width:100%;margin-top:1rem;">💾 Save Shipping Settings</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add Product Section -->
+        <div class="section-card">
+            <div class="section-header" onclick="toggleSection('productSection')">
+                <div class="section-title">Add New Product</div>
+                <div class="toggle-icon" id="productToggle">▼</div>
+            </div>
+            <div class="section-content" id="productSection">
+                <form id="addProductForm">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+                        <div class="form-group">
+                            <label>Product Name</label>
+                            <input type="text" id="productName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Price ($)</label>
+                            <input type="number" id="productPrice" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="productDescription" required rows="3" style="resize:vertical;"></textarea>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem;">
+                        <div class="form-group">
+                            <label>Category</label>
+                            <input type="text" id="productCategory" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Stock Quantity</label>
+                            <input type="number" id="productStock" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Image URL</label>
+                            <input type="text" id="productImage" value="https://via.placeholder.com/300">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="width:100%;margin-top:1rem;">➕ Add Product</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-section" id="filtersSection" style="display:none;">
+            <div class="filter-group">
+                <label>Search By Order ID:</label>
+                <input type="text" class="search-input" id="orderIdSearch" placeholder="Enter Order ID..." oninput="filterOrders()">
+            </div>
+            <div class="filter-group">
+                <label>Search By Customer:</label>
+                <input type="text" class="search-input" id="customerSearch" placeholder="Customer name or email..." oninput="filterOrders()">
+            </div>
+            <div class="filter-group">
+                <label>Status:</label>
+                <select class="filter-select" id="statusFilter" onchange="filterOrders()">
+                    <option value="all">All Statuses</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="PROCESSING">Processing</option>
+                    <option value="SHIPPED">Shipped</option>
+                    <option value="DELIVERED">Delivered</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Sort by:</label>
+                <select class="filter-select" id="sortFilter" onchange="filterOrders()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="highest">Highest Amount</option>
+                    <option value="lowest">Lowest Amount</option>
+                </select>
+            </div>
+            <div style="margin-left:auto;">
+                <button onclick="clearFilters()" class="btn" style="padding:0.6rem 1.0rem;">
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="orders-table-wrapper">
+            <div class="table-header">
+                <div class="table-title">All Orders</div>
+                <button onclick="loadOrders()" class="btn" style="background:rgba(255,255,255,0.2);border:2px solid white;color:white;padding:0.6rem 1.5rem;">
+                    Refresh
+                </button>
+            </div>
+            <div id="ordersContainer" style="padding:2rem;">
+                <div style="text-align:center;padding:2rem;">
+                    <div class="loading-spinner"></div>
+                    <p style="color:#6b7280;margin-top:1rem;">Loading orders...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Footer -->
+<footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">
+    <div style="max-width:1400px;margin:0 auto;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem;">
+            <!-- Company Info -->
+            <div>
+                <h3 style="font-size:1.5rem;margin-bottom:1rem;font-weight:800;">🛒 E-Commerce Store</h3>
+                <p style="color:#9ca3af;line-height:1.6;">Your trusted online shopping destination for quality products at great prices.</p>
+            </div>
+            
+            <!-- Quick Links -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Quick Links</h4>
+                <ul style="list-style:none;padding:0;">
+                    <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Home</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Products</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">My Orders</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Profile</a></li>
+                </ul>
+            </div>
+            
+            <!-- Customer Service -->
+                    <div>
+    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+    <ul style="list-style:none;padding:0;">
+        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+    </ul>
+</div>
+            
+            <!-- Contact -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Get in Touch</h4>
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">📧 support@ecommerce.com</p>
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">📱 1-800-SHOP-NOW</p>
+                <p style="color:#9ca3af;">📍 123 Commerce St, City, State 12345</p>
+            </div>
+        </div>
+        
+        <!-- Copyright Bar -->
+        <div style="border-top:1px solid #374151;padding-top:2rem;text-align:center;">
+            <p style="color:#9ca3af;margin-bottom:0.5rem;">
+                © <span id="currentYear"></span> E-Commerce Store. All rights reserved.
+            </p>
+            <p style="color:#6b7280;font-size:0.9rem;">
+                Powered by Stripe | Secure Shopping Experience
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Set current year automatically
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+</script>
+
+    <script>
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = localStorage.getItem('token');
+    let allOrders = [];
+    let filteredOrders = [];
+    let orderToDelete = null;
+
+    console.log('🚀 Admin Dashboard Loaded');
+
+    if (!user || !token || user.role !== 'ADMIN') {
+        alert('Admin access only!');
+        window.location.href = '/web/login';
+    }
+
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cartCount').textContent = count;
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/';
+    }
+
+    function initNavbar() {
+        updateCartCount();
+        
+        if (user && token) {
+            document.getElementById('userName').textContent = 'Hi, ' + user.name;
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+            document.getElementById('ordersLink').style.display = 'inline-block';
+            document.getElementById('profileLink').style.display = 'inline-block';
+            
+            if (user.role === 'ADMIN') {
+                document.getElementById('adminLink').style.display = 'inline-block';
+            }
+        }
+    }
+
+    function toggleSection(sectionId) {
+        const content = document.getElementById(sectionId);
+        const toggle = document.getElementById(sectionId.replace('Section', 'Toggle'));
+        
+        if (content.classList.contains('show')) {
+            content.classList.remove('show');
+            toggle.classList.remove('expanded');
+        } else {
+            content.classList.add('show');
+            toggle.classList.add('expanded');
+            
+            if (sectionId === 'shippingSection') {
+                loadShippingConfig();
+            }
+        }
+    }
+
+    function showCustomAlert(title, message, type = 'success', content = '') {
+        const icon = document.getElementById('alertIcon');
+        
+        if (type === 'success') {
+            icon.textContent = '✅';
+            icon.style.color = '#10b981';
+        } else {
+            icon.textContent = '❌';
+            icon.style.color = '#ef4444';
+        }
+        
+        document.getElementById('alertTitle').textContent = title;
+        document.getElementById('alertMessage').textContent = message;
+        document.getElementById('alertContent').innerHTML = content;
+        document.getElementById('alertOverlay').classList.add('show');
+        document.getElementById('customAlert').classList.add('show');
+    }
+
+    function closeCustomAlert() {
+        document.getElementById('customAlert').classList.remove('show');
+        document.getElementById('alertOverlay').classList.remove('show');
+        document.getElementById('alertContent').innerHTML = '';
+    }
+
+    function clearFilters() {
+        document.getElementById('orderIdSearch').value = '';
+        document.getElementById('customerSearch').value = '';
+        document.getElementById('statusFilter').value = 'all';
+        document.getElementById('sortFilter').value = 'newest';
+        filterOrders();
+    }
+
+    // ADDED: Carrier detection function
+    function detectCarrier(trackingNumber) {
+        if (!trackingNumber) return 'USPS';
+        
+        const tracking = trackingNumber.trim().toUpperCase().replace(/\s+/g, '');
+        
+        // UPS Detection
+        if (tracking.match(/^1Z[A-Z0-9]{16}$/)) return 'UPS';
+        if (tracking.match(/^T\d{10}$/)) return 'UPS';
+        if (tracking.match(/^\d{18}$/)) return 'UPS';
+        
+        // USPS Detection (check BEFORE FedEx)
+        if (tracking.match(/^(94|92|93|82|71|61|42|41|40|23|03|02|01)\d{18,24}$/)) return 'USPS';
+        if (tracking.match(/^[A-Z]{2}\d{9}US$/)) return 'USPS';
+        
+        // FedEx Detection (check AFTER USPS)
+        if (tracking.match(/^\d{12}$/) && !tracking.match(/^(94|92|93|82|71|61|42|41|40|23|03|02|01)/)) return 'FedEx';
+        const length = tracking.length;
+        if (tracking.match(/^\d+$/) && [14, 15, 20, 22].includes(length)) return 'FedEx';
+        if (tracking.match(/^(96|02|03|04|05|06|07|08|09)\d{10,20}$/)) return 'FedEx';
+        
+        // DHL Detection
+        if (tracking.match(/^\d{10,11}$/) && !tracking.match(/^(94|92|93|82|71|61|42|41|40|23|03|02|01)/)) return 'DHL';
+        if (tracking.match(/^(JJD|JVGL|GM|LX|RX)\d{10,20}$/)) return 'DHL';
+        
+        // Amazon
+        if (tracking.match(/^TBA\d{12,13}$/)) return 'Amazon Logistics';
+        
+        return 'USPS';
+    }
+
+    // ADDED: Get tracking URL function
+    function getTrackingUrl(trackingNumber, carrier) {
+        if (!trackingNumber) return '#';
+        
+        switch (carrier.toUpperCase()) {
+            case 'UPS':
+                return `https://www.ups.com/track?tracknum=${trackingNumber}`;
+            case 'FEDEX':
+                return `https://www.fedex.com/fedextrack/?trknbr=${trackingNumber}`;
+            case 'DHL':
+                return `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNumber}`;
+            case 'USPS':
+                return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`;
+            case 'AMAZON LOGISTICS':
+                return `https://track.amazon.com/tracking/${trackingNumber}`;
+            default:
+                return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`;
+        }
+    }
+
+    function filterOrders() {
+        const orderIdSearch = document.getElementById('orderIdSearch').value.trim().toLowerCase();
+        const customerSearch = document.getElementById('customerSearch').value.trim().toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
+        const sortFilter = document.getElementById('sortFilter').value;
+
+        let filtered = [...allOrders];
+
+        if (orderIdSearch) {
+            filtered = filtered.filter(order => 
+                order.id.toString().includes(orderIdSearch)
+            );
+        }
+
+        if (customerSearch) {
+            filtered = filtered.filter(order => {
+                const customerName = order.user ? order.user.name.toLowerCase() : '';
+                const customerEmail = order.user ? order.user.email.toLowerCase() : '';
+                return customerName.includes(customerSearch) || customerEmail.includes(customerSearch);
+            });
+        }
+
+        if (statusFilter !== 'all') {
+            filtered = filtered.filter(order => {
+                const orderStatus = order.orderStatus || order.status || 'PENDING';
+                return orderStatus === statusFilter;
+            });
+        }
+
+        if (sortFilter === 'newest') {
+            filtered.sort((a, b) => new Date(b.orderDate || b.createdAt) - new Date(a.orderDate || a.createdAt));
+        } else if (sortFilter === 'oldest') {
+            filtered.sort((a, b) => new Date(a.orderDate || a.createdAt) - new Date(b.orderDate || b.createdAt));
+        } else if (sortFilter === 'highest') {
+            filtered.sort((a, b) => (b.totalAmount || 0) - (a.totalAmount || 0));
+        } else if (sortFilter === 'lowest') {
+            filtered.sort((a, b) => (a.totalAmount || 0) - (b.totalAmount || 0));
+        }
+
+        filteredOrders = filtered;
+        console.log('🔍 Filtered orders:', filtered.length);
+        displayOrders(filtered);
+    }
+
+    async function loadStats() {
+        try {
+            const response = await fetch('/api/admin/stats', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            
+            if (response.ok) {
+                const stats = await response.json();
+                
+                document.getElementById('totalOrders').textContent = stats.totalOrders || 0;
+                document.getElementById('totalUsers').textContent = stats.totalUsers || 0;
+                document.getElementById('totalProducts').textContent = stats.totalProducts || 0;
+                document.getElementById('totalRevenue').textContent = (stats.totalRevenue || 0).toFixed(2);
+            }
+        } catch (error) {
+            console.error('❌ Error loading stats:', error);
+        }
+    }
+
+    async function loadOrders() {
+        try {
+            console.log('📦 Loading orders...');
+
+            document.getElementById('ordersContainer').innerHTML = `
+                <div style="text-align:center;padding:2rem;">
+                    <div class="loading-spinner"></div>
+                    <p style="color:#6b7280;margin-top:1rem;">Loading orders...</p>
+                </div>
+            `;
+
+            const response = await fetch('/api/admin/orders', {
+                headers: { 
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ API Error:', errorText);
+                
+                document.getElementById('ordersContainer').innerHTML = 
+                    `<div class="empty-state">
+                        <div style="font-size:3rem;color:#ef4444;margin-bottom:1rem;">❌</div>
+                        <h3 style="color:#1f2937;margin-bottom:0.5rem;">Failed to Load Orders</h3>
+                        <p style="color:#6b7280;margin-bottom:1.5rem;">Status: ${response.status}</p>
+                        <button onclick="loadOrders()" class="btn">🔄 Retry</button>
+                    </div>`;
+                return;
+            }
+
+            const orders = await response.json();
+            allOrders = orders;
+            filteredOrders = orders;
+            
+            console.log('✅ Orders loaded:', orders.length);
+
+            if (orders.length === 0) {
+                document.getElementById('filtersSection').style.display = 'none';
+                document.getElementById('ordersContainer').innerHTML = 
+                    `<div class="empty-state">
+                        <div style="font-size:4rem;opacity:0.5;margin-bottom:1rem;">📦</div>
+                        <h3 style="color:#1f2937;margin-bottom:0.5rem;">No Orders Yet</h3>
+                        <p style="color:#6b7280;">Orders will appear here once customers start purchasing</p>
+                    </div>`;
+                return;
+            }
+
+            document.getElementById('filtersSection').style.display = 'flex';
+            displayOrders(orders);
+        } 
+        catch (error) {
+            console.error('❌ Exception:', error);
+            
+            document.getElementById('ordersContainer').innerHTML = 
+                `<div class="empty-state">
+                    <div style="font-size:3rem;color:#ef4444;margin-bottom:1rem;">❌</div>
+                    <h3 style="color:#1f2937;margin-bottom:0.5rem;">Error Loading Orders</h3>
+                    <p style="color:#6b7280;margin-bottom:1.5rem;">${error.message}</p>
+                    <button onclick="loadOrders()" class="btn">🔄 Retry</button>
+                </div>`;
+        }
+    }
+
+    function displayOrders(orders) {
+        if (orders.length === 0) {
+            document.getElementById('ordersContainer').innerHTML = 
+                `<div class="empty-state">
+                    <div style="font-size:3rem;opacity:0.5;margin-bottom:1rem;">🔍</div>
+                    <h3 style="color:#1f2937;margin-bottom:0.5rem;">No Orders Found</h3>
+                    <p style="color:#6b7280;margin-bottom:1.5rem;">Try adjusting your filters</p>
+                    <button onclick="clearFilters()" class="btn">Clear Filters</button>
+                </div>`;
+            return;
+        }
+
+        const html = `
+            <div style="overflow-x:auto;">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Payment</th>
+                            <th>Order Status</th>
+                            <th>Tracking Number</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orders.map(order => {
+                            const orderStatus = order.orderStatus || order.status || 'PENDING';
+                            const paymentStatus = order.paymentStatus || 'PENDING';
+                            
+                            return `
+                                <tr>
+                                    <td><strong style="color:#667eea;">#${order.id}</strong></td>
+                                    <td>
+                                        <div style="font-weight:600;color:#1f2937;">${order.user ? order.user.name : 'N/A'}</div>
+                                        <small style="color:#6b7280;">${order.user ? order.user.email : 'N/A'}</small>
+                                    </td>
+                                    <td><strong style="color:#10b981;font-size:1.1rem;">$${(order.totalAmount || 0).toFixed(2)}</strong></td>
+                                    <td><span class="order-status status-${paymentStatus.toLowerCase()}">${paymentStatus}</span></td>
+                                    <td>
+                                        <select id="status_${order.id}" onchange="handleStatusChange(${order.id})" style="padding:0.6rem;border:2px solid #e5e7eb;border-radius:8px;font-weight:600;width:140px;cursor:pointer;">
+                                            <option value="PENDING" ${orderStatus === 'PENDING' ? 'selected' : ''}>Pending</option>
+                                            <option value="PROCESSING" ${orderStatus === 'PROCESSING' ? 'selected' : ''}>Processing</option>
+                                            <option value="SHIPPED" ${orderStatus === 'SHIPPED' ? 'selected' : ''}>Shipped</option>
+                                            <option value="DELIVERED" ${orderStatus === 'DELIVERED' ? 'selected' : ''}>Delivered</option>
+                                            <option value="CANCELLED" ${orderStatus === 'CANCELLED' ? 'selected' : ''}>Cancelled</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input 
+                                            type="text" 
+                                            id="tracking_${order.id}" 
+                                            value="${order.trackingNumber || ''}" 
+                                            placeholder="Enter tracking #"
+                                            style="padding:0.6rem;border:2px solid #e5e7eb;border-radius:8px;width:180px;font-family:monospace;font-weight:600;"
+                                        >
+                                        <div id="trackingStatus_${order.id}" style="font-size:0.75rem;margin-top:0.3rem;min-height:18px;"></div>
+                                    </td>
+                                    <td><small style="color:#6b7280;">${new Date(order.orderDate || order.createdAt).toLocaleDateString()}</small></td>
+                                    <td>
+                                        <button onclick="viewOrderDetails(${order.id})" class="action-btn btn-view">View</button>
+                                        <button onclick="updateOrderClick(${order.id})" class="action-btn btn-update">Update</button>
+                                        <button onclick="confirmDeleteOrder(${order.id})" class="action-btn btn-delete">Delete</button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        document.getElementById('ordersContainer').innerHTML = html;
+
+        orders.forEach(order => {
+            handleStatusChange(order.id);
+        });
+    }
+
+    function confirmDeleteOrder(orderId) {
+        const order = allOrders.find(o => o.id === orderId);
+        
+        if (!order) {
+            showCustomAlert('Error', 'Order not found', 'error');
+            return;
+        }
+        
+        orderToDelete = orderId;
+        
+        document.getElementById('deleteOrderId').textContent = orderId;
+        document.getElementById('deleteCustomerName').textContent = order.user ? order.user.name : 'N/A';
+        
+        document.getElementById('deleteOverlay').classList.add('show');
+        document.getElementById('deleteConfirmModal').classList.add('show');
+    }
+
+    function closeDeleteConfirm() {
+        document.getElementById('deleteConfirmModal').classList.remove('show');
+        document.getElementById('deleteOverlay').classList.remove('show');
+        orderToDelete = null;
+    }
+
+    async function deleteOrderConfirmed() {
+        if (!orderToDelete) return;
+        
+        const orderId = orderToDelete;
+        
+        try {
+            const response = await fetch(`/api/admin/orders/${orderId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (response.ok || response.status === 204) {
+                closeDeleteConfirm();
+                showCustomAlert('Order Deleted ✅', `Order #${orderId} has been permanently deleted`, 'success');
+                loadOrders();
+                loadStats();
+            } else {
+                closeDeleteConfirm();
+                showCustomAlert('Delete Failed', 'Failed to delete order', 'error');
+            }
+        } catch (error) {
+            closeDeleteConfirm();
+            showCustomAlert('Error', 'Error deleting order: ' + error.message, 'error');
+        }
+    }
+
+    async function loadShippingConfig() {
+        try {
+            const response = await fetch('/api/admin/shipping', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            
+            if (response.ok) {
+                const config = await response.json();
+                
+                document.getElementById('currentShippingCost').textContent = config.shippingCost.toFixed(2);
+                document.getElementById('currentThreshold').textContent = config.freeShippingThreshold.toFixed(2);
+                document.getElementById('shippingCost').value = config.shippingCost;
+                document.getElementById('freeShippingThreshold').value = config.freeShippingThreshold;
+            }
+        } catch (error) {
+            console.error('Error loading shipping config:', error);
+        }
+    }
+
+    function handleStatusChange(orderId) {
+        const statusSelect = document.getElementById('status_' + orderId);
+        const trackingInput = document.getElementById('tracking_' + orderId);
+        
+        if (!statusSelect || !trackingInput) return;
+        
+        const status = statusSelect.value;
+        
+        if (status === 'SHIPPED') {
+            trackingInput.disabled = false;
+            trackingInput.style.background = '#dbeafe';
+            trackingInput.style.borderColor = '#3b82f6';
+            trackingInput.style.color = '#1e40af';
+            trackingInput.placeholder = 'Enter tracking number';
+            
+            if (!trackingInput.value) {
+                setTimeout(() => trackingInput.focus(), 100);
+            }
+        } else {
+            trackingInput.disabled = true;
+            trackingInput.style.background = '#f3f4f6';
+            trackingInput.style.borderColor = '#e5e7eb';
+            trackingInput.style.color = '#9ca3af';
+            trackingInput.placeholder = 'Not applicable';
+        }
+    }
+
+    function updateOrderClick(orderId) {
+        const statusSelect = document.getElementById('status_' + orderId);
+        const trackingInput = document.getElementById('tracking_' + orderId);
+        
+        if (!statusSelect || !trackingInput) {
+            showCustomAlert('Error', 'Could not find order elements', 'error');
+            return;
+        }
+        
+        const newStatus = statusSelect.value;
+        const trackingNumber = trackingInput.value.trim();
+        const order = allOrders.find(o => o.id === orderId);
+        
+        if (!order) {
+            showCustomAlert('Error', 'Order not found', 'error');
+            return;
+        }
+        
+        if (newStatus === 'SHIPPED' && !trackingNumber) {
+            showCustomAlert('Tracking Required ⚠️', 'Please enter a tracking number for shipped orders', 'error');
+            trackingInput.focus();
+            return;
+        }
+        
+        const paymentStatus = order.paymentStatus || 'PENDING';
+        updateOrderStatusAPI(orderId, newStatus, paymentStatus, trackingNumber);
+    }
+
+    async function updateOrderStatusAPI(orderId, orderStatus, paymentStatus, trackingNumber) {
+        try {
+            const statusDiv = document.getElementById('trackingStatus_' + orderId);
+            if (statusDiv) {
+                statusDiv.innerHTML = '<span style="color:#f59e0b;">⏳ Updating...</span>';
+            }
+            
+            let url = `/api/admin/orders/${orderId}?orderStatus=${orderStatus}&paymentStatus=${paymentStatus}`;
+            
+            if (trackingNumber) {
+                url += `&trackingNumber=${encodeURIComponent(trackingNumber)}`;
+            }
+            
+            const response = await fetch(url, {
+                method: 'PATCH',
+                headers: { 
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const updatedOrder = await response.json();
+                
+                if (statusDiv) {
+                    statusDiv.innerHTML = '<span style="color:#10b981;font-weight:600;">✓ Saved</span>';
+                    setTimeout(() => {
+                        statusDiv.innerHTML = '';
+                    }, 3000);
+                }
+                
+                const index = allOrders.findIndex(o => o.id === orderId);
+                if (index !== -1) {
+                    allOrders[index] = updatedOrder;
+                }
+                
+                showCustomAlert('Success! ✅', `Order #${orderId} updated successfully!`, 'success');
+                loadStats();
+                
+            } else {
+                if (statusDiv) {
+                    statusDiv.innerHTML = '<span style="color:#ef4444;">✗ Failed</span>';
+                }
+                showCustomAlert('Update Failed', 'Failed to update order', 'error');
+            }
+        } catch (error) {
+            const statusDiv = document.getElementById('trackingStatus_' + orderId);
+            if (statusDiv) {
+                statusDiv.innerHTML = '<span style="color:#ef4444;">✗ Error</span>';
+            }
+            showCustomAlert('Error', 'Failed to update: ' + error.message, 'error');
+        }
+    }
+
+    // UPDATED: viewOrderDetails with carrier detection
+    function viewOrderDetails(orderId) {
+        const order = allOrders.find(o => o.id === orderId);
+        
+        if (!order) {
+            showCustomAlert('Error', 'Order not found', 'error');
+            return;
+        }
+
+        console.log('========================================');
+        console.log('📋 Viewing order details');
+        console.log('Order:', order);
+        console.log('Tracking:', order.trackingNumber);
+        console.log('Carrier (DB):', order.carrier);
+        console.log('========================================');
+
+        const items = order.items || [];
+        const subtotal = order.subtotal || 0;
+        const tax = order.tax || 0;
+        const shipping = order.shipping || 0;
+        const total = order.totalAmount || 0;
+        
+        // Detect carrier from tracking number if not set or is default USPS
+        const trackingNumber = order.trackingNumber || '';
+        let carrier = order.carrier || 'USPS';
+        
+        if (trackingNumber && (!order.carrier || order.carrier === 'USPS')) {
+            carrier = detectCarrier(trackingNumber);
+            console.log('🔍 Auto-detected carrier:', carrier);
+        }
+        
+        // Generate tracking URL
+        const trackingUrl = trackingNumber ? getTrackingUrl(trackingNumber, carrier) : '#';
+        
+        // Get carrier emoji
+        const carrierEmoji = {
+            'UPS': '📦',
+            'FEDEX': '🚚',
+            'DHL': '✈️',
+            'USPS': '📮',
+            'AMAZON LOGISTICS': '📦'
+        }[carrier.toUpperCase()] || '📦';
+        
+        const itemsList = items.map(item => `
+            <div class="detail-row">
+                <span style="font-weight:600;">${item.productName || 'Product'}</span>
+                <span style="color:#6b7280;">Qty: ${item.quantity || 1}</span>
+                <span style="color:#6b7280;">@ $${(item.price || 0).toFixed(2)}</span>
+                <span style="font-weight:700;color:#10b981;">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+            </div>
+        `).join('');
+
+        const content = `
+            <div class="order-details-content">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+                    <div class="detail-section">
+                        <h4 style="margin-bottom:1rem;color:#1f2937;">📦 Order Information</h4>
+                        <div class="detail-row">
+                            <span><strong>Order ID:</strong></span>
+                            <span>#${order.id}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span><strong>Date:</strong></span>
+                            <span>${new Date(order.orderDate || order.createdAt).toLocaleString()}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span><strong>Status:</strong></span>
+                            <span class="order-status status-${(order.orderStatus || 'PENDING').toLowerCase()}">${order.orderStatus || 'PENDING'}</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4 style="margin-bottom:1rem;color:#1f2937;">👤 Customer</h4>
+                        <div class="detail-row">
+                            <span><strong>Name:</strong></span>
+                            <span>${order.user ? order.user.name : 'N/A'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span><strong>Email:</strong></span>
+                            <span>${order.user ? order.user.email : 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+
+                ${trackingNumber ? `
+                    <div class="detail-section" style="background:#dbeafe;border-left:4px solid #3b82f6;">
+                        <h4 style="color:#1e40af;margin-bottom:1rem;">🚚 Tracking Information</h4>
+                        <div class="detail-row">
+                            <span><strong>Carrier:</strong></span>
+                            <span style="color:#3b82f6;font-weight:800;font-size:1.1rem;">${carrierEmoji} ${carrier}</span>
+                        </div>
+                        <div class="detail-row" style="border-bottom:none;">
+                            <span><strong>Tracking Number:</strong></span>
+                            <span style="color:#1e40af;font-family:monospace;font-size:1.1rem;font-weight:700;">${trackingNumber}</span>
+                        </div>
+                        <div style="text-align:center;margin-top:1.5rem;">
+                            <a href="${trackingUrl}" target="_blank" 
+                               style="display:inline-block;padding:0.8rem 2rem;background:#3b82f6;color:white;text-decoration:none;border-radius:8px;font-weight:600;transition:all 0.3s ease;"
+                               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 15px rgba(59,130,246,0.4)'"
+                               onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+                                ${carrierEmoji} Track on ${carrier} Website →
+                            </a>
+                        </div>
+                    </div>
+                ` : ''}
+
+                <div class="detail-section">
+                    <h4 style="margin-bottom:1rem;color:#1f2937;">📍 Shipping Address</h4>
+                    <p style="margin:0.3rem 0;color:#374151;">${order.shippingStreet || 'N/A'}</p>
+                    <p style="margin:0.3rem 0;color:#374151;">${order.shippingCity || 'N/A'}, ${order.shippingState || 'N/A'} ${order.shippingZipCode || ''}</p>
+                    <p style="margin:0.3rem 0;color:#374151;">${order.shippingCountry || 'USA'}</p>
+                </div>
+
+                <div class="detail-section">
+                    <h4 style="margin-bottom:1rem;color:#1f2937;">🛍️ Order Items</h4>
+                    ${itemsList}
+                </div>
+
+                <div class="detail-section" style="background:#f0fdf4;border-left:4px solid #10b981;">
+                    <h4 style="color:#065f46;margin-bottom:1rem;">💰 Payment Summary</h4>
+                    <div class="detail-row">
+                        <span><strong>Subtotal:</strong></span>
+                        <span>$${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span><strong>Tax:</strong></span>
+                        <span>$${tax.toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span><strong>Shipping:</strong></span>
+                        <span>${shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row" style="border-top:2px solid #10b981;margin-top:0.5rem;padding-top:0.5rem;border-bottom:none;">
+                        <span style="font-size:1.2rem;"><strong>Total:</strong></span>
+                        <span style="font-size:1.3rem;font-weight:800;color:#10b981;">$${total.toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('alertIcon').textContent = '📦';
+        document.getElementById('alertIcon').style.color = '#3b82f6';
+        showCustomAlert('Order Details - #' + orderId, '', 'success', content);
+    }
+
+    document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const productData = {
+            name: document.getElementById('productName').value,
+            description: document.getElementById('productDescription').value,
+            price: parseFloat(document.getElementById('productPrice').value),
+            category: document.getElementById('productCategory').value,
+            stock: parseInt(document.getElementById('productStock').value),
+            imageUrl: document.getElementById('productImage').value
+        };
+
+        try {
+            const response = await fetch('/api/products', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(productData)
+            });
+
+            if (response.ok) {
+                showCustomAlert('Product Added! ✅', 'Product has been added successfully', 'success');
+                
+                document.getElementById('addProductForm').reset();
+                toggleSection('productSection');
+                loadStats();
+            } else {
+                showCustomAlert('Error', 'Failed to add product', 'error');
+            }
+        } catch (error) {
+            showCustomAlert('Error', 'Error adding product: ' + error.message, 'error');
+        }
+    });
+
+    document.getElementById('shippingConfigForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const shippingCost = parseFloat(document.getElementById('shippingCost').value);
+        const freeShippingThreshold = parseFloat(document.getElementById('freeShippingThreshold').value);
+        
+        if (shippingCost < 0 || freeShippingThreshold < 0) {
+            showCustomAlert('Invalid Input ⚠️', 'Values cannot be negative', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/admin/shipping?shippingCost=${shippingCost}&freeShippingThreshold=${freeShippingThreshold}`, {
+                method: 'PUT',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            
+            if (response.ok) {
+                const config = await response.json();
+                
+                showCustomAlert('Settings Saved! ✅', 'Shipping configuration updated successfully', 'success');
+                
+                document.getElementById('currentShippingCost').textContent = config.shippingCost.toFixed(2);
+                document.getElementById('currentThreshold').textContent = config.freeShippingThreshold.toFixed(2);
+            } else {
+                showCustomAlert('Error', 'Failed to update shipping settings', 'error');
+            }
+        } catch (error) {
+            showCustomAlert('Error', 'Error updating settings: ' + error.message, 'error');
+        }
+    });
+
+    // Initialize
+    initNavbar();
+    loadStats();
+    loadOrders();
+</script>
+</body>
+</html>

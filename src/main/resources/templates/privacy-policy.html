@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - E-Commerce Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f9fafb;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* Last Updated Banner */
+        .update-banner {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 2px solid #f3f4f6;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .update-banner p {
+            color: #6b7280;
+            font-size: 1.05rem;
+        }
+
+        .update-banner strong {
+            color: #1f2937;
+        }
+
+        /* Content Section */
+        .content-section {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 2px solid #f3f4f6;
+            margin-bottom: 3rem;
+        }
+
+        .content-section h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid #4facfe;
+        }
+
+        .content-section h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            font-size: 1.05rem;
+        }
+
+        .content-section ul, .content-section ol {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .content-section li {
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 0.8rem;
+            font-size: 1.05rem;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-left: 4px solid #3b82f6;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .highlight-box p {
+            color: #1e40af;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 2rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            color: #4b5563;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .toc {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .toc h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .toc li {
+            margin-bottom: 0.8rem;
+        }
+
+        .toc a {
+            color: #4facfe;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .toc a:hover {
+            color: #00f2fe;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2rem;
+            }
+            
+            .content-section {
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/web/products">Products</a>
+            <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
+            <a href="/web/orders" id="ordersLink" style="display:none;">My Orders</a>
+            <a href="/web/profile" id="profileLink" style="display:none;">Profile</a>
+            <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
+            <span id="userName"></span>
+            <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
+            <a href="/web/login" id="loginLink">Login</a>
+            <a href="/web/register" id="registerLink">Register</a>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>🔒 Privacy Policy</h1>
+        <p>Your privacy is important to us. Learn how we protect your data.</p>
+    </div>
+
+    <div class="main-container">
+        <!-- Last Updated -->
+        <div class="update-banner">
+            <p><strong>Last Updated:</strong> January 20, 2026</p>
+        </div>
+
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h3>📋 Table of Contents</h3>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#information-collected">2. Information We Collect</a></li>
+                <li><a href="#how-we-use">3. How We Use Your Information</a></li>
+                <li><a href="#data-sharing">4. Data Sharing and Disclosure</a></li>
+                <li><a href="#data-security">5. Data Security</a></li>
+                <li><a href="#your-rights">6. Your Rights and Choices</a></li>
+                <li><a href="#cookies">7. Cookies and Tracking</a></li>
+                <li><a href="#children">8. Children's Privacy</a></li>
+                <li><a href="#changes">9. Changes to This Policy</a></li>
+                <li><a href="#contact">10. Contact Us</a></li>
+            </ul>
+        </div>
+
+        <!-- Introduction -->
+        <div class="content-section" id="introduction">
+            <h2>1. Introduction</h2>
+            <p>Welcome to E-Commerce Store. We respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our services.</p>
+            
+            <p>By using our website, you agree to the collection and use of information in accordance with this policy. If you do not agree with our policies and practices, please do not use our services.</p>
+
+            <div class="highlight-box">
+                <p>🛡️ Your Privacy Matters: We are committed to transparency and giving you control over your personal information.</p>
+            </div>
+        </div>
+
+        <!-- Information Collected -->
+        <div class="content-section" id="information-collected">
+            <h2>2. Information We Collect</h2>
+            
+            <h3>2.1 Personal Information</h3>
+            <p>We collect information that you provide directly to us, including:</p>
+            <ul>
+                <li><strong>Account Information:</strong> Name, email address, password, phone number</li>
+                <li><strong>Billing Information:</strong> Billing address, payment card details (processed securely by Stripe)</li>
+                <li><strong>Shipping Information:</strong> Delivery address, contact information</li>
+                <li><strong>Profile Information:</strong> Preferences, purchase history, saved items</li>
+                <li><strong>Communication Data:</strong> Your messages, reviews, and feedback</li>
+            </ul>
+
+            <h3>2.2 Automatically Collected Information</h3>
+            <p>When you use our services, we automatically collect certain information:</p>
+            <ul>
+                <li><strong>Device Information:</strong> IP address, browser type, operating system</li>
+                <li><strong>Usage Data:</strong> Pages visited, time spent, links clicked</li>
+                <li><strong>Location Data:</strong> Approximate location based on IP address</li>
+                <li><strong>Cookies and Tracking:</strong> Information collected through cookies and similar technologies</li>
+            </ul>
+
+            <h3>2.3 Information from Third Parties</h3>
+            <p>We may receive information about you from:</p>
+            <ul>
+                <li>Payment processors (Stripe) for transaction verification</li>
+                <li>Shipping carriers for delivery tracking</li>
+                <li>Social media platforms if you choose to connect your account</li>
+                <li>Analytics providers to improve our services</li>
+            </ul>
+        </div>
+
+        <!-- How We Use Information -->
+        <div class="content-section" id="how-we-use">
+            <h2>3. How We Use Your Information</h2>
+            
+            <p>We use the information we collect for the following purposes:</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Purpose</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Order Processing</strong></td>
+                            <td>To process your orders, payments, and deliveries</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Customer Service</strong></td>
+                            <td>To respond to your inquiries and provide support</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Account Management</strong></td>
+                            <td>To create and manage your account</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Marketing</strong></td>
+                            <td>To send promotional emails and personalized offers (with your consent)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Improvement</strong></td>
+                            <td>To analyze usage and improve our website and services</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Security</strong></td>
+                            <td>To detect and prevent fraud and unauthorized access</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Legal Compliance</strong></td>
+                            <td>To comply with legal obligations and enforce our terms</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Data Sharing -->
+        <div class="content-section" id="data-sharing">
+            <h2>4. Data Sharing and Disclosure</h2>
+            
+            <p>We may share your information with the following parties:</p>
+
+            <h3>4.1 Service Providers</h3>
+            <ul>
+                <li><strong>Payment Processors:</strong> Stripe for secure payment processing</li>
+                <li><strong>Shipping Companies:</strong> To deliver your orders</li>
+                <li><strong>Email Services:</strong> To send order confirmations and updates</li>
+                <li><strong>Analytics Providers:</strong> To understand how our website is used</li>
+                <li><strong>Cloud Hosting:</strong> To store and process data securely</li>
+            </ul>
+
+            <h3>4.2 Legal Requirements</h3>
+            <p>We may disclose your information if required to do so by law or in response to:</p>
+            <ul>
+                <li>Valid legal processes (subpoenas, court orders)</li>
+                <li>Government requests</li>
+                <li>Protection of our rights, property, or safety</li>
+                <li>Prevention of fraud or illegal activities</li>
+            </ul>
+
+            <h3>4.3 Business Transfers</h3>
+            <p>In the event of a merger, acquisition, or sale of assets, your information may be transferred to the new owner.</p>
+
+            <div class="highlight-box">
+                <p>🔐 We Never Sell Your Data: We do not sell, rent, or trade your personal information to third parties for marketing purposes.</p>
+            </div>
+        </div>
+
+        <!-- Data Security -->
+        <div class="content-section" id="data-security">
+            <h2>5. Data Security</h2>
+            
+            <p>We implement industry-standard security measures to protect your personal information:</p>
+
+            <ul>
+                <li><strong>Encryption:</strong> All sensitive data is encrypted in transit using SSL/TLS</li>
+                <li><strong>Secure Storage:</strong> Data is stored on secure servers with restricted access</li>
+                <li><strong>Payment Security:</strong> We use Stripe for PCI-DSS compliant payment processing</li>
+                <li><strong>Access Controls:</strong> Limited employee access to personal data</li>
+                <li><strong>Regular Audits:</strong> Periodic security assessments and updates</li>
+                <li><strong>Monitoring:</strong> Continuous monitoring for suspicious activities</li>
+            </ul>
+
+            <p>However, no method of transmission over the internet is 100% secure. While we strive to protect your data, we cannot guarantee absolute security.</p>
+        </div>
+
+        <!-- Your Rights -->
+        <div class="content-section" id="your-rights">
+            <h2>6. Your Rights and Choices</h2>
+            
+            <p>You have the following rights regarding your personal information:</p>
+
+            <h3>6.1 Access and Portability</h3>
+            <ul>
+                <li>Request a copy of your personal data</li>
+                <li>Download your data in a portable format</li>
+            </ul>
+
+            <h3>6.2 Correction and Update</h3>
+            <ul>
+                <li>Update your account information at any time</li>
+                <li>Correct inaccurate or incomplete data</li>
+            </ul>
+
+            <h3>6.3 Deletion</h3>
+            <ul>
+                <li>Request deletion of your account and personal data</li>
+                <li>Note: Some data may be retained for legal compliance</li>
+            </ul>
+
+            <h3>6.4 Marketing Preferences</h3>
+            <ul>
+                <li>Opt-out of promotional emails by clicking "unsubscribe"</li>
+                <li>Manage your communication preferences in your account settings</li>
+            </ul>
+
+            <h3>6.5 Cookie Preferences</h3>
+            <ul>
+                <li>Control cookies through your browser settings</li>
+                <li>Opt-out of targeted advertising</li>
+            </ul>
+
+            <p><strong>To exercise your rights, contact us at:</strong> <a href="mailto:privacy@ecommerce.com" style="color:#4facfe;font-weight:600;">privacy@ecommerce.com</a></p>
+        </div>
+
+        <!-- Cookies -->
+        <div class="content-section" id="cookies">
+            <h2>7. Cookies and Tracking Technologies</h2>
+            
+            <p>We use cookies and similar tracking technologies to enhance your experience:</p>
+
+            <h3>Types of Cookies We Use:</h3>
+            <ul>
+                <li><strong>Essential Cookies:</strong> Required for website functionality (login, cart)</li>
+                <li><strong>Performance Cookies:</strong> Help us understand how visitors use our site</li>
+                <li><strong>Functional Cookies:</strong> Remember your preferences and settings</li>
+                <li><strong>Marketing Cookies:</strong> Used to deliver relevant advertisements</li>
+            </ul>
+
+            <h3>Managing Cookies:</h3>
+            <p>You can control cookies through your browser settings. Note that disabling cookies may affect website functionality.</p>
+        </div>
+
+        <!-- Children's Privacy -->
+        <div class="content-section" id="children">
+            <h2>8. Children's Privacy</h2>
+            
+            <p>Our services are not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13.</p>
+            
+            <p>If you are a parent or guardian and believe your child has provided us with personal information, please contact us immediately, and we will delete such information.</p>
+        </div>
+
+        <!-- Changes to Policy -->
+        <div class="content-section" id="changes">
+            <h2>9. Changes to This Privacy Policy</h2>
+            
+            <p>We may update this privacy policy from time to time to reflect changes in our practices or legal requirements. We will notify you of any material changes by:</p>
+            <ul>
+                <li>Posting the updated policy on our website</li>
+                <li>Updating the "Last Updated" date</li>
+                <li>Sending an email notification for significant changes</li>
+            </ul>
+
+            <p>We encourage you to review this policy periodically to stay informed about how we protect your information.</p>
+        </div>
+
+        <!-- Contact -->
+        <div class="content-section" id="contact">
+            <h2>10. Contact Us</h2>
+            
+            <p>If you have any questions, concerns, or requests regarding this privacy policy or our data practices, please contact us:</p>
+
+            <div style="background:#f9fafb;padding:2rem;border-radius:12px;margin-top:2rem;">
+                <p style="margin-bottom:1rem;"><strong>E-Commerce Store - Privacy Team</strong></p>
+                <p style="margin-bottom:0.5rem;">📧 Email: <a href="mailto:privacy@ecommerce.com" style="color:#4facfe;font-weight:600;">privacy@ecommerce.com</a></p>
+                <p style="margin-bottom:0.5rem;">📱 Phone: 1-800-SHOP-NOW</p>
+                <p style="margin-bottom:0.5rem;">📍 Address: 123 Commerce Street, City, State 12345</p>
+                <p style="margin-top:1.5rem;color:#6b7280;">We aim to respond to all privacy-related inquiries within 48 hours.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">
+        <div style="max-width:1400px;margin:0 auto;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem;">
+                <div>
+                    <h3 style="font-size:1.5rem;margin-bottom:1rem;font-weight:800;">🛒 E-Commerce Store</h3>
+                    <p style="color:#9ca3af;line-height:1.6;">Your trusted online shopping destination for quality products at great prices.</p>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Quick Links</h4>
+                    <ul style="list-style:none;padding:0;">
+                        <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Home</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Products</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">My Orders</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Profile</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+                    <ul style="list-style:none;padding:0;">
+                        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Get in Touch</h4>
+                    <p style="color:#9ca3af;margin-bottom:0.5rem;">📧 support@ecommerce.com</p>
+                    <p style="color:#9ca3af;margin-bottom:0.5rem;">📱 1-800-SHOP-NOW</p>
+                    <p style="color:#9ca3af;">📍 123 Commerce St, City, State 12345</p>
+                </div>
+            </div>
+            
+            <div style="border-top:1px solid #374151;padding-top:2rem;text-align:center;">
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">
+                    © <span id="currentYear"></span> E-Commerce Store. All rights reserved.
+                </p>
+                <p style="color:#6b7280;font-size:0.9rem;">
+                    Powered by Stripe | Secure Shopping Experience
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        const user = JSON.parse(localStorage.getItem('user'));
+        const token = localStorage.getItem('token');
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = count;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        function initNavbar() {
+            updateCartCount();
+            
+            if (user && token) {
+                document.getElementById('userName').textContent = 'Hi, ' + user.name;
+                document.getElementById('logoutBtn').style.display = 'inline-block';
+                document.getElementById('ordersLink').style.display = 'inline-block';
+                document.getElementById('profileLink').style.display = 'inline-block';
+                document.getElementById('loginLink').style.display = 'none';
+                document.getElementById('registerLink').style.display = 'none';
+                
+                if (user.role === 'ADMIN') {
+                    document.getElementById('adminLink').style.display = 'inline-block';
+                }
+            }
+        }
+
+        initNavbar();
+
+        // Smooth scroll for table of contents
+        document.querySelectorAll('.toc a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+ 
+</body>
+</html>

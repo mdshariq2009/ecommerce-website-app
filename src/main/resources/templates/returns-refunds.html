@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Returns & Refunds - E-Commerce Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f9fafb;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* Info Cards */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2.5rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 2px solid #f3f4f6;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+            border-color: #f093fb;
+        }
+
+        .info-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .info-card p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        /* Content Section */
+        .content-section {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 2px solid #f3f4f6;
+            margin-bottom: 3rem;
+        }
+
+        .content-section h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid #f093fb;
+        }
+
+        .content-section h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            font-size: 1.05rem;
+        }
+
+        .content-section ul, .content-section ol {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .content-section li {
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 0.8rem;
+            font-size: 1.05rem;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .highlight-box p {
+            color: #92400e;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .process-steps {
+            counter-reset: step-counter;
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .process-steps li {
+            counter-increment: step-counter;
+            position: relative;
+            padding-left: 3.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .process-steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 1.2rem 3rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2rem;
+            }
+            
+            .content-section {
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/web/products">Products</a>
+            <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
+            <a href="/web/orders" id="ordersLink" style="display:none;">My Orders</a>
+            <a href="/web/profile" id="profileLink" style="display:none;">Profile</a>
+            <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
+            <span id="userName"></span>
+            <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
+            <a href="/web/login" id="loginLink">Login</a>
+            <a href="/web/register" id="registerLink">Register</a>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>🔄 Returns & Refunds</h1>
+        <p>Easy returns and hassle-free refunds for your peace of mind</p>
+    </div>
+
+    <div class="main-container">
+        <!-- Info Cards -->
+        <div class="info-cards">
+            <div class="info-card">
+                <div class="info-icon">📦</div>
+                <h3>30-Day Returns</h3>
+                <p>Return most items within 30 days of delivery for a full refund</p>
+            </div>
+
+            <div class="info-card">
+                <div class="info-icon">💰</div>
+                <h3>Full Refunds</h3>
+                <p>Get your money back within 5-7 business days after we receive your return</p>
+            </div>
+
+            <div class="info-card">
+                <div class="info-icon">🚚</div>
+                <h3>Free Return Shipping</h3>
+                <p>We provide prepaid return labels for eligible returns</p>
+            </div>
+        </div>
+
+        <!-- Return Policy -->
+        <div class="content-section">
+            <h2>Return Policy</h2>
+            
+            <p>We want you to be completely satisfied with your purchase. If you're not happy with your order, we're here to help!</p>
+
+            <h3>Return Window</h3>
+            <p>You have <strong>30 days</strong> from the date of delivery to return most items. Some categories may have different return windows:</p>
+            <ul>
+                <li><strong>Electronics:</strong> 30 days with original packaging and accessories</li>
+                <li><strong>Clothing & Accessories:</strong> 30 days with tags attached and unworn</li>
+                <li><strong>Books & Media:</strong> 30 days in original condition</li>
+                <li><strong>Furniture:</strong> 14 days (due to shipping costs)</li>
+            </ul>
+
+            <h3>Eligible Items for Return</h3>
+            <p>To be eligible for a return, items must be:</p>
+            <ul>
+                <li>In original condition with all tags and packaging</li>
+                <li>Unused and unworn (for clothing and accessories)</li>
+                <li>Complete with all accessories, manuals, and parts</li>
+                <li>Not damaged or altered in any way</li>
+            </ul>
+
+            <div class="highlight-box">
+                <p>⚠️ Non-Returnable Items: Personalized items, intimate apparel, perishable goods, gift cards, and downloadable software cannot be returned.</p>
+            </div>
+
+            <h3>How to Initiate a Return</h3>
+            <ol class="process-steps">
+                <li>
+                    <strong>Log into Your Account</strong><br>
+                    Go to "My Orders" and select the order containing the item you want to return.
+                </li>
+                <li>
+                    <strong>Select Items to Return</strong><br>
+                    Choose the items you wish to return and provide a reason for the return.
+                </li>
+                <li>
+                    <strong>Print Return Label</strong><br>
+                    We'll email you a prepaid return shipping label within 24 hours.
+                </li>
+                <li>
+                    <strong>Pack and Ship</strong><br>
+                    Securely pack your items in the original packaging and attach the return label.
+                </li>
+                <li>
+                    <strong>Drop Off Package</strong><br>
+                    Drop off your package at any authorized shipping location.
+                </li>
+            </ol>
+
+            <a href="/web/orders" class="cta-button">Start a Return →</a>
+        </div>
+
+        <!-- Refund Policy -->
+        <div class="content-section">
+            <h2>Refund Policy</h2>
+            
+            <h3>Refund Processing Time</h3>
+            <p>Once we receive your returned item, we will inspect it and process your refund within <strong>2-3 business days</strong>. The refund will be credited to your original payment method within <strong>5-7 business days</strong>.</p>
+
+            <h3>Refund Methods</h3>
+            <ul>
+                <li><strong>Credit/Debit Card:</strong> Refunded to the original card used for purchase</li>
+                <li><strong>PayPal:</strong> Refunded to your PayPal account</li>
+                <li><strong>Store Credit:</strong> Instant store credit available upon request</li>
+            </ul>
+
+            <h3>Partial Refunds</h3>
+            <p>In certain situations, only partial refunds may be granted:</p>
+            <ul>
+                <li>Items with obvious signs of use or wear</li>
+                <li>Items returned more than 30 days after delivery</li>
+                <li>Items not in original condition or missing parts</li>
+                <li>Items damaged due to misuse</li>
+            </ul>
+
+            <div class="highlight-box">
+                <p>💡 Tip: Choose store credit for instant refunds! You'll receive a credit to your account immediately upon return approval.</p>
+            </div>
+        </div>
+
+        <!-- Exchanges -->
+        <div class="content-section">
+            <h2>Exchanges</h2>
+            
+            <p>We currently don't offer direct exchanges. If you need a different size, color, or model:</p>
+            <ol>
+                <li>Return the original item following our return process</li>
+                <li>Place a new order for the item you want</li>
+                <li>Use your refund or store credit to purchase the new item</li>
+            </ol>
+
+            <p><strong>Pro Tip:</strong> To ensure you get the item you want, place your new order before returning the original item.</p>
+        </div>
+
+        <!-- Damaged or Defective Items -->
+        <div class="content-section">
+            <h2>Damaged or Defective Items</h2>
+            
+            <p>If you receive a damaged or defective item, please contact us immediately:</p>
+            <ul>
+                <li>Email us at <a href="mailto:returns@ecommerce.com" style="color:#f093fb;font-weight:600;">returns@ecommerce.com</a></li>
+                <li>Include your order number and photos of the damage</li>
+                <li>We'll arrange for a replacement or full refund at no cost to you</li>
+            </ul>
+
+            <div class="highlight-box">
+                <p>🛡️ Quality Guarantee: All damaged or defective items are eligible for free return shipping and priority processing.</p>
+            </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="content-section" style="text-align:center;">
+            <h2>Need Help with a Return?</h2>
+            <p>Our customer service team is here to assist you with any questions about returns or refunds.</p>
+            <div style="margin-top:2rem;">
+                <a href="/web/contact" class="cta-button">Contact Support →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">
+        <div style="max-width:1400px;margin:0 auto;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem;">
+                <div>
+                    <h3 style="font-size:1.5rem;margin-bottom:1rem;font-weight:800;">🛒 E-Commerce Store</h3>
+                    <p style="color:#9ca3af;line-height:1.6;">Your trusted online shopping destination for quality products at great prices.</p>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Quick Links</h4>
+                    <ul style="list-style:none;padding:0;">
+                        <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Home</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Products</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">My Orders</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Profile</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+                    <ul style="list-style:none;padding:0;">
+                        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Get in Touch</h4>
+                    <p style="color:#9ca3af;margin-bottom:0.5rem;">📧 support@ecommerce.com</p>
+                    <p style="color:#9ca3af;margin-bottom:0.5rem;">📱 1-800-SHOP-NOW</p>
+                    <p style="color:#9ca3af;">📍 123 Commerce St, City, State 12345</p>
+                </div>
+            </div>
+            
+            <div style="border-top:1px solid #374151;padding-top:2rem;text-align:center;">
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">
+                    © <span id="currentYear"></span> E-Commerce Store. All rights reserved.
+                </p>
+                <p style="color:#6b7280;font-size:0.9rem;">
+                    Powered by Stripe | Secure Shopping Experience
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        const user = JSON.parse(localStorage.getItem('user'));
+        const token = localStorage.getItem('token');
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = count;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        function initNavbar() {
+            updateCartCount();
+            
+            if (user && token) {
+                document.getElementById('userName').textContent = 'Hi, ' + user.name;
+                document.getElementById('logoutBtn').style.display = 'inline-block';
+                document.getElementById('ordersLink').style.display = 'inline-block';
+                document.getElementById('profileLink').style.display = 'inline-block';
+                document.getElementById('loginLink').style.display = 'none';
+                document.getElementById('registerLink').style.display = 'none';
+                
+                if (user.role === 'ADMIN') {
+                    document.getElementById('adminLink').style.display = 'inline-block';
+                }
+            }
+        }
+
+        initNavbar();
+    </script>
+  
+</body>
+</html>

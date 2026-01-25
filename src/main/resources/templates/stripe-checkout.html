@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment - E-Commerce Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        .payment-form {
+            max-width: 1000px;
+            margin: 2rem auto;
+        }
+        
+        #card-element {
+            border: 2px solid #e5e7eb;
+            padding: 1.2rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        #card-element.StripeElement--focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        #card-errors {
+            color: #ef4444;
+            margin: 1rem 0;
+            font-weight: 600;
+            padding: 0.8rem;
+            background: #fee2e2;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        #card-errors.show {
+            display: block;
+        }
+        
+        .payment-summary {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .payment-option {
+            background: white;
+            border: 2px solid #e5e7eb;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .payment-option:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .payment-option.selected {
+            border-color: #10b981;
+            background: #f0fdf4;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+        
+        .saved-card {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            padding: 1.2rem;
+            border-radius: 8px;
+            color: white;
+        }
+        
+        .card-number {
+            font-family: monospace;
+            font-size: 1.3rem;
+            letter-spacing: 3px;
+            margin: 0.8rem 0;
+        }
+
+        .custom-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+    z-index: 10000;
+    text-align: center;
+    min-width: 400px;
+    max-width: 650px; /* INCREASED WIDTH */
+}
+
+        
+        .custom-modal.show {
+            display: block;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+        }
+        
+        .modal-overlay.show {
+            display: block;
+        }
+
+        .detail-section {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+
+        #submit-button.processing {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+            cursor: wait !important;
+        }
+
+        #submit-button.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            cursor: not-allowed !important;
+        }
+
+        #submit-button.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .success-badge {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            display: block;
+            font-weight: 600;
+        }
+        
+        
+    </style>
+</head>
+<body>
+    <!-- Custom Alert Modal -->
+    <div class="modal-overlay" id="customAlertOverlay"></div>
+    <div class="custom-modal" id="customAlertModal">
+        <div id="customAlertIcon" style="font-size:4rem;margin-bottom:1rem;">✅</div>
+        <h3 id="customAlertTitle" style="font-size:1.6rem;margin-bottom:1rem;">Success</h3>
+        <p id="customAlertMessage" style="color:#6b7280;font-size:1.1rem;margin-bottom:1.5rem;">Operation completed</p>
+        <div id="customAlertContent"></div>
+        <button onclick="handleAlertClose()" class="btn" id="alertOkBtn" style="width:auto;padding:0.8rem 2.5rem;margin-top:1rem;">OK</button>
+    </div>
+
+    <nav class="navbar">
+        <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/web/products">Products</a>
+            <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
+            <a href="/web/orders">My Orders</a>
+            <a href="/web/profile">Profile</a>
+            <a href="/web/admin" id="adminLink" style="display:none;">Admin Dashboard</a>
+            <a href="/web/profile" id="userName" style="cursor:pointer;text-decoration:none;"></a>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="payment-form">
+            <h2 style="font-size:2.5rem;margin-bottom:2rem;color:#1f2937;font-weight:800;">💳 Complete Your Payment</h2>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;">
+                <!-- Payment Method Selection -->
+                <div>
+                    <div class="payment-summary">
+                        <h3 style="margin-bottom:1.5rem;font-size:1.5rem;color:#1f2937;">Select Payment Method</h3>
+                        
+                        <!-- Saved Card Option -->
+                        <div id="savedCardSection" style="display:none;">
+                            <div class="payment-option selected" id="savedCardOption" onclick="selectPaymentOption('saved')">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                                    <h4 style="margin:0;color:#1f2937;font-weight:700;">💳 Use Saved Card</h4>
+                                    <span id="savedCheckmark" style="font-size:2rem;color:#10b981;">✓</span>
+                                </div>
+                                <div class="saved-card">
+                                    <p style="margin:0;font-size:0.85rem;opacity:0.7;">Saved Card</p>
+                                    <div class="card-number">
+                                        ---- ---- ---- <span id="displayCardLast4">----</span>
+                                    </div>
+                                    <p style="margin:0;font-size:0.95rem;opacity:0.9;font-weight:600;" id="displayCardType">CARD</p>
+                                </div>
+                                <div class="success-badge">
+                                    ✅ Card ready - No re-entry needed
+                                </div>
+                                <div class="success-badge">
+                                    ✅ Card details can be changed in Profile
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- New Card Option -->
+                        <div class="payment-option" id="newCardOption" onclick="selectPaymentOption('new')">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <h4 style="margin:0;color:#1f2937;font-weight:700;">💳 Use Different Card</h4>
+                                <span id="newCheckmark" style="font-size:2rem;color:#10b981;display:none;">✓</span>
+                            </div>
+                        </div>
+
+                        <!-- Stripe Card Element -->
+                        <div id="newCardSection" style="display:none;margin-top:1.5rem;">
+                            <h4 style="margin-bottom:1rem;color:#1f2937;font-weight:700;">Enter Card Details</h4>
+                            <div id="card-element"></div>
+                            <div id="card-errors" role="alert"></div>
+                            <label style="display:flex;align-items:center;margin-top:1rem;cursor:pointer;">
+                                <input type="checkbox" id="saveCardCheckbox" checked style="margin-right:0.5rem;width:18px;height:18px;cursor:pointer;">
+                                <span style="color:#1f2937;font-weight:600;">💾 Save this card for future purchases</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <form id="payment-form" style="margin-top:1.5rem;">
+                        <button type="submit" class="btn btn-success" id="submit-button">
+                            🔒 Pay $<span id="payAmount">0.00</span>
+                        </button>
+                        <p style="text-align:center;margin-top:1rem;color:#6b7280;font-size:0.9rem;">
+                            🔒 Secure payment powered by Stripe
+                        </p>
+                    </form>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="payment-summary">
+                    <h3 style="margin-bottom:1.5rem;font-size:1.5rem;color:#1f2937;">📋 Order Summary</h3>
+                    <div id="orderSummary"></div>
+                    <hr style="margin: 1.5rem 0;border:none;border-top:2px solid #e5e7eb;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;padding:1rem;background:linear-gradient(135deg, #f9fafb 0%, #e0e7ff 100%);border-radius:12px;">
+                        <span style="font-size:1.5rem;font-weight:800;color:#1f2937;">Total:</span>
+                        <span style="font-size:1.8rem;font-weight:800;color:#10b981;">$<span id="totalAmount">0.00</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        const token = localStorage.getItem('token');
+        const orderData = JSON.parse(sessionStorage.getItem('orderData'));
+        let selectedPaymentOption = null;
+        let savedCard = null;
+        let stripe = null;
+        let cardElement = null;
+        let shouldRedirectToOrders = false;
+
+        let shippingConfig = {
+            shippingCost: 10.0,
+            freeShippingThreshold: 50.0
+        };
+
+        console.log('🚀 Stripe Checkout Page Loaded');
+
+        if (!user || !token) {
+            console.error('❌ No user or token');
+            setTimeout(() => window.location.href = '/web/login', 1000);
+        }
+
+        if (!orderData) {
+            console.error('❌ No order data');
+            setTimeout(() => window.location.href = '/web/checkout', 1000);
+        }
+
+        // Initialize Stripe
+      /*  const publishableKey = '';
+        stripe = Stripe(publishableKey);
+        console.log('✅ Stripe initialized');*/
+        
+     // REMOVE THIS OLD CODE:
+     // const publishableKey = 'pk_test_51P8P6C1Lz1tbrsScBvmtlELHa8m6YFzQT2jMhKkxqC33Fr4yBVH6TrHRiUiGI9yzPWrifrYEMc0SzlqRXWgoETwY00Bzf7FsZf';
+     // stripe = Stripe(publishableKey);
+
+     // REPLACE WITH THIS:
+     let stripe = null;
+
+     async function initStripe() {
+         try {
+             console.log('🔑 Loading Stripe publishable key from backend...');
+             
+             const response = await fetch('/api/payment/stripe-publishable-key');
+             
+             if (!response.ok) {
+                 throw new Error('Failed to load Stripe key');
+             }
+             
+             const config = await response.json();
+             
+             if (!config.publishableKey) {
+                 throw new Error('No publishable key received');
+             }
+             
+             stripe = Stripe(config.publishableKey);
+             console.log('✅ Stripe initialized with key from environment');
+             
+         } catch (error) {
+             console.error('❌ Failed to initialize Stripe:', error);
+             alert('Failed to initialize payment system. Please refresh the page.');
+         }
+     }
+
+     // Initialize Stripe on page load
+     initStripe();
+
+        function resetPayButton(total, state = 'ready') {
+            const submitButton = document.getElementById('submit-button');
+            if (!submitButton) return;
+            
+            submitButton.className = 'btn btn-success ' + state;
+            
+            if (state === 'ready') {
+                submitButton.disabled = false;
+                submitButton.innerHTML = '🔒 Pay $' + total.toFixed(2);
+                submitButton.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            } else if (state === 'processing') {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '🔄 Processing...';
+                submitButton.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+            } else if (state === 'success') {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '✅ Payment Complete';
+                submitButton.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            } else if (state === 'error') {
+                submitButton.disabled = false;
+                submitButton.innerHTML = '🔒 Pay $' + total.toFixed(2);
+                submitButton.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+                setTimeout(() => {
+                    submitButton.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                }, 3000);
+            }
+        }
+
+        function showCustomAlert(title, message, type = 'success', content = '') {
+            const icon = document.getElementById('customAlertIcon');
+            const okBtn = document.getElementById('alertOkBtn');
+            
+            if (type === 'success') {
+                icon.textContent = '✅';
+                icon.style.color = '#10b981';
+                okBtn.style.display = 'inline-block';
+            } else if (type === 'processing') {
+                icon.innerHTML = '<div style="border:4px solid #f3f4f6;border-top:4px solid #667eea;border-radius:50%;width:60px;height:60px;animation:spin 1s linear infinite;margin:0 auto;"></div>';
+                okBtn.style.display = 'none';
+            } else {
+                icon.textContent = '❌';
+                icon.style.color = '#ef4444';
+                okBtn.style.display = 'inline-block';
+            }
+            
+            document.getElementById('customAlertTitle').textContent = title;
+            document.getElementById('customAlertMessage').textContent = message;
+            document.getElementById('customAlertContent').innerHTML = content;
+            document.getElementById('customAlertOverlay').classList.add('show');
+            document.getElementById('customAlertModal').classList.add('show');
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('customAlertModal').classList.remove('show');
+            document.getElementById('customAlertOverlay').classList.remove('show');
+            document.getElementById('customAlertContent').innerHTML = '';
+        }
+
+        function handleAlertClose() {
+            closeCustomAlert();
+            
+            // If payment was successful, redirect to orders page
+            if (shouldRedirectToOrders) {
+                console.log('✅ Redirecting to orders page...');
+                window.location.href = '/web/orders';
+            }
+        }
+
+        async function loadShippingConfig() {
+            try {
+                const response = await fetch('/api/admin/shipping');
+                if (response.ok) {
+                    shippingConfig = await response.json();
+                    console.log('📦 Shipping config loaded:', shippingConfig);
+                }
+            } catch (error) {
+                console.log('⚠️ Using default shipping config');
+            }
+        }
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = count;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        function initNavbar() {
+            updateCartCount();
+            document.getElementById('userName').textContent = 'Hi, ' + user.name;
+            
+            if (user.role === 'ADMIN') {
+                document.getElementById('adminLink').style.display = 'inline-block';
+            }
+        }
+
+        async function loadSavedPaymentMethod() {
+            try {
+                console.log('🔍 Loading default payment method...');
+                
+                // Try to get default payment method from new endpoint
+                const defaultResponse = await fetch('/api/profile/default-payment-method', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                if (defaultResponse.ok) {
+                    const defaultPM = await defaultResponse.json();
+                    
+                    if (defaultPM && defaultPM.stripePaymentMethodId) {
+                        savedCard = {
+                            paymentMethodId: defaultPM.stripePaymentMethodId,
+                            type: defaultPM.cardBrand || 'card',
+                            lastFour: defaultPM.cardLastFour,
+                            isDefault: true
+                        };
+                        
+                        console.log('💳 Default card loaded - Last 4:', savedCard.lastFour);
+                        
+                        document.getElementById('displayCardLast4').textContent = savedCard.lastFour;
+                        document.getElementById('displayCardType').textContent = (savedCard.type || 'CARD').toUpperCase();
+                        
+                        document.getElementById('savedCardSection').style.display = 'block';
+                        selectPaymentOption('saved');
+                        return;
+                    }
+                }
+                
+                // Fallback to legacy method for backward compatibility
+                const profileResponse = await fetch('/api/profile', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                if (profileResponse.ok) {
+                    const profile = await profileResponse.json();
+                    
+                    const cardLast4 = profile.cardLastFour || profile.card_last_four;
+                    const paymentMethodId = profile.stripePaymentMethodId || profile.stripe_payment_method_id;
+                    const paymentMethod = profile.savedPaymentMethod || profile.saved_payment_method;
+                    
+                    if (paymentMethodId && cardLast4) {
+                        savedCard = {
+                            paymentMethodId: paymentMethodId,
+                            type: paymentMethod || 'card',
+                            lastFour: cardLast4
+                        };
+                        
+                        console.log('💳 Legacy card loaded - Last 4:', savedCard.lastFour);
+                        
+                        document.getElementById('displayCardLast4').textContent = savedCard.lastFour;
+                        document.getElementById('displayCardType').textContent = (savedCard.type || 'CARD').toUpperCase();
+                        
+                        document.getElementById('savedCardSection').style.display = 'block';
+                        selectPaymentOption('saved');
+                    } else {
+                        console.log('ℹ️ No saved payment method');
+                        selectPaymentOption('new');
+                    }
+                } else {
+                    selectPaymentOption('new');
+                }
+            } catch (error) {
+                console.error('❌ Error loading payment method:', error);
+                selectPaymentOption('new');
+            }
+        }
+
+
+        function selectPaymentOption(option) {
+            selectedPaymentOption = option;
+            console.log('✅ Payment option selected:', option);
+            
+            const savedOption = document.getElementById('savedCardOption');
+            const newOption = document.getElementById('newCardOption');
+            const savedCheck = document.getElementById('savedCheckmark');
+            const newCheck = document.getElementById('newCheckmark');
+            const newCardSection = document.getElementById('newCardSection');
+            const submitButton = document.getElementById('submit-button');
+            
+            if (option === 'saved' && savedCard) {
+                savedOption.classList.add('selected');
+                savedCheck.style.display = 'inline';
+                newOption.classList.remove('selected');
+                newCheck.style.display = 'none';
+                newCardSection.style.display = 'none';
+                submitButton.disabled = false;
+            } else {
+                if (savedOption) {
+                    savedOption.classList.remove('selected');
+                    savedCheck.style.display = 'none';
+                }
+                newOption.classList.add('selected');
+                newCheck.style.display = 'inline';
+                newCardSection.style.display = 'block';
+                submitButton.disabled = false;
+                
+                if (!cardElement) {
+                    initCardElement();
+                }
+            }
+        }
+
+        function initCardElement() {
+            const elements = stripe.elements();
+            cardElement = elements.create('card', {
+                style: {
+                    base: {
+                        fontSize: '16px',
+                        color: '#1f2937',
+                        fontFamily: 'Inter, sans-serif',
+                        fontWeight: '500',
+                        '::placeholder': { color: '#9ca3af' }
+                    },
+                    invalid: { color: '#ef4444' }
+                }
+            });
+            
+            cardElement.mount('#card-element');
+            console.log('✅ Card element mounted');
+
+            cardElement.on('change', (event) => {
+                const displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.textContent = '❌ ' + event.error.message;
+                    displayError.classList.add('show');
+                } else {
+                    displayError.textContent = '';
+                    displayError.classList.remove('show');
+                }
+            });
+        }
+
+        async function calculateOrderTotal(subtotal, state, zipCode) {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            
+            const requestData = {
+                items: cart.map(item => ({
+                    productId: item.id,
+                    quantity: item.quantity
+                })),
+                shippingState: state,
+                shippingZipCode: zipCode,
+                shippingStreet: 'temp',
+                shippingCity: 'temp',
+                shippingCountry: 'USA',
+                paymentMethod: 'card'
+            };
+
+            try {
+                const response = await fetch('/api/orders/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (response.ok) {
+                    return await response.json();
+                }
+            } catch (error) {
+                console.error('Failed to calculate order:', error);
+            }
+            
+            return null;
+        }
+
+        async function loadOrderSummary() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            
+            if (cart.length === 0) {
+                window.location.href = '/web/cart';
+                return;
+            }
+            
+            let subtotal = 0;
+            const itemsHtml = cart.map(item => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                return `
+                    <div style="display:flex; justify-content:space-between; padding:1rem; border-bottom:1px solid #e5e7eb;border-radius:8px;">
+                        <div>
+                            <strong style="color:#1f2937;font-size:1.05rem;">${item.name}</strong>
+                            <p style="margin:5px 0;color:#6b7280;">Qty: ${item.quantity} × $${item.price.toFixed(2)}</p>
+                        </div>
+                        <strong style="color:#10b981;font-size:1.1rem;">$${itemTotal.toFixed(2)}</strong>
+                    </div>
+                `;
+            }).join('');
+
+            const shipping = subtotal >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.shippingCost;
+            
+            let tax = 0;
+            let taxRate = 0;
+            
+            if (orderData && orderData.shippingState && orderData.shippingZipCode) {
+                try {
+                    const calculation = await calculateOrderTotal(subtotal, orderData.shippingState, orderData.shippingZipCode);
+                    if (calculation) {
+                        tax = calculation.tax;
+                        taxRate = calculation.taxRate;
+                    }
+                } catch (e) {
+                    tax = subtotal * 0.07;
+                    taxRate = 7.0;
+                }
+            } else {
+                tax = subtotal * 0.07;
+                taxRate = 7.0;
+            }
+            
+            const total = subtotal + tax + shipping;
+
+            const summaryHtml = `
+                ${itemsHtml}
+                <div style="padding:1.5rem 1rem;background:#f9fafb;border-radius:12px;margin-top:1rem;border:1px solid #e5e7eb;">
+                    <div style="display:flex;justify-content:space-between;margin:10px 0;color:#1f2937;">
+                        <span style="font-weight:600;font-size:1.1rem;">Subtotal:</span>
+                        <span style="font-weight:700;font-size:1.1rem;">$${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin:10px 0;color:#1f2937;">
+                        <span style="font-weight:600;font-size:1.1rem;">Shipping:</span>
+                        <span style="font-weight:700;font-size:1.1rem;color:${shipping === 0 ? '#10b981' : '#6b7280'};">
+                            ${shipping === 0 ? 'FREE ✓' : '$' + shipping.toFixed(2)}
+                        </span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin:10px 0;color:#1f2937;">
+                        <span style="font-weight:600;font-size:1.1rem;">Tax (${taxRate.toFixed(2)}%):</span>
+                        <span style="font-weight:700;font-size:1.1rem;">$${tax.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('orderSummary').innerHTML = summaryHtml;
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+            document.getElementById('payAmount').textContent = total.toFixed(2);
+        }
+
+        const form = document.getElementById('payment-form');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            console.log('💳 PAY BUTTON CLICKED - Option:', selectedPaymentOption);
+
+            try {
+                const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const shipping = subtotal >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.shippingCost;
+                
+                let tax = 0;
+                if (orderData.shippingState && orderData.shippingZipCode) {
+                    const calc = await calculateOrderTotal(subtotal, orderData.shippingState, orderData.shippingZipCode);
+                    tax = calc ? calc.tax : subtotal * 0.07;
+                } else {
+                    tax = subtotal * 0.07;
+                }
+                
+                const total = subtotal + tax + shipping;
+                
+                resetPayButton(total, 'processing');
+                showCustomAlert('Processing Payment... 🔄', 'Please wait while we securely process your payment through Stripe', 'processing');
+
+                // Create payment intent
+                const paymentResponse = await fetch('/api/payment/create-payment-intent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ amount: total })
+                });
+
+                if (!paymentResponse.ok) {
+                    throw new Error('Failed to create payment intent');
+                }
+
+                const { clientSecret, paymentIntentId } = await paymentResponse.json();
+                console.log('✅ Payment intent created:', paymentIntentId);
+
+                let paymentResult;
+                let cardBrand = 'card';
+                let last4 = '****';
+
+                // Handle payment based on selected option
+                if (selectedPaymentOption === 'saved' && savedCard && savedCard.paymentMethodId) {
+                    console.log('💳 Using SAVED PAYMENT METHOD ID:', savedCard.paymentMethodId);
+                    console.log('💳 Card ending in:', savedCard.lastFour);
+                    
+                    // Confirm payment with saved payment method
+                    paymentResult = await stripe.confirmCardPayment(clientSecret, {
+                        payment_method: savedCard.paymentMethodId
+                    });
+                    
+                    cardBrand = savedCard.type;
+                    last4 = savedCard.lastFour;
+                    
+                    console.log('💳 Using saved card - Brand:', cardBrand, 'Last4:', last4);
+                    
+                } else if (selectedPaymentOption === 'new') {
+                    console.log('💳 Using NEW CARD');
+                    
+                    if (!cardElement) {
+                        throw new Error('Please enter card details');
+                    }
+                    
+                    // Confirm payment with new card
+                    paymentResult = await stripe.confirmCardPayment(clientSecret, {
+                        payment_method: {
+                            card: cardElement,
+                            billing_details: {
+                                name: user.name,
+                                email: user.email
+                            }
+                        }
+                    });
+                    
+                    if (paymentResult.paymentIntent) {
+                        cardBrand = paymentResult.paymentIntent.charges?.data[0]?.payment_method_details?.card?.brand || 'card';
+                        last4 = paymentResult.paymentIntent.charges?.data[0]?.payment_method_details?.card?.last4 || '****';
+                        
+                        console.log('💳 New card - Brand:', cardBrand, 'Last4:', last4);
+                        
+                        // Save card if checkbox is checked
+                        if (document.getElementById('saveCardCheckbox').checked) {
+                            const newPaymentMethodId = paymentResult.paymentIntent.payment_method;
+                            console.log('💾 Saving new card with Payment Method ID:', newPaymentMethodId);
+                            
+                            try {
+                                const saveResponse = await fetch('/api/profile/save-stripe-payment-method', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': 'Bearer ' + token
+                                    },
+                                    body: JSON.stringify({
+                                        paymentMethodId: newPaymentMethodId,
+                                        cardBrand: cardBrand,
+                                        cardLast4: last4,
+                                        billingZip: ''
+                                    })
+                                });
+                                
+                                if (saveResponse.ok) {
+                                    console.log('✅ Card saved successfully - Last 4:', last4);
+                                } else {
+                                    const errorText = await saveResponse.text();
+                                    console.error('⚠️ Failed to save card:', errorText);
+                                }
+                            } catch (e) {
+                                console.error('⚠️ Error saving payment method:', e);
+                            }
+                        }
+                    }
+                } else {
+                    throw new Error('Please select a payment method');
+                }
+
+                closeCustomAlert();
+
+                if (paymentResult.error) {
+                    console.error('❌ Stripe error:', paymentResult.error);
+                    resetPayButton(total, 'error');
+                    showCustomAlert('Payment Failed', paymentResult.error.message, 'error');
+                    shouldRedirectToOrders = false;
+                    return;
+                }
+
+                if (paymentResult.paymentIntent && paymentResult.paymentIntent.status === 'succeeded') {
+                    console.log('✅ PAYMENT SUCCEEDED via Stripe');
+                    console.log('✅ Charged card ending in:', last4);
+                    
+                    resetPayButton(total, 'success');
+                    document.getElementById('payment-form').style.display = 'none';
+                    
+                    // Create order
+                    orderData.paymentId = paymentIntentId;
+                    orderData.paymentMethod = 'card';
+
+                    const orderResponse = await fetch('/api/orders', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify(orderData)
+                    });
+
+                    if (orderResponse.ok) {
+                        const order = await orderResponse.json();
+                        console.log('✅ ORDER CREATED:', order.id);
+                        
+                        localStorage.removeItem('cart');
+                        sessionStorage.removeItem('orderData');
+                        
+                        // Set flag to redirect after user clicks OK
+                        shouldRedirectToOrders = true;
+                        
+                        // Format the current date/time
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { 
+                            month: 'long', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                        });
+                        const timeStr = now.toLocaleTimeString('en-US', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                        });
+                        
+                        showCustomAlert(
+                            'Payment Successful! 🎉',
+                            'Your order has been placed successfully',
+                            'success',
+                            `<div style="background:#d1fae5;border-radius:12px;padding:2rem;margin:1rem 0;border:2px solid #10b981;">
+                                <div style="text-align:left;color:#065f46;">
+                                    <div style="margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:2px solid #86efac;">
+                                        <h4 style="margin:0 0 1rem 0;font-size:1.3rem;color:#047857;">✅ Payment Confirmed</h4>
+                                        <p style="margin:0.3rem 0;font-size:1rem;"><strong>Date:</strong> ${dateStr}</p>
+                                        <p style="margin:0.3rem 0;font-size:1rem;"><strong>Time:</strong> ${timeStr}</p>
+                                    </div>
+                                    
+                                    <div style="margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:2px solid #86efac;">
+                                        <h4 style="margin:0 0 1rem 0;font-size:1.2rem;color:#047857;">📦 Order Details</h4>
+                                        <p style="margin:0.3rem 0;font-size:1rem;"><strong>Order Number:</strong> #${order.id}</p>
+                                        <p style="margin:0.3rem 0;font-size:1rem;"><strong>Total Amount:</strong> <span style="color:#10b981;font-size:1.3rem;font-weight:700;">$${order.totalAmount.toFixed(2)}</span></p>
+                                        <p style="margin:0.3rem 0;font-size:1rem;"><strong>Status:</strong> <span style="color:#10b981;font-weight:600;">Confirmed</span></p>
+                                    </div>
+                                    
+                                    <div style="margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:2px solid #86efac;">
+                                        <h4 style="margin:0 0 1rem 0;font-size:1.2rem;color:#047857;">💳 Payment Information</h4>
+                                        <p style="margin:0.3rem 0;font-size:1rem;"><strong>Card Type:</strong> ${cardBrand.toUpperCase()}</p>
+                                        <p style="margin:0.3rem 0;font-size:1rem;"><strong>Card Number:</strong> ---- ---- ---- ${last4}</p>
+                                        <p style="margin:0.3rem 0;font-size:1rem;"><strong>Payment Method:</strong> Stripe</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 style="margin:0 0 1rem 0;font-size:1.2rem;color:#047857;">🔐 Transaction Details</h4>
+                                        <p style="margin:0.3rem 0;font-size:0.9rem;word-break:break-all;"><strong>Payment ID:</strong><code>${paymentIntentId}</code></p>
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-top:2rem;padding-top:1.5rem;border-top:2px solid #86efac;text-align:center;">
+                                    <p style="margin:0;color:#047857;font-weight:700;font-size:1.1rem;">
+                                        A confirmation email has been sent to ${user.email}
+                                    </p>
+                                    <p style="margin:1rem 0 0 0;color:#065f46;font-weight:600;font-size:1rem;">
+                                        Click OK to view your order details
+                                    </p>
+                                </div>
+                            </div>`
+                        );
+                    } else {
+                        throw new Error('Order creation failed');
+                    }
+                }
+            } catch (err) {
+                console.error('❌ ERROR:', err);
+                closeCustomAlert();
+                const total = parseFloat(document.getElementById('totalAmount').textContent);
+                resetPayButton(total, 'error');
+                showCustomAlert('Payment Failed', err.message, 'error');
+                shouldRedirectToOrders = false;
+            }
+        });
+
+
+        // Initialize
+      /*  console.log('🚀 Starting initialization...');
+        initNavbar();
+        
+        loadShippingConfig()
+            .then(() => loadOrderSummary())
+            .then(() => loadSavedPaymentMethod())
+            .then(() => console.log('✅ All initialization complete!'))
+            .catch(error => console.error('❌ Initialization error:', error));*/
+            
+         // OLD:
+         // console.log('🚀 Starting initialization...');
+         // initNavbar();
+         // loadShippingConfig()
+//              .then(() => loadOrderSummary())
+//              .then(() => loadSavedPaymentMethod())
+//              .then(() => console.log('✅ All initialization complete!'))
+//              .catch(error => console.error('❌ Initialization error:', error));
+
+         // NEW:
+         console.log('🚀 Starting initialization...');
+         initNavbar();
+
+         // Initialize Stripe first, then load other data
+         initStripe()
+             .then(() => loadShippingConfig())
+             .then(() => loadOrderSummary())
+             .then(() => loadSavedPaymentMethod())
+             .then(() => console.log('✅ All initialization complete!'))
+             .catch(error => console.error('❌ Initialization error:', error));
+    </script>
+    <!-- Footer -->
+<footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">
+    <div style="max-width:1400px;margin:0 auto;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem;">
+            <!-- Company Info -->
+            <div>
+                <h3 style="font-size:1.5rem;margin-bottom:1rem;font-weight:800;">🛒 E-Commerce Store</h3>
+                <p style="color:#9ca3af;line-height:1.6;">Your trusted online shopping destination for quality products at great prices.</p>
+            </div>
+            
+            <!-- Quick Links -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Quick Links</h4>
+                <ul style="list-style:none;padding:0;">
+                    <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Home</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Products</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">My Orders</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Profile</a></li>
+                </ul>
+            </div>
+            
+            <!-- Customer Service -->
+                    <div>
+    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+    <ul style="list-style:none;padding:0;">
+        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+    </ul>
+</div>
+            
+            <!-- Contact -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Get in Touch</h4>
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">📧 support@ecommerce.com</p>
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">📱 1-800-SHOP-NOW</p>
+                <p style="color:#9ca3af;">📍 123 Commerce St, City, State 12345</p>
+            </div>
+        </div>
+        
+        <!-- Copyright Bar -->
+        <div style="border-top:1px solid #374151;padding-top:2rem;text-align:center;">
+            <p style="color:#9ca3af;margin-bottom:0.5rem;">
+                © <span id="currentYear"></span> E-Commerce Store. All rights reserved.
+            </p>
+            <p style="color:#6b7280;font-size:0.9rem;">
+                Powered by Stripe | Secure Shopping Experience
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Set current year automatically
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+</script>
+    
+</body>
+</html>

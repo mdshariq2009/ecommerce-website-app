@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - E-Commerce Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .orders-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+
+        .filters-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+
+        .filter-select {
+            padding: 0.6rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .orders-table-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.2rem 2rem;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .orders-grid {
+            display: grid;
+            grid-template-columns: 120px 180px 140px 160px 1fr;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .header-cell {
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            margin-bottom: 1rem;
+            border: 2px solid #f3f4f6;
+            transition: all 0.3s ease;
+        }
+
+        .order-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+            border-color: #667eea;
+        }
+
+        .order-row {
+            padding: 1.5rem 2rem;
+        }
+
+        .order-cell {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .order-value {
+            font-size: 1.05rem;
+            color: #1f2937;
+            font-weight: 700;
+        }
+
+        .order-id {
+            color: #667eea;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .order-total {
+            color: #10b981;
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-processing {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-shipped {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .status-delivered {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
+        }
+
+        .btn-action {
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            white-space: nowrap;
+        }
+
+        .btn-track {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-track:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-details {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-details:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .custom-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+            z-index: 10000;
+            min-width: 600px;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        
+        .custom-modal.show {
+            display: block;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+        }
+        
+        .modal-overlay.show {
+            display: block;
+        }
+
+        .modal-header {
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: #1f2937;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .detail-section {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .detail-title {
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            color: #1f2937;
+            font-weight: 700;
+        }
+
+        .item-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.8rem;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f4f6;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 2px solid #f3f4f6;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 1.8rem;
+            color: #1f2937;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-message {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tracking-timeline {
+            position: relative;
+            padding-left: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+
+        .timeline-item:before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0.5rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #d1d5db;
+        }
+
+        .timeline-item.active:before {
+            background: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+        }
+
+        .timeline-item:after {
+            content: '';
+            position: absolute;
+            left: -1.45rem;
+            top: 1.2rem;
+            width: 2px;
+            height: calc(100% - 0.5rem);
+            background: #e5e7eb;
+        }
+
+        .timeline-item:last-child:after {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .orders-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .order-cell {
+                text-align: left;
+                align-items: flex-start;
+            }
+
+            .custom-modal {
+                min-width: 90%;
+                max-width: 95%;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Details Modal -->
+    <div class="modal-overlay" id="detailsOverlay" onclick="closeDetailsModal()"></div>
+    <div class="custom-modal" id="detailsModal">
+        <div class="modal-header">
+            <h3 class="modal-title" id="detailsTitle">📋 Order Details</h3>
+            <p class="modal-subtitle" id="detailsSubtitle">Complete order information</p>
+        </div>
+        <div id="detailsContent"></div>
+        <button onclick="closeDetailsModal()" class="btn" style="width:100%;margin-top:1.5rem;">Close</button>
+    </div>
+
+    <!-- Tracking Modal -->
+    <div class="modal-overlay" id="trackingOverlay" onclick="closeTrackingModal()"></div>
+    <div class="custom-modal" id="trackingModal">
+        <div class="modal-header">
+            <h3 class="modal-title" id="trackingTitle">🚚 Order Tracking</h3>
+            <p class="modal-subtitle" id="trackingSubtitle">Track your order status</p>
+        </div>
+        <div id="trackingContent"></div>
+        <button onclick="closeTrackingModal()" class="btn" style="width:100%;margin-top:1.5rem;">Close</button>
+    </div>
+
+    <nav class="navbar">
+        <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
+            <a href="/web/products">Products</a>
+            <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
+            <a href="/web/orders" class="active">My Orders</a>
+            <a href="/web/profile">Profile</a>
+            <a href="/web/profile" id="userName" style="cursor:pointer;text-decoration:none;"></a>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="orders-container">
+        <div class="page-header">
+            <h1 class="page-title">📦 My Orders</h1>
+            <p class="page-subtitle">Track and manage all your orders in one place</p>
+        </div>
+
+        <!-- Order Statistics -->
+        <div class="stats-grid" id="orderStats" style="display:none;">
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-value" id="totalOrders">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value" id="totalSpent">$0.00</div>
+                <div class="stat-label">Total Spent</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🚚</div>
+                <div class="stat-value" id="activeOrders">0</div>
+                <div class="stat-label">Active Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value" id="completedOrders">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section" id="filtersSection" style="display:none;">
+            <div class="filter-group">
+                <label>Filter by Status:</label>
+                <select class="filter-select" id="statusFilter" onchange="filterOrders()">
+                    <option value="all">All Orders</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="PROCESSING">Processing</option>
+                    <option value="SHIPPED">Shipped</option>
+                    <option value="DELIVERED">Delivered</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Sort by:</label>
+                <select class="filter-select" id="sortFilter" onchange="filterOrders()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="highest">Highest Amount</option>
+                    <option value="lowest">Lowest Amount</option>
+                </select>
+            </div>
+            <div style="margin-left:auto;">
+                <button onclick="loadOrders()" class="btn" style="padding:0.6rem 1.5rem;">
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Table Header -->
+        <div class="orders-table-header" id="tableHeader" style="display:none;">
+            <div class="orders-grid">
+                <div class="header-cell">Order ID</div>
+                <div class="header-cell">Date</div>
+                <div class="header-cell">Amount</div>
+                <div class="header-cell">Status</div>
+                <div class="header-cell">Actions</div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" style="text-align:center;padding:3rem;">
+            <div class="loading-spinner"></div>
+            <p style="color:#6b7280;margin-top:1rem;font-size:1.1rem;">Loading your orders...</p>
+        </div>
+
+        <!-- Orders List -->
+        <div id="ordersList"></div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display:none;">
+            <div class="empty-icon">📦</div>
+            <h2 class="empty-title">No Orders Yet</h2>
+            <p class="empty-message">You haven't placed any orders yet. Start shopping to see your orders here!</p>
+            <button onclick="window.location.href='/web/products'" class="btn btn-success" style="padding:1rem 2.5rem;font-size:1.1rem;">
+                🛍️ Start Shopping
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        const token = localStorage.getItem('token');
+        let allOrders = [];
+
+        console.log('🚀 My Orders Page Loaded');
+
+        if (!user || !token) {
+            console.error('❌ No user or token, redirecting to login');
+            window.location.href = '/web/login';
+        }
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = count;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        function initNavbar() {
+            updateCartCount();
+            document.getElementById('userName').textContent = 'Hi, ' + user.name;
+            
+            if (user.role === 'ADMIN') {
+                document.getElementById('adminLink').style.display = 'inline-block';
+            }
+        }
+
+        function getOrderStatus(order) {
+            return order.status || order.orderStatus || order.order_status || 'PENDING';
+        }
+
+        function getStatusBadgeClass(status) {
+            const statusMap = {
+                'PENDING': 'status-pending',
+                'PROCESSING': 'status-processing',
+                'SHIPPED': 'status-shipped',
+                'DELIVERED': 'status-delivered',
+                'CANCELLED': 'status-cancelled'
+            };
+            return statusMap[status] || 'status-pending';
+        }
+
+        function getStatusIcon(status) {
+            const iconMap = {
+                'PENDING': '',
+                'PROCESSING': '',
+                'SHIPPED': '',
+                'DELIVERED': '',
+                'CANCELLED': ''
+            };
+            return iconMap[status] || '';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric'
+            });
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function calculateStats(orders) {
+            const totalOrders = orders.length;
+            const totalSpent = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+            const activeOrders = orders.filter(o => {
+                const status = getOrderStatus(o);
+                return ['PENDING', 'PROCESSING', 'SHIPPED'].includes(status);
+            }).length;
+            const completedOrders = orders.filter(o => getOrderStatus(o) === 'DELIVERED').length;
+
+            document.getElementById('totalOrders').textContent = totalOrders;
+            document.getElementById('totalSpent').textContent = '$' + totalSpent.toFixed(2);
+            document.getElementById('activeOrders').textContent = activeOrders;
+            document.getElementById('completedOrders').textContent = completedOrders;
+
+            if (totalOrders > 0) {
+                document.getElementById('orderStats').style.display = 'grid';
+                document.getElementById('filtersSection').style.display = 'flex';
+                document.getElementById('tableHeader').style.display = 'block';
+            }
+        }
+
+        async function loadOrders() {
+            try {
+                console.log('========================================');
+                console.log('📦 Loading orders for user:', user.email);
+                console.log('Token:', token ? 'Present' : 'Missing');
+                console.log('========================================');
+
+                document.getElementById('loadingState').style.display = 'block';
+                document.getElementById('ordersList').innerHTML = '';
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('tableHeader').style.display = 'none';
+
+                const response = await fetch('/api/orders', {
+                    headers: { 
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ API Error Response:', errorText);
+                    throw new Error('Failed to load orders');
+                }
+
+                allOrders = await response.json();
+                
+                console.log('========================================');
+                console.log('✅ Orders loaded successfully');
+                console.log('Total orders:', allOrders.length);
+                if (allOrders.length > 0) {
+                    console.log('First order:', allOrders[0]);
+                    console.log('First order items:', allOrders[0].items);
+                }
+                console.log('========================================');
+
+                document.getElementById('loadingState').style.display = 'none';
+
+                if (allOrders.length === 0) {
+                    document.getElementById('emptyState').style.display = 'block';
+                    document.getElementById('orderStats').style.display = 'none';
+                    document.getElementById('filtersSection').style.display = 'none';
+                } else {
+                    calculateStats(allOrders);
+                    displayOrders(allOrders);
+                }
+            } catch (error) {
+                console.error('========================================');
+                console.error('❌ Error loading orders');
+                console.error('Error:', error);
+                console.error('========================================');
+                
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                
+                // Show error message in empty state
+                document.querySelector('.empty-title').textContent = 'Failed to Load Orders';
+                document.querySelector('.empty-message').textContent = 'There was an error loading your orders. Please try again.';
+            }
+        }
+
+        function filterOrders() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const sortFilter = document.getElementById('sortFilter').value;
+
+            let filtered = [...allOrders];
+
+            if (statusFilter !== 'all') {
+                filtered = filtered.filter(order => getOrderStatus(order) === statusFilter);
+            }
+
+            if (sortFilter === 'newest') {
+                filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            } else if (sortFilter === 'oldest') {
+                filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            } else if (sortFilter === 'highest') {
+                filtered.sort((a, b) => (b.totalAmount || 0) - (a.totalAmount || 0));
+            } else if (sortFilter === 'lowest') {
+                filtered.sort((a, b) => (a.totalAmount || 0) - (b.totalAmount || 0));
+            }
+
+            displayOrders(filtered);
+        }
+
+        function displayOrders(orders) {
+            const ordersList = document.getElementById('ordersList');
+
+            if (orders.length === 0) {
+                ordersList.innerHTML = `
+                    <div style="text-align:center;padding:3rem;background:white;border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,0.08);">
+                        <p style="color:#6b7280;font-size:1.1rem;">No orders found matching your filters</p>
+                        <button onclick="document.getElementById('statusFilter').value='all'; filterOrders();" class="btn" style="margin-top:1rem;">
+                            Clear Filters
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const ordersHtml = orders.map(order => {
+                const status = getOrderStatus(order);
+                const orderId = order.id;
+                
+                return `
+                    <div class="order-card">
+                        <div class="order-row">
+                            <div class="orders-grid">
+                                <div class="order-cell">
+                                    <span class="order-value order-id">#${orderId}</span>
+                                </div>
+                                <div class="order-cell">
+                                    <span class="order-value">${formatDate(order.createdAt)}</span>
+                                </div>
+                                <div class="order-cell">
+                                    <span class="order-value order-total">$${(order.totalAmount || 0).toFixed(2)}</span>
+                                </div>
+                                <div class="order-cell">
+                                    <span class="status-badge ${getStatusBadgeClass(status)}">
+                                        ${getStatusIcon(status)} ${status}
+                                    </span>
+                                </div>
+                                <div class="order-cell">
+                                    <div class="order-actions">
+                                        <button class="btn-action btn-details" onclick="viewOrderDetails(${orderId})">
+                                            View Details
+                                        </button>
+                                        <button class="btn-action btn-track" onclick="trackOrder(${orderId})">
+                                            Track Order
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            ordersList.innerHTML = ordersHtml;
+            console.log('✅ Orders rendered successfully');
+        }
+
+        function viewOrderDetails(orderId) {
+            const order = allOrders.find(o => o.id === orderId);
+            
+            if (!order) {
+                console.error('❌ Order not found:', orderId);
+                return;
+            }
+            
+            console.log('========================================');
+            console.log('📋 Viewing order details');
+            console.log('Order ID:', order.id);
+            console.log('Full Order:', order);
+            console.log('Items:', order.items);
+            console.log('Subtotal:', order.subtotal);
+            console.log('Tax:', order.tax);
+            console.log('Shipping:', order.shipping);
+            console.log('Total:', order.totalAmount);
+            console.log('========================================');
+            
+            const items = order.items || [];
+            const status = getOrderStatus(order);
+            
+            const itemsHtml = items.length > 0 ? items.map(item => {
+                const productName = item.productName || item.product?.name || 'Product';
+                const quantity = item.quantity || 1;
+                const price = item.price || 0;
+                const itemTotal = quantity * price;
+                
+                return `
+                    <div class="item-card">
+                        <div>
+                            <div style="font-weight:700;color:#1f2937;margin-bottom:0.3rem;font-size:1.05rem;">${productName}</div>
+                            <div style="color:#6b7280;font-size:0.95rem;">Quantity: ${quantity} × $${price.toFixed(2)}</div>
+                        </div>
+                        <div style="font-weight:800;color:#10b981;font-size:1.2rem;">
+                            $${itemTotal.toFixed(2)}
+                        </div>
+                    </div>
+                `;
+            }).join('') : '<p style="color:#6b7280;text-align:center;padding:2rem;">No items found</p>';
+
+            const subtotal = order.subtotal || 0;
+            const tax = order.tax || 0;
+            const shipping = order.shipping || 0;
+            const total = order.totalAmount || 0;
+
+            const content = `
+                <div class="detail-section" style="background:#e0e7ff;border-color:#667eea;">
+                    <div class="detail-title">📦 Order Information</div>
+                    <div class="detail-row">
+                        <span class="detail-label">Order ID:</span>
+                        <span class="detail-value">#${order.id}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Order Date:</span>
+                        <span class="detail-value">${formatDateTime(order.createdAt)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Status:</span>
+                        <span class="status-badge ${getStatusBadgeClass(status)}">
+                            ${getStatusIcon(status)} ${status}
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Status:</span>
+                        <span class="detail-value" style="color:#10b981;">${order.paymentStatus || 'COMPLETED'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Method:</span>
+                        <span class="detail-value">${(order.paymentMethod || 'CARD').toUpperCase()}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment ID:</span>
+                        <span class="detail-value" style="font-family:monospace;font-size:0.85rem;">${order.paymentId || 'N/A'}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-title">🛍️ Order Items (${items.length})</div>
+                    ${itemsHtml}
+                </div>
+
+                <div class="detail-section" style="background:#f0fdf4;border-color:#10b981;">
+                    <div class="detail-title">💰 Order Summary</div>
+                    <div class="detail-row">
+                        <span class="detail-label">Subtotal:</span>
+                        <span class="detail-value">$${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Tax:</span>
+                        <span class="detail-value">$${tax.toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Shipping:</span>
+                        <span class="detail-value">${shipping === 0 ? '<span style="color:#10b981;font-weight:700;">FREE ✓</span>' : '$' + shipping.toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row" style="border-top:2px solid #10b981;margin-top:0.8rem;padding-top:0.8rem;">
+                        <span class="detail-label" style="font-size:1.2rem;">Total Amount:</span>
+                        <span class="detail-value" style="color:#10b981;font-size:1.5rem;font-weight:800;">$${total.toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section" style="background:#fef3c7;border-color:#f59e0b;">
+                    <div class="detail-title">📍 Shipping Address</div>
+                    <div style="color:#92400e;line-height:1.8;font-size:1.05rem;">
+                        <strong>${order.shippingStreet || 'N/A'}</strong><br>
+                        ${order.shippingCity || 'N/A'}, ${order.shippingState || 'N/A'} ${order.shippingZipCode || ''}<br>
+                        ${order.shippingCountry || 'USA'}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('detailsTitle').textContent = '📋 Order #' + order.id + ' Details';
+            document.getElementById('detailsSubtitle').textContent = 'Placed on ' + formatDateTime(order.createdAt);
+            document.getElementById('detailsContent').innerHTML = content;
+            document.getElementById('detailsOverlay').classList.add('show');
+            document.getElementById('detailsModal').classList.add('show');
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').classList.remove('show');
+            document.getElementById('detailsOverlay').classList.remove('show');
+        }
+
+        function trackOrder(orderId) {
+            const order = allOrders.find(o => o.id === orderId);
+            
+            if (!order) {
+                console.error('❌ Order not found:', orderId);
+                return;
+            }
+            
+            console.log('========================================');
+            console.log('🚚 Tracking order');
+            console.log('Order ID:', order.id);
+            console.log('Status:', getOrderStatus(order));
+            console.log('Tracking Number:', order.trackingNumber);
+            console.log('Carrier:', order.carrier);
+            console.log('========================================');
+            
+            const status = getOrderStatus(order);
+            const trackingNumber = order.trackingNumber || null;
+            const carrier = order.carrier || 'USPS';
+            
+            let content = '';
+            
+            if (trackingNumber) {
+                // Get tracking URL based on carrier
+                let trackingUrl = '#';
+                switch (carrier.toUpperCase()) {
+                    case 'UPS':
+                        trackingUrl = `https://www.ups.com/track?tracknum=${trackingNumber}`;
+                        break;
+                    case 'FEDEX':
+                        trackingUrl = `https://www.fedex.com/fedextrack/?trknbr=${trackingNumber}`;
+                        break;
+                    case 'DHL':
+                        trackingUrl = `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNumber}`;
+                        break;
+                    case 'USPS':
+                        trackingUrl = `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`;
+                        break;
+                    case 'AMAZON LOGISTICS':
+                        trackingUrl = `https://track.amazon.com/tracking/${trackingNumber}`;
+                        break;
+                    default:
+                        trackingUrl = `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`;
+                }
+                
+                content = `
+                    <div class="detail-section" style="background:#d1fae5;border-color:#10b981;">
+                        <div class="detail-title">📦 Tracking Information</div>
+                        <div class="detail-row">
+                            <span class="detail-label">Carrier:</span>
+                            <span class="detail-value" style="font-size:1.2rem;color:#10b981;">${carrier}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Tracking Number:</span>
+                            <span class="detail-value" style="font-family:monospace;color:#10b981;font-size:1.2rem;font-weight:800;">${trackingNumber}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Current Status:</span>
+                            <span class="status-badge ${getStatusBadgeClass(status)}">
+                                ${getStatusIcon(status)} ${status}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-title">📍 Tracking Timeline</div>
+                        <div class="tracking-timeline">
+                            <div class="timeline-item ${['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED'].includes(status) ? 'active' : ''}">
+                                <strong style="color:#1f2937;">Order Placed</strong>
+                                <div style="color:#6b7280;font-size:0.9rem;">${formatDateTime(order.createdAt)}</div>
+                            </div>
+                            <div class="timeline-item ${['PROCESSING', 'SHIPPED', 'DELIVERED'].includes(status) ? 'active' : ''}">
+                                <strong style="color:#1f2937;">Processing</strong>
+                                <div style="color:#6b7280;font-size:0.9rem;">Order is being prepared</div>
+                            </div>
+                            <div class="timeline-item ${['SHIPPED', 'DELIVERED'].includes(status) ? 'active' : ''}">
+                                <strong style="color:#1f2937;">Shipped</strong>
+                                <div style="color:#6b7280;font-size:0.9rem;">Package is in transit</div>
+                            </div>
+                            <div class="timeline-item ${status === 'DELIVERED' ? 'active' : ''}">
+                                <strong style="color:#1f2937;">Delivered</strong>
+                                <div style="color:#6b7280;font-size:0.9rem;">Package delivered successfully</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section" style="background:#dbeafe;border-color:#3b82f6;">
+                        <div style="text-align:center;color:#1e40af;padding:1rem;">
+                            <p style="margin:0 0 1rem 0;font-weight:600;font-size:1.1rem;">📱 Track your package online</p>
+                            <a href="${trackingUrl}" 
+                               target="_blank" 
+                               style="display:inline-block;padding:1rem 2.5rem;background:#3b82f6;color:white;text-decoration:none;border-radius:10px;font-weight:700;font-size:1.05rem;transition:all 0.3s ease;"
+                               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 20px rgba(59,130,246,0.4)'"
+                               onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+                                Track on ${carrier} Website →
+                            </a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const statusMessages = {
+                    'PENDING': '⏳ Your order is being prepared. Tracking information will be available once the order is processed and shipped.',
+                    'PROCESSING': '⚙️ Your order is currently being processed. Tracking information will be available once it ships (usually within 1-2 business days).',
+                    'SHIPPED': '🚚 Your order has been shipped but tracking information is being updated. Please check back in a few hours.',
+                    'DELIVERED': '✅ Your order has been delivered successfully.',
+                    'CANCELLED': '❌ This order has been cancelled. No tracking information is available.'
+                };
+
+                content = `
+                    <div class="detail-section" style="background:#fef3c7;border-color:#f59e0b;">
+                        <div style="text-align:center;color:#92400e;padding:2rem;">
+                            <div style="font-size:4rem;margin-bottom:1rem;">📦</div>
+                            <h4 style="margin:0 0 1rem 0;font-size:1.3rem;font-weight:700;">Tracking Information Not Available Yet</h4>
+                            <p style="margin:0;font-size:1.05rem;line-height:1.6;">
+                                ${statusMessages[status] || 'Tracking information is not available for this order at this time.'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-title">📦 Current Order Status</div>
+                        <div class="detail-row">
+                            <span class="detail-label">Order ID:</span>
+                            <span class="detail-value">#${order.id}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Status:</span>
+                            <span class="status-badge ${getStatusBadgeClass(status)}">
+                                ${getStatusIcon(status)} ${status}
+                            </span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Order Date:</span>
+                            <span class="detail-value">${formatDateTime(order.createdAt)}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Total Amount:</span>
+                            <span class="detail-value" style="color:#10b981;font-size:1.3rem;font-weight:800;">$${(order.totalAmount || 0).toFixed(2)}</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section" style="background:#e0e7ff;border-color:#667eea;">
+                        <div style="text-align:center;color:#4338ca;padding:1.5rem;">
+                            <p style="margin:0;font-weight:600;font-size:1.05rem;">📧 We'll send you an email with tracking information once your order ships.</p>
+                            <p style="margin:0.8rem 0 0 0;font-size:0.95rem;">Email will be sent to: <strong>${user.email}</strong></p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('detailsTitle').textContent = '📋 Order #' + order.id + ' Details';
+            document.getElementById('detailsSubtitle').textContent = 'Placed on ' + formatDateTime(order.createdAt);
+            document.getElementById('detailsContent').innerHTML = content;
+            document.getElementById('detailsOverlay').classList.add('show');
+            document.getElementById('detailsModal').classList.add('show');
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').classList.remove('show');
+            document.getElementById('detailsOverlay').classList.remove('show');
+        }
+
+     // Add this function to detect carrier from tracking number
+        // Fixed carrier detection - checks USPS BEFORE FedEx
+function detectCarrier(trackingNumber) {
+    if (!trackingNumber) return 'USPS';
+    
+    const tracking = trackingNumber.trim().toUpperCase().replace(/\s+/g, '');
+    
+    // UPS Detection (check first - most specific patterns)
+    if (tracking.match(/^1Z[A-Z0-9]{16}$/)) {
+        return 'UPS';
+    }
+    if (tracking.match(/^T\d{10}$/)) {
+        return 'UPS';
+    }
+    if (tracking.match(/^\d{18}$/)) {
+        return 'UPS';
+    }
+    
+    // USPS Detection (check BEFORE FedEx - more specific patterns)
+    // USPS 20-26 digit tracking starting with specific prefixes
+    if (tracking.match(/^(94|92|93|82|71|61|42|41|40|23|03|02|01)\d{18,24}$/)) {
+        return 'USPS';
+    }
+    
+    // USPS International: 2 letters + 9 digits + US
+    if (tracking.match(/^[A-Z]{2}\d{9}US$/)) {
+        return 'USPS';
+    }
+    
+    // FedEx Detection (check AFTER USPS)
+    // FedEx 12 digits (but not starting with USPS prefixes)
+    if (tracking.match(/^\d{12}$/) && !tracking.match(/^(94|92|93|82|71|61|42|41|40|23|03|02|01)/)) {
+        return 'FedEx';
+    }
+    
+    // FedEx 14, 15, 20, or 22 digits
+    const length = tracking.length;
+    if (tracking.match(/^\d+$/) && [14, 15, 20, 22].includes(length)) {
+        return 'FedEx';
+    }
+    
+    // FedEx Express: starts with 96, 02-09 (but not 94, 92, 93 which are USPS)
+    if (tracking.match(/^(96|02|03|04|05|06|07|08|09)\d{10,20}$/)) {
+        return 'FedEx';
+    }
+    
+    // DHL Detection
+    if (tracking.match(/^\d{10,11}$/) && !tracking.match(/^(94|92|93|82|71|61|42|41|40|23|03|02|01)/)) {
+        return 'DHL';
+    }
+    
+    if (tracking.match(/^(JJD|JVGL|GM|LX|RX)\d{10,20}$/)) {
+        return 'DHL';
+    }
+    
+    // Amazon Logistics
+    if (tracking.match(/^TBA\d{12,13}$/)) {
+        return 'Amazon Logistics';
+    }
+    
+    // Default to USPS
+    return 'USPS';
+}
+
+        function getTrackingUrl(trackingNumber, carrier) {
+            if (!trackingNumber) return '#';
+            
+            switch (carrier.toUpperCase()) {
+                case 'UPS':
+                    return `https://www.ups.com/track?tracknum=${trackingNumber}`;
+                case 'FEDEX':
+                    return `https://www.fedex.com/fedextrack/?trknbr=${trackingNumber}`;
+                case 'DHL':
+                    return `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNumber}`;
+                case 'USPS':
+                    return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`;
+                case 'AMAZON LOGISTICS':
+                    return `https://track.amazon.com/tracking/${trackingNumber}`;
+                default:
+                    return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`;
+            }
+        }
+        
+        function trackOrder(orderId) {
+            const order = allOrders.find(o => o.id === orderId);
+            
+            if (!order) {
+                console.error('❌ Order not found:', orderId);
+                return;
+            }
+            
+            const status = order.orderStatus || order.status || 'PENDING';
+            const trackingNumber = order.trackingNumber || null;
+            
+            // Detect carrier from tracking number if not set
+            let carrier = order.carrier || 'USPS';
+            if (trackingNumber && (!order.carrier || order.carrier === 'USPS')) {
+                carrier = detectCarrier(trackingNumber);
+                console.log('🔍 Auto-detected carrier:', carrier, 'from tracking:', trackingNumber);
+            }
+            
+            console.log('========================================');
+            console.log('🚚 Tracking order');
+            console.log('Order ID:', order.id);
+            console.log('Status:', status);
+            console.log('Tracking Number:', trackingNumber);
+            console.log('Carrier:', carrier);
+            console.log('========================================');
+            
+            let content = '';
+            
+            if (trackingNumber) {
+                const trackingUrl = getTrackingUrl(trackingNumber, carrier);
+                
+                // Get carrier emoji
+                const carrierEmoji = {
+                    'UPS': '',
+                    'FEDEX': '',
+                    'DHL': '',
+                    'USPS': '',
+                    'AMAZON LOGISTICS': ''
+                }[carrier.toUpperCase()] || '';
+                
+                content = `
+                    <div class="detail-section" style="background:#d1fae5;border-color:#10b981;">
+                        <div class="detail-title">📦 Tracking Information</div>
+                        <div class="detail-row">
+                            <span class="detail-label">Carrier:</span>
+                            <span class="detail-value" style="font-size:1.2rem;color:#10b981;font-weight:800;">${carrierEmoji} ${carrier}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Tracking Number:</span>
+                            <span class="detail-value" style="font-family:monospace;color:#10b981;font-size:1.2rem;font-weight:800;">${trackingNumber}</span>
+                        </div>
+                        <div class="detail-row" style="border-bottom:none;">
+                            <span class="detail-label">Current Status:</span>
+                            <span class="status-badge ${getStatusBadgeClass(status)}">
+                                ${getStatusIcon(status)} ${status}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-title">📍 Tracking Timeline</div>
+                        <div class="tracking-timeline">
+                            <div class="timeline-item ${['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED'].includes(status) ? 'active' : ''}">
+                                <strong style="color:#1f2937;">Order Placed</strong>
+                                <div style="color:#6b7280;font-size:0.9rem;">${formatDateTime(order.createdAt)}</div>
+                            </div>
+                            <div class="timeline-item ${['PROCESSING', 'SHIPPED', 'DELIVERED'].includes(status) ? 'active' : ''}">
+                                <strong style="color:#1f2937;">Processing</strong>
+                                <div style="color:#6b7280;font-size:0.9rem;">Order is being prepared</div>
+                            </div>
+                            <div class="timeline-item ${['SHIPPED', 'DELIVERED'].includes(status) ? 'active' : ''}">
+                                <strong style="color:#1f2937;">Shipped</strong>
+                                <div style="color:#6b7280;font-size:0.9rem;">Package is in transit</div>
+                            </div>
+                            <div class="timeline-item ${status === 'DELIVERED' ? 'active' : ''}">
+                                <strong style="color:#1f2937;">Delivered</strong>
+                                <div style="color:#6b7280;font-size:0.9rem;">Package delivered successfully</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section" style="background:#dbeafe;border-color:#3b82f6;">
+                        <div style="text-align:center;color:#1e40af;padding:1rem;">
+                            <p style="margin:0 0 1rem 0;font-weight:600;font-size:1.1rem;">Track your package online</p>
+                            <a href="${trackingUrl}" 
+                               target="_blank" 
+                               style="display:inline-block;padding:1rem 2.5rem;background:#3b82f6;color:white;text-decoration:none;border-radius:10px;font-weight:700;font-size:1.05rem;transition:all 0.3s ease;"
+                               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 20px rgba(59,130,246,0.4)'"
+                               onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+                                ${carrierEmoji} Track on ${carrier} Website
+                            </a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const statusMessages = {
+                    'PENDING': 'Your order is being prepared. Tracking information will be available once the order is processed and shipped.',
+                    'PROCESSING': 'Your order is currently being processed. Tracking information will be available once it ships (usually within 1-2 business days).',
+                    'SHIPPED': 'Your order has been shipped but tracking information is being updated. Please check back in a few hours.',
+                    'DELIVERED': 'Your order has been delivered successfully.',
+                    'CANCELLED': 'This order has been cancelled. No tracking information is available.'
+                };
+
+                content = `
+                    <div class="detail-section" style="background:#fef3c7;border-color:#f59e0b;">
+                        <div style="text-align:center;color:#92400e;padding:2rem;">
+                            <div style="font-size:4rem;margin-bottom:1rem;">📦</div>
+                            <h4 style="margin:0 0 1rem 0;font-size:1.3rem;font-weight:700;">Tracking Information Not Available Yet</h4>
+                            <p style="margin:0;font-size:1.05rem;line-height:1.6;">
+                                ${statusMessages[status] || 'Tracking information is not available for this order at this time.'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <div class="detail-title">📦 Current Order Status</div>
+                        <div class="detail-row">
+                            <span class="detail-label">Order ID:</span>
+                            <span class="detail-value">#${order.id}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Status:</span>
+                            <span class="status-badge ${getStatusBadgeClass(status)}">
+                                ${getStatusIcon(status)} ${status}
+                            </span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Order Date:</span>
+                            <span class="detail-value">${formatDateTime(order.createdAt)}</span>
+                        </div>
+                        <div class="detail-row" style="border-bottom:none;">
+                            <span class="detail-label">Total Amount:</span>
+                            <span class="detail-value" style="color:#10b981;font-size:1.3rem;font-weight:800;">$${(order.totalAmount || 0).toFixed(2)}</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section" style="background:#e0e7ff;border-color:#667eea;">
+                        <div style="text-align:center;color:#4338ca;padding:1.5rem;">
+                            <p style="margin:0;font-weight:600;font-size:1.05rem;">📧 We'll send you an email with tracking information once your order ships.</p>
+                            <p style="margin:0.8rem 0 0 0;font-size:0.95rem;">Email will be sent to: <strong>${user.email}</strong></p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('trackingTitle').textContent = '🚚 Track Order #' + order.id;
+            document.getElementById('trackingSubtitle').textContent = 'Current Status: ' + status;
+            document.getElementById('trackingContent').innerHTML = content;
+            document.getElementById('trackingOverlay').classList.add('show');
+            document.getElementById('trackingModal').classList.add('show');
+        }
+
+        function closeTrackingModal() {
+            document.getElementById('trackingModal').classList.remove('show');
+            document.getElementById('trackingOverlay').classList.remove('show');
+        }
+
+        // Initialize
+        initNavbar();
+        loadOrders();
+    </script>
+    
+    <!-- Footer -->
+    <footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">
+        <div style="max-width:1400px;margin:0 auto;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem;">
+                <div>
+                    <h3 style="font-size:1.5rem;margin-bottom:1rem;font-weight:800;">🛒 E-Commerce Store</h3>
+                    <p style="color:#9ca3af;line-height:1.6;">Your trusted online shopping destination for quality products at great prices.</p>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Quick Links</h4>
+                    <ul style="list-style:none;padding:0;">
+                        <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Home</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Products</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">My Orders</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Profile</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+                    <ul style="list-style:none;padding:0;">
+                        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Get in Touch</h4>
+                    <p style="color:#9ca3af;margin-bottom:0.5rem;">📧 mdshariq2009@gmail.com</p>
+                    <p style="color:#9ca3af;margin-bottom:0.5rem;">📱 1-800-SHOP-NOW</p>
+                    <p style="color:#9ca3af;">📍 123 Commerce St, City, State 12345</p>
+                </div>
+            </div>
+            
+            <div style="border-top:1px solid #374151;padding-top:2rem;text-align:center;">
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">
+                    © <span id="currentYear"></span> E-Commerce Store. All rights reserved.
+                </p>
+                <p style="color:#6b7280;font-size:0.9rem;">
+                    Powered by Stripe | Secure Shopping Experience
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>

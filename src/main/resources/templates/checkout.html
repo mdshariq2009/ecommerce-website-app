@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <meta charset="UTF-8">
+    <title>Checkout - E-Commerce Store</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .custom-alert {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            min-width: 750px;
+            max-width: 1050px;
+            text-align: center;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .custom-alert.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+        
+        .alert-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .alert-overlay.show {
+            display: block;
+        }
+        
+        .order-details-content {
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .detail-section {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Alert Modal -->
+    <div class="alert-overlay" id="alertOverlay"></div>
+    <div class="custom-alert" id="customAlert">
+        <div style="font-size:4rem;margin-bottom:1rem;color:#27ae60;">🎉</div>
+        <h2 id="alertTitle">Order Placed Successfully!</h2>
+        <p id="alertMessage">Thank you for your order!</p>
+        <div id="orderDetails" class="order-details-content"></div>
+        <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+            <button class="btn" onclick="window.location.href='/web/products'" style="flex:1;">Continue Shopping</button>
+            <button class="btn btn-success" onclick="window.location.href='/web/orders'" style="flex:1;">View My Orders</button>
+        </div>
+    </div>
+    
+    
+    
+
+    <nav class="navbar">
+        <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
+            
+            <a href="/web/products">Products</a>
+            <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
+            <a href="/web/orders" id="ordersLink" style="display:none;">My Orders</a>
+                       <a href="/web/profile" id="profileLink" style="display:none;">Profile</a>
+            <span id="userName"></span>
+
+            <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
+            <a href="/web/login" id="loginLink">Login</a>
+            <a href="/web/register" id="registerLink">Register</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Checkout</h1>
+        <div id="message"></div>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
+            <div class="form-container" style="margin:0;">
+                <h3>Shipping Information</h3>
+                <form id="checkoutForm">
+                    <div class="form-group">
+                        <label>Street Address</label>
+                        <input type="text" id="street" required>
+                    </div>
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" id="city" required>
+                    </div>
+                    <div class="form-group">
+                        <label>State</label>
+                        <input type="text" id="state" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Zip Code</label>
+                        <input type="text" id="zipCode" required >
+                    </div>
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" id="country" value="USA" required>
+                    </div>
+                   
+   <div class="form-group">
+    <label>Payment Method</label>
+    <select id="paymentMethod" required onchange="handlePaymentMethodChange()">
+        <option value="">-- Select Payment Method --</option>
+        <option value="stripe">Credit/Debit Card (Stripe)</option>
+         <option value="cod">Cash on Delivery</option>
+        <option value="paypal">PayPal</option>
+    </select>
+</div>
+
+
+<div id="stripeNote" style="background:#e3f2fd;padding:1rem;border-radius:4px;margin:1rem 0;">
+    <p style="margin:0;color:#1976d2;">
+        <strong>ℹ️ Secure Payment:</strong> You'll be redirected to Stripe's secure payment page.
+    </p>
+</div>
+                    <button type="submit" class="btn btn-success" id="placeOrderBtn">Place Order</button>
+                </form>
+            </div>
+
+            <div class="cart-container">
+                <h3>Order Summary</h3>
+                <div id="orderSummary"></div>
+                <div class="cart-total">
+                    <h3>Total: $<span id="totalAmount">0.00</span></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let shippingConfig = {
+    	    shippingCost: 10.0,
+    	    freeShippingThreshold: 50.0
+    	};
+
+    	async function loadShippingConfig() {
+    	    try {
+    	        const response = await fetch('/api/admin/shipping');
+    	        if (response.ok) {
+    	            shippingConfig = await response.json();
+    	            console.log('📦 Shipping config loaded:', shippingConfig);
+    	            // Reload summary with new config
+    	            await loadOrderSummary();
+    	        }
+    	    } catch (error) {
+    	        console.log('⚠️ Using default shipping config');
+    	    }
+    	}
+
+
+    
+        const user = JSON.parse(localStorage.getItem('user'));
+        const token = localStorage.getItem('token');
+
+        if (!user || !token) {
+            window.location.href = '/web/login';
+        }
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = count;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        function initNavbar() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const token = localStorage.getItem('token');
+            
+            updateCartCount();
+            
+            if (user && token) {
+                document.getElementById('userName').textContent = 'Hi, ' + user.name;
+                document.getElementById('logoutBtn').style.display = 'inline-block';
+                document.getElementById('ordersLink').style.display = 'inline-block';
+                document.getElementById('profileLink').style.display = 'inline-block';  // Add this line
+                document.getElementById('loginLink').style.display = 'none';
+                document.getElementById('registerLink').style.display = 'none';
+                
+                if (user.role === 'ADMIN') {
+                    document.getElementById('adminLink').style.display = 'inline-block';
+                }
+            }
+
+        }
+
+        async function loadOrderSummary() {
+        	
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            
+            if (cart.length === 0) {
+                window.location.href = '/web/cart';
+                return;
+            }
+
+            let subtotal = 0;
+            const itemsHtml = cart.map(item => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                return `
+                    <div style="display:flex; justify-content:space-between; padding:1rem; border-bottom:1px solid #e5e7eb;border-radius:8px;transition:all 0.3s;">
+                        <div>
+                            <strong style="color:#1f2937;">${item.name}</strong>
+                            <p style="margin:5px 0;color:#6b7280;">Qty: ${item.quantity} × $${item.price.toFixed(2)}</p>
+                        </div>
+                        <strong style="color:#10b981;">$${itemTotal.toFixed(2)}</strong>
+                    </div>
+                `;
+            }).join('');
+
+            // Calculate shipping
+            const shipping = subtotal >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.shippingCost;
+
+            
+            // Get state and zip for tax calculation
+            const state = document.getElementById('state').value;
+            const zipCode = document.getElementById('zipCode').value;
+            
+            let tax = 0;
+            let taxRate = 0;
+            let taxDisplay = '';
+            
+            // Only calculate tax if BOTH state AND zip code are entered
+            if (state && state.length >= 2 && zipCode && zipCode.length >= 5) {
+                try {
+                    const calculation = await calculateOrderTotal();
+                    if (calculation) {
+                        tax = calculation.tax;
+                        taxRate = calculation.taxRate;
+                        taxDisplay = `
+                            <div style="display:flex;justify-content:space-between;margin:8px 0;color:#1f2937;">
+                                <span style="font-weight:600;">Tax (${taxRate.toFixed(2)}%):</span>
+                                <span style="font-weight:700;color:#667eea;">$${tax.toFixed(2)}</span>
+                            </div>
+                        `;
+                    }
+                } catch (e) {
+                    console.log('Tax calculation pending');
+                }
+            } else {
+                taxDisplay = `
+                    <div style="background:#fef3c7;padding:1rem;border-radius:8px;margin:1rem 0;border-left:4px solid #f59e0b;">
+                        <p style="margin:0;color:#92400e;font-size:0.95rem;">
+                            <strong>💡 Tax Calculation:</strong><br>
+                            Enter your State and Zip Code above to calculate tax
+                        </p>
+                    </div>
+                `;
+            }
+            
+            const total = subtotal + tax + shipping;
+
+            const summaryHtml = `
+                ${itemsHtml}
+                <div style="padding:1.5rem 1rem;background:#f9fafb;border-radius:12px;margin-top:1rem;">
+                    <div style="display:flex;justify-content:space-between;margin:8px 0;color:#1f2937;">
+                        <span style="font-weight:600;">Subtotal:</span>
+                        <span style="font-weight:700;">$${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin:8px 0;color:#1f2937;">
+                        <span style="font-weight:600;">Shipping:</span>
+                        <span style="font-weight:700;color:${shipping === 0 ? '#10b981' : '#6b7280'};">
+                            ${shipping === 0 ? 'FREE ✓' : '$' + shipping.toFixed(2)}
+                        </span>
+                    </div>
+                    ${shipping === 0 ? 
+                        '<p style="margin:5px 0;font-size:13px;color:#10b981;">✓ You qualify for free shipping!</p>' : 
+                        	'<p style="margin:5px 0;font-size:13px;color:#f59e0b;">Add $' + (shippingConfig.freeShippingThreshold - subtotal).toFixed(2) + ' more for free shipping</p>'
+
+                    }
+                    ${taxDisplay}
+                </div>
+            `;
+
+            document.getElementById('orderSummary').innerHTML = summaryHtml;
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+        }
+
+        async function calculateOrderTotal() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const state = document.getElementById('state').value;
+            const zipCode = document.getElementById('zipCode').value;
+            
+            if (!state || state.length < 2 || !zipCode || zipCode.length < 5) {
+                return null;
+            }
+            
+            const orderData = {
+                items: cart.map(item => ({
+                    productId: item.id,
+                    quantity: item.quantity
+                })),
+                shippingState: state.toUpperCase(),
+                shippingZipCode: zipCode,
+                shippingStreet: 'temp',
+                shippingCity: 'temp',
+                shippingCountry: 'USA',
+                paymentMethod: 'card'
+            };
+
+            try {
+                const response = await fetch('/api/orders/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (response.ok) {
+                    return await response.json();
+                }
+            } catch (error) {
+                console.error('Failed to calculate order:', error);
+            }
+            
+            return null;
+        }
+
+        // Auto-uppercase state input
+        document.getElementById('state').addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+            if (this.value.length >= 2) {
+                const zipCode = document.getElementById('zipCode').value;
+                if (zipCode && zipCode.length >= 5) {
+                    loadOrderSummary();
+                }
+            }
+        });
+
+        // Recalculate when zip code is fully entered
+        document.getElementById('zipCode').addEventListener('input', function() {
+            // Only allow numbers
+            this.value = this.value.replace(/[^0-9]/g, '');
+            
+            if (this.value.length >= 5) {
+                const state = document.getElementById('state').value;
+                if (state && state.length >= 2) {
+                    loadOrderSummary();
+                }
+            }
+        });
+
+        // Also recalculate when city is entered (optional)
+        document.getElementById('city').addEventListener('blur', function() {
+            const state = document.getElementById('state').value;
+            const zipCode = document.getElementById('zipCode').value;
+            if (state && state.length >= 2 && zipCode && zipCode.length >= 5) {
+                loadOrderSummary();
+            }
+        });
+
+
+        async function calculateOrderTotal() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const state = document.getElementById('state').value;
+            const zipCode = document.getElementById('zipCode').value;
+            
+            if (!state || !zipCode) return null;
+            
+            const orderData = {
+                items: cart.map(item => ({
+                    productId: item.id,
+                    quantity: item.quantity
+                })),
+                shippingState: state,
+                shippingZipCode: zipCode,
+                shippingStreet: 'temp',
+                shippingCity: 'temp',
+                shippingCountry: 'USA',
+                paymentMethod: 'card'
+            };
+
+            try {
+                const response = await fetch('/api/orders/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (response.ok) {
+                    return await response.json();
+                }
+            } catch (error) {
+                console.error('Failed to calculate order:', error);
+            }
+            
+            return null;
+        }
+
+        // Recalculate when state or zip changes
+        document.getElementById('state').addEventListener('change', loadOrderSummary);
+        document.getElementById('zipCode').addEventListener('input', function() {
+            if (this.value.length >= 3) {
+                loadOrderSummary();
+            }
+        });
+
+
+        function showOrderSuccessAlert(order) {
+            const itemsList = order.items.map(item => 
+                `<div class="detail-row">
+                    <span>${item.productName} (x${item.quantity})</span>
+                    <span>$${(item.price * item.quantity).toFixed(2)}</span>
+                </div>`
+            ).join('');
+
+            const subtotal = order.subtotal || order.totalAmount;
+            const tax = order.tax || 0;
+            const shipping = order.shipping || 0;
+
+            const content = `
+                <div class="detail-section">
+                    <h4>Order Confirmation</h4>
+                    <div class="detail-row">
+                        <span><strong>Order ID:</strong></span>
+                        <span>#${order.id}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span><strong>Order Status:</strong></span>
+                        <span class="order-status status-${order.orderStatus.toLowerCase()}">${order.orderStatus}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span><strong>Payment Status:</strong></span>
+                        <span class="order-status status-${order.paymentStatus.toLowerCase()}">${order.paymentStatus}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>Shipping To:</h4>
+                    <p>${order.shippingStreet}</p>
+                    <p>${order.shippingCity}, ${order.shippingState} ${order.shippingZipCode}</p>
+                    <p>${order.shippingCountry}</p>
+                </div>
+
+                <div class="detail-section">
+                    <h4>Order Items</h4>
+                    ${itemsList}
+                    <hr style="margin:1rem 0;">
+                    <div class="detail-row">
+                        <span>Subtotal:</span>
+                        <span>$${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Shipping:</span>
+                        <span style="color:${shipping === 0 ? '#27ae60' : '#555'};">${shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Tax:</span>
+                        <span>$${tax.toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row" style="border-top:2px solid #2c3e50;margin-top:1rem;padding-top:1rem;">
+                        <span><strong>Total:</strong></span>
+                        <span style="font-size:1.3rem;color:#27ae60;"><strong>$${order.totalAmount.toFixed(2)}</strong></span>
+                    </div>
+                </div>
+
+                <div style="background:#d4edda;padding:1rem;border-radius:4px;margin-top:1rem;">
+                    <p style="color:#155724;margin:0;">
+                        <strong>✓ Order Confirmed!</strong><br>
+                        Confirmation email sent to ${user.email}
+                    </p>
+                </div>
+            `;
+
+            document.getElementById('orderDetails').innerHTML = content;
+            document.getElementById('alertOverlay').classList.add('show');
+            document.getElementById('customAlert').classList.add('show');
+        }
+
+        
+        function handlePaymentMethodChange() {
+            const method = document.getElementById('paymentMethod').value;
+            const stripeNote = document.getElementById('stripeNote');
+            
+            if (method === 'stripe') {
+                stripeNote.style.display = 'block';
+            } else {
+                stripeNote.style.display = 'none';
+            }
+        }
+
+        document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('placeOrderBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing Order...';
+            
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            
+            if (!paymentMethod) {
+                document.getElementById('message').innerHTML = 
+                    '<div class="alert alert-error">Please select a payment method</div>';
+                btn.disabled = false;
+                btn.textContent = 'Place Order';
+                return;
+            }
+            
+            const orderData = {
+                items: cart.map(item => ({
+                    productId: item.id,
+                    quantity: item.quantity
+                })),
+                shippingStreet: document.getElementById('street').value,
+                shippingCity: document.getElementById('city').value,
+                shippingState: document.getElementById('state').value.toUpperCase(),
+                shippingZipCode: document.getElementById('zipCode').value,
+                shippingCountry: document.getElementById('country').value,
+                paymentMethod: paymentMethod,
+                paymentId: 'payment_' + Date.now()
+            };
+
+            // If Stripe payment, redirect to Stripe checkout page
+            if (paymentMethod === 'stripe') {
+                sessionStorage.setItem('orderData', JSON.stringify(orderData));
+                window.location.href = '/web/stripe-checkout';
+                return;
+            }
+
+            // For other payment methods, process normally
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (response.ok) {
+                    const order = await response.json();
+                    localStorage.removeItem('cart');
+                    updateCartCount();
+                    showOrderSuccessAlert(order);
+                } else {
+                    const error = await response.json();
+                    document.getElementById('message').innerHTML = 
+                        '<div class="alert alert-error">' + (error.error || error.message || 'Order failed. Please try again.') + '</div>';
+                    btn.disabled = false;
+                    btn.textContent = 'Place Order';
+                }
+            } catch (error) {
+                console.error('Order error:', error);
+                document.getElementById('message').innerHTML = 
+                    '<div class="alert alert-error">Failed to place order. Please try again.</div>';
+                btn.disabled = false;
+                btn.textContent = 'Place Order';
+            }
+        });
+
+        function handlePaymentMethodChange() {
+            const method = document.getElementById('paymentMethod').value;
+            const stripeNote = document.getElementById('stripeNote');
+            
+            if (method === 'stripe') {
+                stripeNote.style.display = 'block';
+            } else {
+                stripeNote.style.display = 'none';
+            }
+        }
+
+
+        initNavbar();
+        loadShippingConfig().then(() => {
+            loadOrderSummary();
+        });
+
+    </script>
+     <!-- Footer -->
+<footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">
+    <div style="max-width:1400px;margin:0 auto;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem;">
+            <!-- Company Info -->
+            <div>
+                <h3 style="font-size:1.5rem;margin-bottom:1rem;font-weight:800;">🛒 E-Commerce Store</h3>
+                <p style="color:#9ca3af;line-height:1.6;">Your trusted online shopping destination for quality products at great prices.</p>
+            </div>
+            
+            <!-- Quick Links -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Quick Links</h4>
+                <ul style="list-style:none;padding:0;">
+                    <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Home</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Products</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">My Orders</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Profile</a></li>
+                </ul>
+            </div>
+            
+            <!-- Customer Service -->
+                     <div>
+    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+    <ul style="list-style:none;padding:0;">
+        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+    </ul>
+</div>
+            
+            <!-- Contact -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Get in Touch</h4>
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">📧 support@ecommerce.com</p>
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">📱 1-800-SHOP-NOW</p>
+                <p style="color:#9ca3af;">📍 123 Commerce St, City, State 12345</p>
+            </div>
+        </div>
+        
+        <!-- Copyright Bar -->
+        <div style="border-top:1px solid #374151;padding-top:2rem;text-align:center;">
+            <p style="color:#9ca3af;margin-bottom:0.5rem;">
+                © <span id="currentYear"></span> E-Commerce Store. All rights reserved.
+            </p>
+            <p style="color:#6b7280;font-size:0.9rem;">
+                Powered by Stripe | Secure Shopping Experience
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Set current year automatically
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
+

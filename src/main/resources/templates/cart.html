@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Shopping Cart - E-Commerce Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .custom-alert {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+            z-index: 10000;
+            min-width: 300px;
+            text-align: center;
+        }
+        .page-header {
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.page-title {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+        
+        .custom-alert.show {
+            display: block;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+        
+        .alert-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+        }
+        
+        .alert-overlay.show {
+            display: block;
+        }
+
+        .cart-item {
+            opacity: 1;
+            transition: all 0.3s ease;
+        }
+
+        .cart-item.removing {
+            opacity: 0;
+            transform: translateX(-100%);
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Alert -->
+    <div class="alert-overlay" id="alertOverlay" onclick="closeCustomAlert()"></div>
+    <div class="custom-alert" id="customAlert">
+        <div style="font-size:3rem;margin-bottom:1rem;color:#ef4444;">🗑️</div>
+        <h3 id="alertTitle">Item Removed</h3>
+        <p id="alertMessage" style="color:#6b7280;margin:1rem 0;">Item removed from cart</p>
+        <button class="btn" onclick="closeCustomAlert()" style="margin-top:1rem;">OK</button>
+    </div>
+
+    <nav class="navbar">
+        <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
+        <div class="nav-links">
+            <a href="/">Home</a>
+                        <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
+            <a href="/web/products">Products</a>
+            <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
+            <a href="/web/orders" id="ordersLink" style="display:none;">My Orders</a>
+            <a href="/web/profile" id="profileLink" style="display:none;">Profile</a>
+            <span id="userName"></span>
+
+            <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
+            <a href="/web/login" id="loginLink">Login</a>
+            <a href="/web/register" id="registerLink">Register</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+        <h1 class="page-title">🛒 Shopping Cart</h1>
+        <p class="page-subtitle">Review your items before checkout</p>
+    </div>
+        <div class="cart-container">
+        
+            <div id="cartItems"></div>
+            <div id="cartTotal" class="cart-total" style="display:none;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <span style="font-size:1.2rem;color:#6b7280;">Subtotal:</span>
+                    <span style="font-size:1.2rem;font-weight:600;">$<span id="subtotalAmount">0.00</span></span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <span style="font-size:1.2rem;color:#6b7280;">Estimated Shipping:</span>
+                    <span id="shippingText" style="font-size:1.2rem;font-weight:600;color:#10b981;">FREE</span>
+                </div>
+                <p id="shippingNote" style="font-size:0.9rem;color:#6b7280;margin:0.5rem 0;"></p>
+                <p style="font-size:0.9rem;color:#6b7280;margin:1rem 0;font-style:italic;">
+                    💡 Tax will be calculated at checkout based on your location
+                </p>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding-top:1rem;border-top:2px solid #667eea;">
+                    <span style="font-size:1.5rem;font-weight:700;">Estimated Total:</span>
+                    <span style="font-size:1.8rem;font-weight:800;color:#667eea;">$<span id="totalAmount">0.00</span></span>
+                </div>
+                <p style="font-size:0.85rem;color:#9ca3af;margin-top:0.5rem;">*Excluding tax</p>
+                <button class="btn btn-success" onclick="window.location.href='/web/checkout'" style="margin-top:1.5rem;">
+                    Proceed to Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = count;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        function initNavbar() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const token = localStorage.getItem('token');
+            
+            updateCartCount();
+            
+            if (user && token) {
+                document.getElementById('userName').textContent = 'Hi, ' + user.name;
+                document.getElementById('logoutBtn').style.display = 'inline-block';
+                document.getElementById('ordersLink').style.display = 'inline-block';
+                document.getElementById('profileLink').style.display = 'inline-block';  // Add this line
+                document.getElementById('loginLink').style.display = 'none';
+                document.getElementById('registerLink').style.display = 'none';
+                
+                if (user.role === 'ADMIN') {
+                    document.getElementById('adminLink').style.display = 'inline-block';
+                }
+            }
+
+        }
+
+        function showCustomAlert(title, message) {
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertOverlay').classList.add('show');
+            document.getElementById('customAlert').classList.add('show');
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('customAlert').classList.remove('show');
+            document.getElementById('alertOverlay').classList.remove('show');
+        }
+
+        let shippingConfig = {
+        	    shippingCost: 10.0,
+        	    freeShippingThreshold: 50.0
+        	};
+
+        	async function loadShippingConfig() {
+        	    try {
+        	        const response = await fetch('/api/admin/shipping');
+        	        if (response.ok) {
+        	            shippingConfig = await response.json();
+        	            console.log('📦 Shipping config loaded:', shippingConfig);
+        	        }
+        	    } catch (error) {
+        	        console.log('Using default shipping config');
+        	    }
+        	}
+
+        	function calculateTotals(cart) {
+        	    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        	    const shipping = subtotal >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.shippingCost;
+        	    const total = subtotal + shipping;
+        	    
+        	    return { subtotal, shipping, total };
+        	}
+
+        	function updateTotals() {
+        	    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        	    const { subtotal, shipping, total } = calculateTotals(cart);
+        	    
+        	    document.getElementById('subtotalAmount').textContent = subtotal.toFixed(2);
+        	    document.getElementById('totalAmount').textContent = total.toFixed(2);
+        	    
+        	    const shippingText = document.getElementById('shippingText');
+        	    const shippingNote = document.getElementById('shippingNote');
+        	    
+        	    if (shipping === 0) {
+        	        shippingText.textContent = 'FREE ✓';
+        	        shippingText.style.color = '#10b981';
+        	        shippingNote.textContent = '🎉 You qualify for free shipping!';
+        	        shippingNote.style.color = '#10b981';
+        	    } else {
+        	        shippingText.textContent = '$' + shipping.toFixed(2);
+        	        shippingText.style.color = '#6b7280';
+        	        const needed = (shippingConfig.freeShippingThreshold - subtotal).toFixed(2);
+        	        shippingNote.textContent = `Add $${needed} more to get FREE shipping!`;
+        	        shippingNote.style.color = '#f59e0b';
+        	    }
+        	}
+
+
+        function updateTotals() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const { subtotal, shipping, total } = calculateTotals(cart);
+            
+            document.getElementById('subtotalAmount').textContent = subtotal.toFixed(2);
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+            
+            const shippingText = document.getElementById('shippingText');
+            const shippingNote = document.getElementById('shippingNote');
+            
+            if (shipping === 0) {
+                shippingText.textContent = 'FREE ✓';
+                shippingText.style.color = '#10b981';
+                shippingNote.textContent = '🎉 You qualify for free shipping!';
+                shippingNote.style.color = '#10b981';
+            } else {
+                shippingText.textContent = '$' + shipping.toFixed(2);
+                shippingText.style.color = '#6b7280';
+                const needed = (50 - subtotal).toFixed(2);
+                shippingNote.textContent = `Add $${needed} more to get FREE shipping!`;
+                shippingNote.style.color = '#f59e0b';
+            }
+        }
+
+        function loadCart() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            updateCartCount();
+
+            if (cart.length === 0) {
+                document.getElementById('cartItems').innerHTML = 
+                    '<div class="empty-cart">' +
+                    '<div style="font-size:5rem;margin-bottom:1rem;">🛒</div>' +
+                    '<h3 style="font-size:2rem;margin-bottom:1rem;">Your cart is empty</h3>' +
+                    '<p style="font-size:1.1rem;color:#6b7280;margin-bottom:2rem;">Add some amazing products to get started!</p>' +
+                    '<a href="/web/products" class="btn" style="display:inline-block;width:auto;padding:1rem 2rem;text-decoration:none;">Browse Products</a>' +
+                    '</div>';
+                document.getElementById('cartTotal').style.display = 'none';
+                return;
+            }
+
+            const html = cart.map((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                const safeName = item.name.replace(/'/g, "\\'");
+                
+                return `
+                    <div class="cart-item" id="cartItem${item.id}" style="animation-delay: ${index * 0.1}s;">
+                        <div style="display:flex; gap:1.5rem; align-items:center;flex:1;">
+                            <img src="${item.image}" alt="${item.name}" style="width:100px;height:100px;object-fit:cover;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                            <div style="flex:1;">
+                                <h4 style="font-size:1.2rem;margin-bottom:0.5rem;color:#1f2937;">${item.name}</h4>
+                                <p style="color:#6b7280;margin:0;">$${item.price.toFixed(2)} each</p>
+                            </div>
+                        </div>
+                        <div class="cart-item-actions" style="gap:1.5rem;">
+                            <div style="display:flex;align-items:center;gap:1rem;background:#f9fafb;padding:0.5rem 1rem;border-radius:10px;">
+                                <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})" style="width:35px;height:35px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:bold;">−</button>
+                                <span style="min-width:30px;text-align:center;font-weight:700;font-size:1.1rem;">${item.quantity}</span>
+                                <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})" style="width:35px;height:35px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:bold;">+</button>
+                            </div>
+                            <div style="min-width:100px;text-align:right;">
+                                <p style="font-size:1.3rem;font-weight:800;color:#667eea;margin:0;">$${itemTotal.toFixed(2)}</p>
+                            </div>
+                            <button onclick="removeFromCart(${item.id}, '${safeName}', event)" class="btn-danger" style="padding:0.8rem 1.2rem;border-radius:10px;">
+                                🗑️ Remove
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('cartItems').innerHTML = html;
+            document.getElementById('cartTotal').style.display = 'block';
+            updateTotals();
+        }
+
+        function updateQuantity(id, newQuantity) {
+            if (newQuantity <= 0) {
+                const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                const item = cart.find(i => i.id === id);
+                removeFromCart(id, item ? item.name : 'Item');
+                return;
+            }
+
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const item = cart.find(i => i.id === id);
+            
+            if (item && item.stock && newQuantity > item.stock) {
+                showCustomAlert('Stock Limit', `Only ${item.stock} units available`);
+                return;
+            }
+            
+            cart = cart.map(item => 
+                item.id === id ? { ...item, quantity: newQuantity } : item
+            );
+            localStorage.setItem('cart', JSON.stringify(cart));
+            loadCart();
+        }
+
+        function removeFromCart(id, itemName, event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            const cartItemElement = document.getElementById('cartItem' + id);
+            if (cartItemElement) {
+                cartItemElement.classList.add('removing');
+            }
+            
+            setTimeout(() => {
+                let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                cart = cart.filter(item => item.id !== id);
+                localStorage.setItem('cart', JSON.stringify(cart));
+                
+                updateCartCount();
+                loadCart();
+                showCustomAlert('Item Removed 🗑️', itemName + ' has been removed from your cart');
+            }, 300);
+        }
+
+     // Initialize on page load
+        initNavbar();
+        loadShippingConfig().then(() => {
+            loadCart();
+        });
+
+    </script>
+    <!-- Footer -->
+<footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">
+    <div style="max-width:1400px;margin:0 auto;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem;">
+            <!-- Company Info -->
+            <div>
+                <h3 style="font-size:1.5rem;margin-bottom:1rem;font-weight:800;">🛒 E-Commerce Store</h3>
+                <p style="color:#9ca3af;line-height:1.6;">Your trusted online shopping destination for quality products at great prices.</p>
+            </div>
+            
+            <!-- Quick Links -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Quick Links</h4>
+                <ul style="list-style:none;padding:0;">
+                    <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Home</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Products</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">My Orders</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Profile</a></li>
+                </ul>
+            </div>
+            
+            <!-- Customer Service -->
+                     <div>
+    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+    <ul style="list-style:none;padding:0;">
+        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+    </ul>
+</div>
+            
+            <!-- Contact -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Get in Touch</h4>
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">📧 support@ecommerce.com</p>
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">📱 1-800-SHOP-NOW</p>
+                <p style="color:#9ca3af;">📍 123 Commerce St, City, State 12345</p>
+            </div>
+        </div>
+        
+        <!-- Copyright Bar -->
+        <div style="border-top:1px solid #374151;padding-top:2rem;text-align:center;">
+            <p style="color:#9ca3af;margin-bottom:0.5rem;">
+                © <span id="currentYear"></span> E-Commerce Store. All rights reserved.
+            </p>
+            <p style="color:#6b7280;font-size:0.9rem;">
+                Powered by Stripe | Secure Shopping Experience
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Set current year automatically
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+</script>
+    
+</body>
+</html>

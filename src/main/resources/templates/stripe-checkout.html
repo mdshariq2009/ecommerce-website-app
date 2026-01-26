@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment - E-Commerce Store</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,21 +87,20 @@
         }
 
         .custom-modal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    padding: 2.5rem;
-    border-radius: 20px;
-    box-shadow: 0 25px 80px rgba(0,0,0,0.3);
-    z-index: 10000;
-    text-align: center;
-    min-width: 400px;
-    max-width: 650px; /* INCREASED WIDTH */
-}
-
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+            z-index: 10000;
+            text-align: center;
+            min-width: 400px;
+            max-width: 650px;
+        }
         
         .custom-modal.show {
             display: block;
@@ -170,8 +170,6 @@
             display: block;
             font-weight: 600;
         }
-        
-        
     </style>
 </head>
 <body>
@@ -265,7 +263,12 @@
                 <!-- Order Summary -->
                 <div class="payment-summary">
                     <h3 style="margin-bottom:1.5rem;font-size:1.5rem;color:#1f2937;">📋 Order Summary</h3>
-                    <div id="orderSummary"></div>
+                    <div id="orderSummary">
+                        <div style="text-align:center;padding:2rem;color:#6b7280;">
+                            <div style="font-size:3rem;margin-bottom:1rem;">📦</div>
+                            <p>Loading order summary...</p>
+                        </div>
+                    </div>
                     <hr style="margin: 1.5rem 0;border:none;border-top:2px solid #e5e7eb;">
                     <div style="display:flex; justify-content:space-between; align-items:center;padding:1rem;background:linear-gradient(135deg, #f9fafb 0%, #e0e7ff 100%);border-radius:12px;">
                         <span style="font-size:1.5rem;font-weight:800;color:#1f2937;">Total:</span>
@@ -291,57 +294,52 @@
             freeShippingThreshold: 50.0
         };
 
+        console.log('========================================');
         console.log('🚀 Stripe Checkout Page Loaded');
+        console.log('User:', user);
+        console.log('Token exists:', !!token);
+        console.log('Order Data:', orderData);
+        console.log('========================================');
 
         if (!user || !token) {
             console.error('❌ No user or token');
+            alert('Please login first');
             setTimeout(() => window.location.href = '/web/login', 1000);
         }
 
         if (!orderData) {
             console.error('❌ No order data');
+            alert('No order data found. Please start from checkout.');
             setTimeout(() => window.location.href = '/web/checkout', 1000);
         }
 
-        // Initialize Stripe
-      /*  const publishableKey = '';
-        stripe = Stripe(publishableKey);
-        console.log('✅ Stripe initialized');*/
-        
-     // REMOVE THIS OLD CODE:
-     // const publishableKey = 'pk_test_51P8P6C1Lz1tbrsScBvmtlELHa8m6YFzQT2jMhKkxqC33Fr4yBVH6TrHRiUiGI9yzPWrifrYEMc0SzlqRXWgoETwY00Bzf7FsZf';
-     // stripe = Stripe(publishableKey);
-
-     // REPLACE WITH THIS:
-     let stripe = null;
-
-     async function initStripe() {
-         try {
-             console.log('🔑 Loading Stripe publishable key from backend...');
-             
-             const response = await fetch('/api/payment/stripe-publishable-key');
-             
-             if (!response.ok) {
-                 throw new Error('Failed to load Stripe key');
-             }
-             
-             const config = await response.json();
-             
-             if (!config.publishableKey) {
-                 throw new Error('No publishable key received');
-             }
-             
-             stripe = Stripe(config.publishableKey);
-             console.log('✅ Stripe initialized with key from environment');
-             
-         } catch (error) {
-             console.error('❌ Failed to initialize Stripe:', error);
-             alert('Failed to initialize payment system. Please refresh the page.');
-         }
-     }
-
-     // Initialize Stripe on page load
-     initStripe();
+        // Initialize Stripe from backend
+        async function initStripe() {
+            try {
+                console.log('🔑 Loading Stripe publishable key from backend...');
+                
+                const response = await fetch('/api/payment/stripe-publishable-key');
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load Stripe key: ' + response.status);
+                }
+                
+                const config = await response.json();
+                console.log('✅ Stripe key received');
+                
+                if (!config.publishableKey) {
+                    throw new Error('No publishable key in response');
+                }
+                
+                stripe = Stripe(config.publishableKey);
+                console.log('✅ Stripe initialized with key from environment');
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize Stripe:', error);
+                alert('Failed to initialize payment system. Please refresh the page.');
+                throw error;
+            }
+        }
 
         function resetPayButton(total, state = 'ready') {
             const submitButton = document.getElementById('submit-button');
@@ -404,7 +402,6 @@
         function handleAlertClose() {
             closeCustomAlert();
             
-            // If payment was successful, redirect to orders page
             if (shouldRedirectToOrders) {
                 console.log('✅ Redirecting to orders page...');
                 window.location.href = '/web/orders';
@@ -413,13 +410,16 @@
 
         async function loadShippingConfig() {
             try {
+                console.log('📦 Loading shipping config...');
                 const response = await fetch('/api/admin/shipping');
                 if (response.ok) {
                     shippingConfig = await response.json();
-                    console.log('📦 Shipping config loaded:', shippingConfig);
+                    console.log('✅ Shipping config loaded:', shippingConfig);
+                } else {
+                    console.log('⚠️ Using default shipping config');
                 }
             } catch (error) {
-                console.log('⚠️ Using default shipping config');
+                console.log('⚠️ Using default shipping config:', error);
             }
         }
 
@@ -445,9 +445,8 @@
 
         async function loadSavedPaymentMethod() {
             try {
-                console.log('🔍 Loading default payment method...');
+                console.log('🔍 Loading saved payment method...');
                 
-                // Try to get default payment method from new endpoint
                 const defaultResponse = await fetch('/api/profile/default-payment-method', {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
@@ -474,7 +473,6 @@
                     }
                 }
                 
-                // Fallback to legacy method for backward compatibility
                 const profileResponse = await fetch('/api/profile', {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
@@ -513,7 +511,6 @@
             }
         }
 
-
         function selectPaymentOption(option) {
             selectedPaymentOption = option;
             console.log('✅ Payment option selected:', option);
@@ -542,13 +539,18 @@
                 newCardSection.style.display = 'block';
                 submitButton.disabled = false;
                 
-                if (!cardElement) {
+                if (!cardElement && stripe) {
                     initCardElement();
                 }
             }
         }
 
         function initCardElement() {
+            if (!stripe) {
+                console.error('❌ Stripe not initialized yet');
+                return;
+            }
+            
             const elements = stripe.elements();
             cardElement = elements.create('card', {
                 style: {
@@ -615,74 +617,92 @@
         }
 
         async function loadOrderSummary() {
-            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            
-            if (cart.length === 0) {
-                window.location.href = '/web/cart';
-                return;
-            }
-            
-            let subtotal = 0;
-            const itemsHtml = cart.map(item => {
-                const itemTotal = item.price * item.quantity;
-                subtotal += itemTotal;
-                return `
-                    <div style="display:flex; justify-content:space-between; padding:1rem; border-bottom:1px solid #e5e7eb;border-radius:8px;">
-                        <div>
-                            <strong style="color:#1f2937;font-size:1.05rem;">${item.name}</strong>
-                            <p style="margin:5px 0;color:#6b7280;">Qty: ${item.quantity} × $${item.price.toFixed(2)}</p>
+            try {
+                console.log('📋 Loading order summary...');
+                
+                const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                
+                if (cart.length === 0) {
+                    console.error('❌ Cart is empty');
+                    alert('Your cart is empty');
+                    window.location.href = '/web/cart';
+                    return;
+                }
+                
+                console.log('🛒 Cart items:', cart.length);
+                
+                let subtotal = 0;
+                const itemsHtml = cart.map(item => {
+                    const itemTotal = item.price * item.quantity;
+                    subtotal += itemTotal;
+                    return `
+                        <div style="display:flex; justify-content:space-between; padding:1rem; border-bottom:1px solid #e5e7eb;border-radius:8px;">
+                            <div>
+                                <strong style="color:#1f2937;font-size:1.05rem;">${item.name}</strong>
+                                <p style="margin:5px 0;color:#6b7280;">Qty: ${item.quantity} × $${item.price.toFixed(2)}</p>
+                            </div>
+                            <strong style="color:#10b981;font-size:1.1rem;">$${itemTotal.toFixed(2)}</strong>
                         </div>
-                        <strong style="color:#10b981;font-size:1.1rem;">$${itemTotal.toFixed(2)}</strong>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }).join('');
 
-            const shipping = subtotal >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.shippingCost;
-            
-            let tax = 0;
-            let taxRate = 0;
-            
-            if (orderData && orderData.shippingState && orderData.shippingZipCode) {
-                try {
-                    const calculation = await calculateOrderTotal(subtotal, orderData.shippingState, orderData.shippingZipCode);
-                    if (calculation) {
-                        tax = calculation.tax;
-                        taxRate = calculation.taxRate;
+                const shipping = subtotal >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.shippingCost;
+                
+                let tax = 0;
+                let taxRate = 0;
+                
+                if (orderData && orderData.shippingState && orderData.shippingZipCode) {
+                    try {
+                        const calculation = await calculateOrderTotal(subtotal, orderData.shippingState, orderData.shippingZipCode);
+                        if (calculation) {
+                            tax = calculation.tax;
+                            taxRate = calculation.taxRate;
+                        }
+                    } catch (e) {
+                        tax = subtotal * 0.07;
+                        taxRate = 7.0;
                     }
-                } catch (e) {
+                } else {
                     tax = subtotal * 0.07;
                     taxRate = 7.0;
                 }
-            } else {
-                tax = subtotal * 0.07;
-                taxRate = 7.0;
+                
+                const total = subtotal + tax + shipping;
+
+                const summaryHtml = `
+                    ${itemsHtml}
+                    <div style="padding:1.5rem 1rem;background:#f9fafb;border-radius:12px;margin-top:1rem;border:1px solid #e5e7eb;">
+                        <div style="display:flex;justify-content:space-between;margin:10px 0;color:#1f2937;">
+                            <span style="font-weight:600;font-size:1.1rem;">Subtotal:</span>
+                            <span style="font-weight:700;font-size:1.1rem;">$${subtotal.toFixed(2)}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin:10px 0;color:#1f2937;">
+                            <span style="font-weight:600;font-size:1.1rem;">Shipping:</span>
+                            <span style="font-weight:700;font-size:1.1rem;color:${shipping === 0 ? '#10b981' : '#6b7280'};">
+                                ${shipping === 0 ? 'FREE ✓' : '$' + shipping.toFixed(2)}
+                            </span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin:10px 0;color:#1f2937;">
+                            <span style="font-weight:600;font-size:1.1rem;">Tax (${taxRate.toFixed(2)}%):</span>
+                            <span style="font-weight:700;font-size:1.1rem;">$${tax.toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('orderSummary').innerHTML = summaryHtml;
+                document.getElementById('totalAmount').textContent = total.toFixed(2);
+                document.getElementById('payAmount').textContent = total.toFixed(2);
+                
+                console.log('✅ Order summary loaded - Total: $' + total.toFixed(2));
+                
+            } catch (error) {
+                console.error('❌ Error loading order summary:', error);
+                document.getElementById('orderSummary').innerHTML = `
+                    <div style="text-align:center;padding:2rem;color:#ef4444;">
+                        <p>Error loading order summary</p>
+                    </div>
+                `;
             }
-            
-            const total = subtotal + tax + shipping;
-
-            const summaryHtml = `
-                ${itemsHtml}
-                <div style="padding:1.5rem 1rem;background:#f9fafb;border-radius:12px;margin-top:1rem;border:1px solid #e5e7eb;">
-                    <div style="display:flex;justify-content:space-between;margin:10px 0;color:#1f2937;">
-                        <span style="font-weight:600;font-size:1.1rem;">Subtotal:</span>
-                        <span style="font-weight:700;font-size:1.1rem;">$${subtotal.toFixed(2)}</span>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;margin:10px 0;color:#1f2937;">
-                        <span style="font-weight:600;font-size:1.1rem;">Shipping:</span>
-                        <span style="font-weight:700;font-size:1.1rem;color:${shipping === 0 ? '#10b981' : '#6b7280'};">
-                            ${shipping === 0 ? 'FREE ✓' : '$' + shipping.toFixed(2)}
-                        </span>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;margin:10px 0;color:#1f2937;">
-                        <span style="font-weight:600;font-size:1.1rem;">Tax (${taxRate.toFixed(2)}%):</span>
-                        <span style="font-weight:700;font-size:1.1rem;">$${tax.toFixed(2)}</span>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('orderSummary').innerHTML = summaryHtml;
-            document.getElementById('totalAmount').textContent = total.toFixed(2);
-            document.getElementById('payAmount').textContent = total.toFixed(2);
         }
 
         const form = document.getElementById('payment-form');
@@ -690,6 +710,11 @@
             event.preventDefault();
 
             console.log('💳 PAY BUTTON CLICKED - Option:', selectedPaymentOption);
+
+            if (!stripe) {
+                alert('Payment system not ready. Please refresh the page.');
+                return;
+            }
 
             try {
                 const cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -709,7 +734,6 @@
                 resetPayButton(total, 'processing');
                 showCustomAlert('Processing Payment... 🔄', 'Please wait while we securely process your payment through Stripe', 'processing');
 
-                // Create payment intent
                 const paymentResponse = await fetch('/api/payment/create-payment-intent', {
                     method: 'POST',
                     headers: {
@@ -730,12 +754,9 @@
                 let cardBrand = 'card';
                 let last4 = '****';
 
-                // Handle payment based on selected option
                 if (selectedPaymentOption === 'saved' && savedCard && savedCard.paymentMethodId) {
                     console.log('💳 Using SAVED PAYMENT METHOD ID:', savedCard.paymentMethodId);
-                    console.log('💳 Card ending in:', savedCard.lastFour);
                     
-                    // Confirm payment with saved payment method
                     paymentResult = await stripe.confirmCardPayment(clientSecret, {
                         payment_method: savedCard.paymentMethodId
                     });
@@ -752,7 +773,6 @@
                         throw new Error('Please enter card details');
                     }
                     
-                    // Confirm payment with new card
                     paymentResult = await stripe.confirmCardPayment(clientSecret, {
                         payment_method: {
                             card: cardElement,
@@ -769,10 +789,9 @@
                         
                         console.log('💳 New card - Brand:', cardBrand, 'Last4:', last4);
                         
-                        // Save card if checkbox is checked
                         if (document.getElementById('saveCardCheckbox').checked) {
                             const newPaymentMethodId = paymentResult.paymentIntent.payment_method;
-                            console.log('💾 Saving new card with Payment Method ID:', newPaymentMethodId);
+                            console.log('💾 Saving new card...');
                             
                             try {
                                 const saveResponse = await fetch('/api/profile/save-stripe-payment-method', {
@@ -790,10 +809,7 @@
                                 });
                                 
                                 if (saveResponse.ok) {
-                                    console.log('✅ Card saved successfully - Last 4:', last4);
-                                } else {
-                                    const errorText = await saveResponse.text();
-                                    console.error('⚠️ Failed to save card:', errorText);
+                                    console.log('✅ Card saved successfully');
                                 }
                             } catch (e) {
                                 console.error('⚠️ Error saving payment method:', e);
@@ -821,9 +837,10 @@
                     resetPayButton(total, 'success');
                     document.getElementById('payment-form').style.display = 'none';
                     
-                    // Create order
                     orderData.paymentId = paymentIntentId;
                     orderData.paymentMethod = 'card';
+
+                    console.log('📦 Creating order...');
 
                     const orderResponse = await fetch('/api/orders', {
                         method: 'POST',
@@ -841,10 +858,8 @@
                         localStorage.removeItem('cart');
                         sessionStorage.removeItem('orderData');
                         
-                        // Set flag to redirect after user clicks OK
                         shouldRedirectToOrders = true;
                         
-                        // Format the current date/time
                         const now = new Date();
                         const dateStr = now.toLocaleDateString('en-US', { 
                             month: 'long', 
@@ -884,7 +899,7 @@
                                     
                                     <div>
                                         <h4 style="margin:0 0 1rem 0;font-size:1.2rem;color:#047857;">🔐 Transaction Details</h4>
-                                        <p style="margin:0.3rem 0;font-size:0.9rem;word-break:break-all;"><strong>Payment ID:</strong><code>${paymentIntentId}</code></p>
+                                        <p style="margin:0.3rem 0;font-size:0.9rem;word-break:break-all;"><strong>Payment ID:</strong> <code>${paymentIntentId}</code></p>
                                     </div>
                                 </div>
                                 
@@ -899,107 +914,97 @@
                             </div>`
                         );
                     } else {
+                        const errorText = await orderResponse.text();
+                        console.error('❌ Order creation failed:', errorText);
                         throw new Error('Order creation failed');
                     }
                 }
             } catch (err) {
                 console.error('❌ ERROR:', err);
                 closeCustomAlert();
-                const total = parseFloat(document.getElementById('totalAmount').textContent);
+                const total = parseFloat(document.getElementById('totalAmount').textContent) || 0;
                 resetPayButton(total, 'error');
                 showCustomAlert('Payment Failed', err.message, 'error');
                 shouldRedirectToOrders = false;
             }
         });
 
-
-        // Initialize
-      /*  console.log('🚀 Starting initialization...');
+        // Initialize everything in correct order
+        console.log('🚀 Starting initialization...');
         initNavbar();
-        
-        loadShippingConfig()
-            .then(() => loadOrderSummary())
-            .then(() => loadSavedPaymentMethod())
-            .then(() => console.log('✅ All initialization complete!'))
-            .catch(error => console.error('❌ Initialization error:', error));*/
-            
-         // OLD:
-         // console.log('🚀 Starting initialization...');
-         // initNavbar();
-         // loadShippingConfig()
-//              .then(() => loadOrderSummary())
-//              .then(() => loadSavedPaymentMethod())
-//              .then(() => console.log('✅ All initialization complete!'))
-//              .catch(error => console.error('❌ Initialization error:', error));
 
-         // NEW:
-         console.log('🚀 Starting initialization...');
-         initNavbar();
-
-         // Initialize Stripe first, then load other data
-         initStripe()
-             .then(() => loadShippingConfig())
-             .then(() => loadOrderSummary())
-             .then(() => loadSavedPaymentMethod())
-             .then(() => console.log('✅ All initialization complete!'))
-             .catch(error => console.error('❌ Initialization error:', error));
+        // Initialize Stripe first, then load other data
+        initStripe()
+            .then(() => {
+                console.log('✅ Stripe ready, loading shipping config...');
+                return loadShippingConfig();
+            })
+            .then(() => {
+                console.log('✅ Shipping config loaded, loading order summary...');
+                return loadOrderSummary();
+            })
+            .then(() => {
+                console.log('✅ Order summary loaded, loading saved payment method...');
+                return loadSavedPaymentMethod();
+            })
+            .then(() => {
+                console.log('✅ All initialization complete!');
+            })
+            .catch(error => {
+                console.error('❌ Initialization error:', error);
+                alert('Error loading payment page. Please try again.');
+            });
     </script>
-    <!-- Footer -->
-<footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">
-    <div style="max-width:1400px;margin:0 auto;">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem;">
-            <!-- Company Info -->
-            <div>
-                <h3 style="font-size:1.5rem;margin-bottom:1rem;font-weight:800;">🛒 E-Commerce Store</h3>
-                <p style="color:#9ca3af;line-height:1.6;">Your trusted online shopping destination for quality products at great prices.</p>
-            </div>
-            
-            <!-- Quick Links -->
-            <div>
-                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Quick Links</h4>
-                <ul style="list-style:none;padding:0;">
-                    <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Home</a></li>
-                    <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Products</a></li>
-                    <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">My Orders</a></li>
-                    <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Profile</a></li>
-                </ul>
-            </div>
-            
-            <!-- Customer Service -->
-                    <div>
-    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
-    <ul style="list-style:none;padding:0;">
-        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
-        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
-        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
-    </ul>
-</div>
-            
-            <!-- Contact -->
-            <div>
-                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Get in Touch</h4>
-                <p style="color:#9ca3af;margin-bottom:0.5rem;">📧 support@ecommerce.com</p>
-                <p style="color:#9ca3af;margin-bottom:0.5rem;">📱 1-800-SHOP-NOW</p>
-                <p style="color:#9ca3af;">📍 123 Commerce St, City, State 12345</p>
-            </div>
-        </div>
-        
-        <!-- Copyright Bar -->
-        <div style="border-top:1px solid #374151;padding-top:2rem;text-align:center;">
-            <p style="color:#9ca3af;margin-bottom:0.5rem;">
-                © <span id="currentYear"></span> E-Commerce Store. All rights reserved.
-            </p>
-            <p style="color:#6b7280;font-size:0.9rem;">
-                Powered by Stripe | Secure Shopping Experience
-            </p>
-        </div>
-    </div>
-</footer>
-
-<script>
-    // Set current year automatically
-    document.getElementById('currentYear').textContent = new Date().getFullYear();
-</script>
     
+    <!-- Footer -->
+    <footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">
+        <div style="max-width:1400px;margin:0 auto;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem;">
+                <div>
+                    <h3 style="font-size:1.5rem;margin-bottom:1rem;font-weight:800;">🛒 E-Commerce Store</h3>
+                    <p style="color:#9ca3af;line-height:1.6;">Your trusted online shopping destination for quality products at great prices.</p>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Quick Links</h4>
+                    <ul style="list-style:none;padding:0;">
+                        <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Home</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Products</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">My Orders</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Profile</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+                    <ul style="list-style:none;padding:0;">
+                        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Get in Touch</h4>
+                    <p style="color:#9ca3af;margin-bottom:0.5rem;">📧 mdshariq2009@gmail.com</p>
+                    <p style="color:#9ca3af;margin-bottom:0.5rem;">📱 1-800-SHOP-NOW</p>
+                    <p style="color:#9ca3af;">📍 123 Commerce St, City, State 12345</p>
+                </div>
+            </div>
+            
+            <div style="border-top:1px solid #374151;padding-top:2rem;text-align:center;">
+                <p style="color:#9ca3af;margin-bottom:0.5rem;">
+                    © <span id="currentYear"></span> E-Commerce Store. All rights reserved.
+                </p>
+                <p style="color:#6b7280;font-size:0.9rem;">
+                    Powered by Stripe | Secure Shopping Experience
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>

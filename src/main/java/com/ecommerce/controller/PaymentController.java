@@ -251,6 +251,9 @@ public class PaymentController {
     public ResponseEntity<Map<String, String>> getStripePublishableKey() {
         Map<String, String> response = new HashMap<>();
         response.put("publishableKey", stripePublishableKey);
+        
+        System.out.println("✅ Stripe publishable key requested");
+        
         return ResponseEntity.ok(response);
     }
 

@@ -10,6 +10,7 @@ import com.stripe.param.PaymentMethodAttachParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -27,6 +28,9 @@ public class UserProfileController {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private PaymentMethodRepository paymentMethodRepository;
@@ -335,27 +339,79 @@ public class UserProfileController {
         }
     }
 
-    // Change password
+ // Change password
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(
-            @RequestBody ChangePasswordRequest request,
+            @RequestBody ChangePasswordDTO request,
             Principal principal) {
         
         try {
+            System.out.println("========================================");
+            System.out.println("🔐 Password change request for: " + principal.getName());
+            System.out.println("========================================");
+            
             User user = userRepository.findByEmail(principal.getName())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
             
-            // Verify current password (you'll need PasswordEncoder)
-            // For now, simplified version
+            // Validate current password
+            if (request.getCurrentPassword() == null || request.getCurrentPassword().trim().isEmpty()) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Current password is required");
+                return ResponseEntity.badRequest().body(error);
+            }
             
-            user.setPassword(request.getNewPassword()); // Should be encoded!
+            // Verify current password matches
+            if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+                System.err.println("❌ Current password incorrect for user: " + principal.getName());
+                
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Current password is incorrect");
+                return ResponseEntity.status(401).body(error);
+            }
+            
+            // Validate new password
+            if (request.getNewPassword() == null || request.getNewPassword().trim().isEmpty()) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "New password is required");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            if (request.getNewPassword().length() < 6) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "New password must be at least 6 characters long");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // Check if new password is same as current
+            if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "New password must be different from current password");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // Encode and save new password
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
             userRepository.save(user);
             
-            return ResponseEntity.ok().build();
+            System.out.println("========================================");
+            System.out.println("✅ Password changed successfully for: " + principal.getName());
+            System.out.println("========================================");
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Password changed successfully");
+            return ResponseEntity.ok(response);
+            
         } catch (Exception e) {
+            System.err.println("========================================");
+            System.err.println("❌ Error changing password");
+            System.err.println("   User: " + principal.getName());
+            System.err.println("   Error: " + e.getMessage());
+            System.err.println("========================================");
+            e.printStackTrace();
+            
             Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            error.put("error", "Failed to change password: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
         }
     }
 
@@ -451,7 +507,7 @@ public class UserProfileController {
         }
     }
 
-    public static class ChangePasswordRequest {
+    public static class ChangePasswordDTO {
         private String currentPassword;
         private String newPassword;
         

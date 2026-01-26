@@ -67,9 +67,7 @@ public class User implements UserDetails, Serializable {
     @JsonProperty("defaultPaymentMethodId")
     private String defaultPaymentMethodId;
 
-    
-
-    
+        
     // Constructors
     public User() {
     }

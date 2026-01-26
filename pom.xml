@@ -41,6 +41,13 @@
     <scope>runtime</scope>
 </dependency>
 
+<!-- Temporarily add H2 for migration -->
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <scope>runtime</scope>
+</dependency>
+
         <!-- Environment Variables Support -->
 <dependency>
     <groupId>me.paulschwarz</groupId>

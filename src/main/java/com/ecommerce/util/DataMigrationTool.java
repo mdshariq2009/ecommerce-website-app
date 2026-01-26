@@ -17,31 +17,34 @@ public class DataMigrationTool {
         System.out.println("🔄 Starting Data Migration from H2 to PostgreSQL");
         System.out.println("========================================");
         
+        Connection h2Conn = null;
+        Connection pgConn = null;
+        
         try {
             Class.forName("org.h2.Driver");
             Class.forName("org.postgresql.Driver");
             
-            Connection h2Conn = DriverManager.getConnection(H2_URL, H2_USER, H2_PASSWORD);
-            Connection pgConn = DriverManager.getConnection(PG_URL, PG_USER, PG_PASSWORD);
+            h2Conn = DriverManager.getConnection(H2_URL, H2_USER, H2_PASSWORD);
+            pgConn = DriverManager.getConnection(PG_URL, PG_USER, PG_PASSWORD);
             
             System.out.println("✅ Connected to both databases");
             
             pgConn.setAutoCommit(false);
             
-            // CLEAR EXISTING DATA FIRST
+            // Step 1: Clear existing data
             clearPostgreSQLTables(pgConn);
             
-            // Migrate tables
+            // Step 2: Migrate tables
             migrateTableSafe(h2Conn, pgConn, "users");
             migrateTableSafe(h2Conn, pgConn, "products");
             migrateTableSafe(h2Conn, pgConn, "shipping_config");
             migrateTableSafe(h2Conn, pgConn, "orders");
             migrateTableSafe(h2Conn, pgConn, "order_items");
             
-            pgConn.commit();
+            // Step 3: Reset sequences (IMPORTANT!)
+            resetSequences(pgConn);
             
-            h2Conn.close();
-            pgConn.close();
+            pgConn.commit();
             
             System.out.println("========================================");
             System.out.println("✅ Migration Complete!");
@@ -50,6 +53,22 @@ public class DataMigrationTool {
         } catch (Exception e) {
             System.err.println("❌ Migration failed: " + e.getMessage());
             e.printStackTrace();
+            
+            if (pgConn != null) {
+                try {
+                    pgConn.rollback();
+                    System.out.println("⚠️ Transaction rolled back");
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        } finally {
+            try {
+                if (h2Conn != null) h2Conn.close();
+                if (pgConn != null) pgConn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
     
@@ -93,6 +112,13 @@ public class DataMigrationTool {
             System.out.println("✅ Cleared users");
         } catch (SQLException e) {
             System.out.println("ℹ️ users table doesn't exist yet");
+        }
+        
+        try {
+            stmt.execute("TRUNCATE TABLE payment_methods CASCADE;");
+            System.out.println("✅ Cleared payment_methods");
+        } catch (SQLException e) {
+            System.out.println("ℹ️ payment_methods table doesn't exist yet");
         }
         
         System.out.println("========================================");
@@ -158,5 +184,40 @@ public class DataMigrationTool {
             System.err.println("❌ Error migrating " + tableName + ": " + e.getMessage());
             e.printStackTrace();
         }
+    }
+    
+    private static void resetSequences(Connection pg) throws SQLException {
+        System.out.println("========================================");
+        System.out.println("🔄 Resetting PostgreSQL sequences...");
+        System.out.println("========================================");
+        
+        Statement stmt = pg.createStatement();
+        
+        String[] tables = {"users", "products", "orders", "order_items", "shipping_config", "payment_methods"};
+        
+        for (String table : tables) {
+            try {
+                // Get max ID from table
+                ResultSet rs = stmt.executeQuery("SELECT COALESCE(MAX(id), 0) as max_id FROM " + table);
+                rs.next();
+                long maxId = rs.getLong("max_id");
+                rs.close();
+                
+                // Reset sequence to max ID + 1
+                String sequenceName = table + "_id_seq";
+                stmt.execute("SELECT setval('" + sequenceName + "', " + (maxId + 1) + ", false)");
+                
+                System.out.println("✅ Reset " + sequenceName + " to " + (maxId + 1));
+                
+            } catch (SQLException e) {
+                System.err.println("⚠️ Could not reset sequence for " + table + ": " + e.getMessage());
+            }
+        }
+        
+        stmt.close();
+        
+        System.out.println("========================================");
+        System.out.println("✅ All sequences reset successfully!");
+        System.out.println("========================================");
     }
 }

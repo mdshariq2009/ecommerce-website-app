@@ -38,7 +38,7 @@ public class SecurityConfig {
         return new JwtAuthenticationFilter(jwtService, userDetailsService);
     }
     
-    @Bean
+ /*   @Bean //H2 DB Config
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
@@ -75,7 +75,44 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
             .headers(headers -> headers
                 .frameOptions(frameOptions -> frameOptions.disable())
-            );
+            );*/
+    
+    @Bean 
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(auth -> auth
+                // Public web pages and static resources
+                .requestMatchers("/", "/web/**", "/css/**", "/js/**", "/images/**", "/static/**").permitAll()
+                
+                // PostGred Console (development only)
+                .requestMatchers("/api/auth/**").permitAll()
+                
+                // Public API endpoints (no authentication required)
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/products/**").permitAll()
+                .requestMatchers("/api/contact/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/admin/shipping").permitAll()
+                .requestMatchers("/api/payment/stripe-publishable-key").permitAll()
+                
+                // Authenticated API endpoints (user must be logged in)
+                .requestMatchers("/api/payment/**").authenticated()
+                .requestMatchers("/api/orders/**").authenticated()
+                .requestMatchers("/api/profile/**").authenticated()
+                
+                // Admin only endpoints
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                
+                // All other requests require authentication
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(session -> session
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                    )
+                    .authenticationProvider(authenticationProvider)
+                    .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+            
         
         return http.build();
     }

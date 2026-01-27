@@ -471,11 +471,41 @@
             displayProducts(filtered);
         }
 
+        
         function clearFilters() {
             document.getElementById('searchInput').value = '';
             document.getElementById('categoryFilter').value = 'all';
             document.getElementById('sortFilter').value = 'name';
             displayProducts(allProducts);
+        }
+        
+     // Add this function at the top of your script section
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Update the initNavbar function or add this after it
+        function applyUrlFilters() {
+            const categoryParam = getUrlParameter('category');
+            
+            if (categoryParam) {
+                console.log('📁 Category filter from URL:', categoryParam);
+                
+                // Wait for categories to load, then set the filter
+                setTimeout(() => {
+                    const categoryFilter = document.getElementById('categoryFilter');
+                    
+                    // Find matching option
+                    for (let i = 0; i < categoryFilter.options.length; i++) {
+                        if (categoryFilter.options[i].value === categoryParam) {
+                            categoryFilter.selectedIndex = i;
+                            filterProducts();
+                            break;
+                        }
+                    }
+                }, 500);
+            }
         }
 
         function displayProducts(products) {
@@ -557,8 +587,12 @@
             showAlert('Added to Cart ✅', name + ' has been added to your cart', '🛒', '#10b981');
         }
 
+   
+        // NEW:
         initNavbar();
-        loadProducts();
+        loadProducts().then(() => {
+            applyUrlFilters();
+        });
     </script>
     <!-- Footer -->
 <footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">

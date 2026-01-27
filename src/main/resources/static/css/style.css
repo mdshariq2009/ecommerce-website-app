@@ -22,6 +22,34 @@
     --gray: #6b7280;
     --border: #e5e7eb;
 }
+/* Password Toggle */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.3rem;
+    color: #6b7280;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+.password-toggle:hover {
+    color: #667eea;
+    transform: scale(1.1);
+}
+
+.password-input {
+    padding-right: 3rem !important;
+}
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

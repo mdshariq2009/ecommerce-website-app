@@ -637,71 +637,66 @@
 
         // Load Categories
         async function loadCategories() {
-            try {
-                const response = await fetch('/api/products');
-                
-                if (response.ok) {
-                    const products = await response.json();
-                    
-                    const categoryMap = {};
-                    products.forEach(p => {
-                        if (p.category) {
-                            categoryMap[p.category] = (categoryMap[p.category] || 0) + 1;
-                        }
-                    });
-                    
-                    const categoryIcons = {
-                            'Electronics': '📱',
-                            'Clothing': '👕',
-                            'Books': '📚',
-                            'Home': '🏠',
-                            'Home & Office': '🏢',
-                            'Office': '💼',
-                            'Accessories': '👜',
-                            'Sports': '⚽',
-                            'Toys': '🧸',
-                            'Beauty': '💄',
-                            'Food': '🍔',
-                            'Garden': '🌱',
-                            'Automotive': '🚗',
-                            'Jewelry': '💍',
-                            'Watches': '⌚',
-                            'Shoes': '👟',
-                            'Bags': '🎒',
-                            'Furniture': '🛋️',
-                            'Kitchen': '🍳',
-                            'Tools': '🔧',
-                            'Pet Supplies': '🐾',
-                            'Health': '🏥',
-                            'Music': '🎵',
-                            'Gaming': '🎮',
-                            'Cameras': '📷',
-                            'Computers': '💻'
-                        };
-                    
-                    const categoriesHtml = Object.entries(categoryMap)
-                        .map(([category, count]) => `
-                            <a href="/web/products" class="category-card">
-                                <div class="category-icon">${categoryIcons[category] || '📦'}</div>
-                                <div class="category-name">${category}</div>
-                                <div class="category-count">${count} ${count === 1 ? 'product' : 'products'}</div>
-                            </a>
-                        `).join('');
-                    
-                    if (categoriesHtml) {
-                        document.getElementById('categoriesGrid').innerHTML = categoriesHtml;
-                    } else {
-                        document.getElementById('categoriesGrid').innerHTML = `
-                            <div class="empty-state" style="grid-column: 1 / -1;">
-                                <p>No categories available</p>
-                            </div>
-                        `;
-                    }
+    try {
+        const response = await fetch('/api/products');
+        
+        if (response.ok) {
+            const products = await response.json();
+            
+            const categoryMap = {};
+            products.forEach(p => {
+                if (p.category) {
+                    categoryMap[p.category] = (categoryMap[p.category] || 0) + 1;
                 }
-            } catch (error) {
-                console.error('Failed to load categories');
+            });
+            
+            const categoryIcons = {
+                'Electronics': '📱',
+                'Clothing': '👕',
+                'Books': '📚',
+                'Home': '🏠',
+                'Home & Office': '🏢',
+                'Office': '💼',
+                'Accessories': '👜',
+                'Sports': '⚽',
+                'Toys': '🧸',
+                'Beauty': '💄',
+                'Food': '🍔',
+                'Garden': '🌱',
+                'Automotive': '🚗',
+                'Jewelry': '💍',
+                'Watches': '⌚',
+                'Shoes': '👟',
+                'Bags': '🎒',
+                'Furniture': '🛋️',
+                'Kitchen': '🍳',
+                'Tools': '🔧',
+                'Pet Supplies': '🐾',
+                'Health': '🏥',
+                'Music': '🎵',
+                'Gaming': '🎮',
+                'Cameras': '📷',
+                'Computers': '💻'
+            };
+            
+            const categoriesHtml = Object.entries(categoryMap)
+                .map(([category, count]) => `
+                    <a href="/web/products?category=${encodeURIComponent(category)}" class="category-card">
+                        <div class="category-icon">${categoryIcons[category] || '📦'}</div>
+                        <div class="category-name">${category}</div>
+                        <div class="category-count">${count} ${count === 1 ? 'product' : 'products'}</div>
+                    </a>
+                `).join('');
+            
+            if (categoriesHtml) {
+                document.getElementById('categoriesGrid').innerHTML = categoriesHtml;
             }
         }
+    } catch (error) {
+        console.error('Failed to load categories');
+    }
+}
+
 
         // Load Featured Products
         async function loadFeaturedProducts() {

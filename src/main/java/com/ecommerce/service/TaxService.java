@@ -47,9 +47,9 @@ public class TaxService {
         ZIP_TAX_RATES.put("941", 9.25);  // SF
         ZIP_TAX_RATES.put("606", 10.25); // Chicago
         ZIP_TAX_RATES.put("801", 8.0); // Parker area
-        ZIP_TAX_RATES.put("201", 5.0);
-        ZIP_TAX_RATES.put("110", 6.0);
-        ZIP_TAX_RATES.put("244", 6.5);
+        ZIP_TAX_RATES.put("201", 5.0); // Noida
+        ZIP_TAX_RATES.put("110", 6.0); // Delhi
+        ZIP_TAX_RATES.put("244", 6.5); //UP
     }
     
     public double calculateTax(double amount, String state, String zipCode) {

@@ -140,6 +140,14 @@ public class OrderController {
                 System.err.println("⚠️ Failed to queue confirmation email: " + e.getMessage());
             }
             
+            // Send notification email to ADMIN
+        try {
+            emailService.sendAdminOrderNotification(order);
+            System.out.println("📧 Admin notification email queued");
+        } catch (Exception e) {
+            System.err.println("⚠️ Failed to queue admin email: " + e.getMessage());
+        }
+            
             return ResponseEntity.status(HttpStatus.CREATED).body(order);
             
         } catch (Exception e) {

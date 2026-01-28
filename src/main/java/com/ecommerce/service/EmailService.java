@@ -204,6 +204,201 @@ public class EmailService {
             order.getShippingCountry()
         );
     }
+    
+    @Async
+    public void sendAdminOrderNotification(Order order) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            // Send to admin email
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo("mdshariq2009@gmail.com");  // Admin email
+            helper.setSubject("New Order Received - Order #" + order.getId());
+            helper.setReplyTo(order.getUser().getEmail());  // Reply goes to customer
+            
+            String emailContent = buildAdminOrderNotificationEmail(order);
+            helper.setText(emailContent, true);
+            
+            mailSender.send(message);
+            System.out.println("✅ Admin notification email sent for Order #" + order.getId());
+            
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send admin notification email: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private String buildAdminOrderNotificationEmail(Order order) {
+        StringBuilder itemsHtml = new StringBuilder();
+        double subtotal = 0;
+        
+        for (OrderItem item : order.getItems()) {
+            double itemTotal = item.getPrice() * item.getQuantity();
+            subtotal += itemTotal;
+            
+            itemsHtml.append(String.format(
+                "<tr>" +
+                "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;'>%s</td>" +
+                "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:center;'>%d</td>" +
+                "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:right;'>$%.2f</td>" +
+                "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:right;font-weight:bold;'>$%.2f</td>" +
+                "</tr>",
+                item.getProductName(),
+                item.getQuantity(),
+                item.getPrice(),
+                itemTotal
+            ));
+        }
+        
+        double orderSubtotal = order.getSubtotal() != null ? order.getSubtotal() : subtotal;
+        double orderTax = order.getTax() != null ? order.getTax() : 0.0;
+        double orderShipping = order.getShipping() != null ? order.getShipping() : 0.0;
+        double orderTotal = order.getTotalAmount();
+        
+        // Add totals rows
+        itemsHtml.append(String.format(
+            "<tr style='background:#f8f9fa;'>" +
+            "  <td colspan='3' style='padding:12px;text-align:right;font-weight:600;'>Subtotal:</td>" +
+            "  <td style='padding:12px;text-align:right;font-weight:bold;'>$%.2f</td>" +
+            "</tr>",
+            orderSubtotal
+        ));
+        
+        itemsHtml.append(String.format(
+            "<tr style='background:#f8f9fa;'>" +
+            "  <td colspan='3' style='padding:12px;text-align:right;font-weight:600;'>Tax:</td>" +
+            "  <td style='padding:12px;text-align:right;font-weight:bold;'>$%.2f</td>" +
+            "</tr>",
+            orderTax
+        ));
+        
+        itemsHtml.append(String.format(
+            "<tr style='background:#f8f9fa;'>" +
+            "  <td colspan='3' style='padding:12px;text-align:right;font-weight:600;'>Shipping:</td>" +
+            "  <td style='padding:12px;text-align:right;font-weight:bold;color:%s;'>%s</td>" +
+            "</tr>",
+            orderShipping == 0 ? "#27ae60" : "#555",
+            orderShipping == 0 ? "FREE" : String.format("$%.2f", orderShipping)
+        ));
+        
+        itemsHtml.append(String.format(
+            "<tr style='background:#667eea;color:white;'>" +
+            "  <td colspan='3' style='padding:15px;text-align:right;font-size:18px;'><strong>TOTAL:</strong></td>" +
+            "  <td style='padding:15px;text-align:right;font-size:18px;'><strong>$%.2f</strong></td>" +
+            "</tr>",
+            orderTotal
+        ));
+        
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a");
+        String orderDate = order.getCreatedAt().format(formatter);
+        
+        return String.format(
+            "<!DOCTYPE html>" +
+            "<html>" +
+            "<head>" +
+            "  <meta charset='UTF-8'>" +
+            "  <meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
+            "</head>" +
+            "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;'>" +
+            "  <div style='max-width:600px;margin:20px auto;background:white;'>" +
+            "    <!-- Header -->" +
+            "    <div style='background:linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%);color:white;padding:40px 20px;text-align:center;'>" +
+            "      <h1 style='margin:0;font-size:32px;'>🔔 New Order Alert!</h1>" +
+            "      <p style='margin:10px 0 0 0;font-size:16px;'>A customer just placed an order</p>" +
+            "    </div>" +
+            "    " +
+            "    <!-- Content -->" +
+            "    <div style='padding:30px;'>" +
+            "      <div style='background:#fee2e2;padding:20px;border-radius:8px;margin-bottom:25px;border-left:4px solid #ef4444;'>" +
+            "        <h3 style='margin:0 0 10px 0;color:#991b1b;'>⚡ Action Required</h3>" +
+            "        <p style='margin:0;color:#991b1b;'>A new order has been placed and requires your attention.</p>" +
+            "      </div>" +
+            "      " +
+            "      <!-- Order Info -->" +
+            "      <div style='background:#f8f9fa;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #667eea;'>" +
+            "        <h3 style='margin:0 0 15px 0;color:#2c3e50;'>📦 Order Information</h3>" +
+            "        <table style='width:100%%;'>" +
+            "          <tr><td style='padding:5px 0;color:#555;'><strong>Order ID:</strong></td><td style='text-align:right;'>#%d</td></tr>" +
+            "          <tr><td style='padding:5px 0;color:#555;'><strong>Order Date:</strong></td><td style='text-align:right;'>%s</td></tr>" +
+            "          <tr><td style='padding:5px 0;color:#555;'><strong>Order Status:</strong></td><td style='text-align:right;'><span style='background:#f39c12;color:white;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:bold;'>%s</span></td></tr>" +
+            "          <tr><td style='padding:5px 0;color:#555;'><strong>Payment Status:</strong></td><td style='text-align:right;'><span style='background:#27ae60;color:white;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:bold;'>%s</span></td></tr>" +
+            "          <tr><td style='padding:5px 0;color:#555;'><strong>Payment Method:</strong></td><td style='text-align:right;'>%s</td></tr>" +
+            "        </table>" +
+            "      </div>" +
+            "      " +
+            "      <!-- Customer Info -->" +
+            "      <div style='background:#dbeafe;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #3b82f6;'>" +
+            "        <h3 style='margin:0 0 15px 0;color:#1e40af;'>👤 Customer Information</h3>" +
+            "        <table style='width:100%%;'>" +
+            "          <tr><td style='padding:5px 0;color:#1e40af;'><strong>Name:</strong></td><td style='text-align:right;color:#1f2937;'>%s</td></tr>" +
+            "          <tr><td style='padding:5px 0;color:#1e40af;'><strong>Email:</strong></td><td style='text-align:right;color:#1f2937;'><a href='mailto:%s' style='color:#3b82f6;text-decoration:none;'>%s</a></td></tr>" +
+            "          <tr><td style='padding:5px 0;color:#1e40af;'><strong>Phone:</strong></td><td style='text-align:right;color:#1f2937;'>%s</td></tr>" +
+            "        </table>" +
+            "      </div>" +
+            "      " +
+            "      <!-- Order Items -->" +
+            "      <h3 style='color:#2c3e50;margin:30px 0 15px 0;'>📋 Order Details</h3>" +
+            "      <table style='width:100%%;border-collapse:collapse;'>" +
+            "        <thead>" +
+            "          <tr style='background:#34495e;color:white;'>" +
+            "            <th style='padding:12px;text-align:left;'>Product</th>" +
+            "            <th style='padding:12px;text-align:center;'>Qty</th>" +
+            "            <th style='padding:12px;text-align:right;'>Price</th>" +
+            "            <th style='padding:12px;text-align:right;'>Total</th>" +
+            "          </tr>" +
+            "        </thead>" +
+            "        <tbody>" +
+            "          %s" +
+            "        </tbody>" +
+            "      </table>" +
+            "      " +
+            "      <!-- Shipping Address -->" +
+            "      <h3 style='color:#2c3e50;margin:30px 0 15px 0;'>📍 Shipping Address</h3>" +
+            "      <div style='background:#f8f9fa;padding:20px;border-radius:8px;'>" +
+            "        <p style='margin:5px 0;color:#555;'>%s</p>" +
+            "        <p style='margin:5px 0;color:#555;'>%s, %s %s</p>" +
+            "        <p style='margin:5px 0;color:#555;'>%s</p>" +
+            "      </div>" +
+            "      " +
+            "      <!-- Admin Actions -->" +
+            "      <div style='text-align:center;margin:30px 0;'>" +
+            "        <a href='http://localhost:8080/web/admin' style='display:inline-block;background:#3498db;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;margin-right:10px;'>View in Admin Dashboard</a>" +
+            "        <a href='mailto:%s' style='display:inline-block;background:#27ae60;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;'>Contact Customer</a>" +
+            "      </div>" +
+            "      " +
+            "      <div style='background:#fff3cd;border-left:4px solid #ffc107;padding:15px;border-radius:4px;margin-top:20px;'>" +
+            "        <p style='margin:0;color:#856404;'><strong>⚡ Quick Actions:</strong></p>" +
+            "        <p style='margin:5px 0 0 0;color:#856404;font-size:14px;'>Log into the admin dashboard to process this order, update status, and add tracking information.</p>" +
+            "      </div>" +
+            "    </div>" +
+            "    " +
+            "    <!-- Footer -->" +
+            "    <div style='background:#2c3e50;color:white;padding:20px;text-align:center;'>" +
+            "      <p style='margin:0;font-size:16px;font-weight:bold;'>Admin Notification - E-Commerce Store</p>" +
+            "      <p style='margin:10px 0 0 0;color:#95a5a6;font-size:14px;'>© 2026 E-Commerce Store. All rights reserved.</p>" +
+            "    </div>" +
+            "  </div>" +
+            "</body>" +
+            "</html>",
+            order.getId(),
+            orderDate,
+            order.getOrderStatus(),
+            order.getPaymentStatus(),
+            order.getPaymentMethod().toUpperCase(),
+            order.getUser().getName(),
+            order.getUser().getEmail(),
+            order.getUser().getEmail(),
+            order.getUser().getPhoneNumber() != null ? order.getUser().getPhoneNumber() : "N/A",
+            itemsHtml.toString(),
+            order.getShippingStreet(),
+            order.getShippingCity(),
+            order.getShippingState(),
+            order.getShippingZipCode(),
+            order.getShippingCountry(),
+            order.getUser().getEmail()
+        );
+    }
 
     
     @Async

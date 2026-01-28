@@ -24,10 +24,10 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
     
-    @Value("${APP_EMAIL_FROM}")
+    @Value("${app.email.from}")
     private String fromEmail;
     
-    @Value("${APP_EMAIL_NAME}")
+    @Value("${app.email.name}")
     private String fromName;
     
     @Async

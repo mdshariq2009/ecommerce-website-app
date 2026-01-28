@@ -35,6 +35,11 @@ public class TaxService {
         STATE_TAX_RATES.put("MA", 6.25);
         STATE_TAX_RATES.put("NJ", 6.625);
         STATE_TAX_RATES.put("CO", 8.0); // Colorado
+        STATE_TAX_RATES.put("Noida", 5.0); //
+        STATE_TAX_RATES.put("Delhi", 6.0);
+        STATE_TAX_RATES.put("New Delhi", 6.0);
+        STATE_TAX_RATES.put("Uttar Pradesh", 6.5);
+        STATE_TAX_RATES.put("UP", 6.5);
         
         // Zip code specific rates
         ZIP_TAX_RATES.put("100", 8.875); // NYC
@@ -42,6 +47,9 @@ public class TaxService {
         ZIP_TAX_RATES.put("941", 9.25);  // SF
         ZIP_TAX_RATES.put("606", 10.25); // Chicago
         ZIP_TAX_RATES.put("801", 8.0); // Parker area
+        ZIP_TAX_RATES.put("201", 5.0);
+        ZIP_TAX_RATES.put("110", 6.0);
+        ZIP_TAX_RATES.put("244", 6.5);
     }
     
     public double calculateTax(double amount, String state, String zipCode) {

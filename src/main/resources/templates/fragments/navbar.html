@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        /* Hamburger Menu */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            color: white;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .menu-close {
+            display: none;
+        }
+
+        .nav-overlay {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-wrap: wrap;
+                padding: 1rem;
+            }
+            
+            .navbar h1 {
+                font-size: 1.2rem;
+                flex: 1;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .nav-links {
+                display: none;
+                position: fixed;
+                top: 0;
+                right: 0;
+                width: 280px;
+                height: 100vh;
+                background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+                flex-direction: column;
+                padding: 5rem 1.5rem 2rem 1.5rem;
+                box-shadow: -5px 0 25px rgba(0, 0, 0, 0.5);
+                z-index: 1000;
+                overflow-y: auto;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .nav-links.active {
+                display: flex;
+                transform: translateX(0);
+            }
+            
+            .menu-close {
+                display: block;
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                background: none;
+                border: none;
+                font-size: 2.5rem;
+                color: white;
+                cursor: pointer;
+            }
+            
+            .nav-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+            
+            .nav-overlay.active {
+                display: block;
+            }
+            
+            .nav-links a,
+            .nav-links button,
+            .nav-links span {
+                width: 100%;
+                text-align: left;
+                padding: 1rem;
+                border-radius: 8px;
+                margin-bottom: 0.5rem;
+            }
+            
+            .nav-links a:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar Fragment -->
+    <nav class="navbar" th:fragment="navbar">
+        <!-- Mobile Menu Overlay -->
+        <div class="nav-overlay" id="navOverlay" onclick="toggleMobileMenu()"></div>
+        
+        <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
+        
+        <!-- Hamburger Menu Button -->
+        <button class="menu-toggle" id="menuToggle" onclick="toggleMobileMenu()">☰</button>
+        
+        <div class="nav-links" id="navLinks">
+            <!-- Close Button -->
+            <button class="menu-close" onclick="toggleMobileMenu()">×</button>
+            
+            <a href="/">Home</a>
+            <a href="/web/products">Products</a>
+            <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
+            <a href="/web/orders" id="ordersLink" style="display:none;">My Orders</a>
+            <a href="/web/profile" id="profileLink" style="display:none;">Profile</a>
+            <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
+            <span id="userName"></span>
+            <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
+            <a href="/web/login" id="loginLink">Login</a>
+            <a href="/web/register" id="registerLink">Register</a>
+        </div>
+    </nav>
+    
+    <!-- Navbar JavaScript -->
+    <script th:fragment="navbar-script">
+        function toggleMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const overlay = document.getElementById('navOverlay');
+            const menuToggle = document.getElementById('menuToggle');
+            
+            if (!navLinks || !overlay || !menuToggle) return;
+            
+            navLinks.classList.toggle('active');
+            overlay.classList.toggle('active');
+            
+            if (navLinks.classList.contains('active')) {
+                menuToggle.textContent = '×';
+                menuToggle.style.fontSize = '2.5rem';
+                document.body.style.overflow = 'hidden';
+            } else {
+                menuToggle.textContent = '☰';
+                menuToggle.style.fontSize = '1.8rem';
+                document.body.style.overflow = 'auto';
+            }
+        }
+        
+        // Close menu when clicking links
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.nav-links a, .nav-links button').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 768) {
+                        const menu = document.getElementById('navLinks');
+                        if (menu && menu.classList.contains('active')) {
+                            toggleMobileMenu();
+                        }
+                    }
+                });
+            });
+        });
+        
+        // Close on resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                const navLinks = document.getElementById('navLinks');
+                const overlay = document.getElementById('navOverlay');
+                if (navLinks) navLinks.classList.remove('active');
+                if (overlay) overlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+    </script>
+</body>
+</html>

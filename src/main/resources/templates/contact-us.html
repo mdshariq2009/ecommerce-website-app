@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Us - E-Commerce Store</title>
@@ -342,21 +343,31 @@
     </style>
 </head>
 <body>
+<div class="nav-overlay" id="navOverlay" onclick="toggleMobileMenu()"></div>
     <nav class="navbar">
-        <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
-        <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/web/products">Products</a>
-            <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
-            <a href="/web/orders" id="ordersLink" style="display:none;">My Orders</a>
-            <a href="/web/profile" id="profileLink" style="display:none;">Profile</a>
-            <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
-            <span id="userName"></span>
-            <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
-            <a href="/web/login" id="loginLink">Login</a>
-            <a href="/web/register" id="registerLink">Register</a>
-        </div>
-    </nav>
+    <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
+    
+    <!-- Hamburger Button -->
+    <button class="menu-toggle" id="menuToggle" onclick="toggleMobileMenu()">☰</button>
+    
+    <div class="nav-links" id="navLinks">
+        <!-- Close Button -->
+        
+        
+        <a href="/">Home</a>
+        <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
+        <a href="/web/products">Products</a>
+        <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
+        <a href="/web/orders" id="ordersLink" style="display:none;">My Orders</a>
+        <a href="/web/profile" id="profileLink" style="display:none;">Profile</a>
+        
+        <span id="userName"></span>
+        <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
+        <a href="/web/login" id="loginLink">Login</a>
+        <a href="/web/register" id="registerLink">Register</a>
+    </div>
+</nav>
+    
 
     <!-- Page Header -->
     <div class="page-header">
@@ -529,6 +540,64 @@
         localStorage.clear();
         window.location.href = '/';
     }
+    function toggleMobileMenu() {
+        const navLinks = document.getElementById('navLinks');
+        const overlay = document.getElementById('navOverlay');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        if (!navLinks || !overlay || !menuToggle) return;
+        
+        const isActive = navLinks.classList.contains('active');
+        
+        if (isActive) {
+            // Close menu
+            navLinks.classList.remove('active');
+            overlay.classList.remove('active');
+            menuToggle.textContent = '☰';
+            menuToggle.style.fontSize = '1.8rem';
+            document.body.style.overflow = 'auto';
+        } else {
+            // Open menu
+            navLinks.classList.add('active');
+            overlay.classList.add('active');
+            menuToggle.textContent = '×';
+            menuToggle.style.fontSize = '2.5rem';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    
+    // Close menu when clicking a link
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.nav-links a, .nav-links button');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    const menu = document.getElementById('navLinks');
+                    const overlay = document.getElementById('navOverlay');
+                    if (menu && menu.classList.contains('active')) {
+                        toggleMobileMenu();
+                    }
+                }
+            });
+        });
+    });
+    
+    // Close menu on window resize
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            const navLinks = document.getElementById('navLinks');
+            const overlay = document.getElementById('navOverlay');
+            const menuToggle = document.getElementById('menuToggle');
+            
+            if (navLinks) navLinks.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+            if (menuToggle) {
+                menuToggle.textContent = '☰';
+                menuToggle.style.fontSize = '1.8rem';
+            }
+            document.body.style.overflow = 'auto';
+        }
+    });
 
     function initNavbar() {
         updateCartCount();

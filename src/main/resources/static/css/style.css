@@ -1,6 +1,11 @@
 /* ========================================
    MODERN E-COMMERCE STYLES
    ======================================== */
+html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    position: relative;
+}
 
 * {
     margin: 0;

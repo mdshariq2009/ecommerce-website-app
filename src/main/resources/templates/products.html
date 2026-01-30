@@ -41,15 +41,15 @@
             border-radius: 16px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             margin-bottom: 2rem;
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            align-items: end;
         }
 
         .filter-group {
             display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 0.5rem;
         }
 
@@ -60,11 +60,13 @@
         }
 
         .filter-select, .search-input {
-            padding: 0.6rem 1rem;
+            padding: 0.75rem 1rem;
             border: 2px solid #e5e7eb;
             border-radius: 8px;
             font-size: 0.95rem;
             transition: all 0.3s ease;
+            width: 100%;
+            background: white;
         }
 
         .filter-select:focus, .search-input:focus {
@@ -73,8 +75,8 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .search-input {
-            min-width: 250px;
+        .search-input::placeholder {
+            color: #9ca3af;
         }
 
         .products-grid {
@@ -282,6 +284,29 @@
         .modal-overlay.show {
             display: block;
         }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .filters-section {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .products-container {
+                padding: 0 1rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .custom-modal {
+                min-width: 90%;
+                padding: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -303,7 +328,7 @@
     
     <div class="nav-links" id="navLinks">
         <!-- Close Button -->
-        
+        <button class="menu-close" onclick="toggleMobileMenu()">×</button>
         
         <a href="/">Home</a>
         <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
@@ -328,17 +353,17 @@
         <!-- Filters -->
         <div class="filters-section">
             <div class="filter-group">
-                <label>Search:</label>
-                <input type="text" class="search-input" id="searchInput" placeholder="Search products..." onkeyup="filterProducts()">
+                <label for="searchInput">Search Products</label>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search by name or description..." onkeyup="filterProducts()">
             </div>
             <div class="filter-group">
-                <label>Category:</label>
+                <label for="categoryFilter">Category</label>
                 <select class="filter-select" id="categoryFilter" onchange="filterProducts()">
                     <option value="all">All Categories</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label>Sort by:</label>
+                <label for="sortFilter">Sort By</label>
                 <select class="filter-select" id="sortFilter" onchange="filterProducts()">
                     <option value="name">Name (A-Z)</option>
                     <option value="price-low">Price (Low to High)</option>
@@ -386,12 +411,21 @@
             window.location.href = '/';
         }
 
+      
         function initNavbar() {
             updateCartCount();
-            document.getElementById('userName').textContent = 'Hi, ' + user.name;
             
-            if (user.role === 'ADMIN') {
-                document.getElementById('adminLink').style.display = 'inline-block';
+            if (user && token) {
+                document.getElementById('userName').textContent = 'Hi, ' + user.name;
+                document.getElementById('logoutBtn').style.display = 'block';  // Changed
+                document.getElementById('ordersLink').style.display = 'block';  // Changed
+                document.getElementById('profileLink').style.display = 'block';  // Changed
+                document.getElementById('loginLink').style.display = 'none';
+                document.getElementById('registerLink').style.display = 'none';
+                
+                if (user.role === 'ADMIN') {
+                    document.getElementById('adminLink').style.display = 'inline-block';
+                }
             }
         }
 
@@ -490,24 +524,20 @@
             displayProducts(allProducts);
         }
         
-     // Add this function at the top of your script section
         function getUrlParameter(name) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
         }
 
-        // Update the initNavbar function or add this after it
         function applyUrlFilters() {
             const categoryParam = getUrlParameter('category');
             
             if (categoryParam) {
                 console.log('📁 Category filter from URL:', categoryParam);
                 
-                // Wait for categories to load, then set the filter
                 setTimeout(() => {
                     const categoryFilter = document.getElementById('categoryFilter');
                     
-                    // Find matching option
                     for (let i = 0; i < categoryFilter.options.length; i++) {
                         if (categoryFilter.options[i].value === categoryParam) {
                             categoryFilter.selectedIndex = i;
@@ -572,6 +602,7 @@
 
             grid.innerHTML = productsHtml;
         }
+        
         function toggleMobileMenu() {
             const navLinks = document.getElementById('navLinks');
             const overlay = document.getElementById('navOverlay');
@@ -582,14 +613,12 @@
             const isActive = navLinks.classList.contains('active');
             
             if (isActive) {
-                // Close menu
                 navLinks.classList.remove('active');
                 overlay.classList.remove('active');
                 menuToggle.textContent = '☰';
                 menuToggle.style.fontSize = '1.8rem';
                 document.body.style.overflow = 'auto';
             } else {
-                // Open menu
                 navLinks.classList.add('active');
                 overlay.classList.add('active');
                 menuToggle.textContent = '×';
@@ -598,7 +627,6 @@
             }
         }
         
-        // Close menu when clicking a link
         document.addEventListener('DOMContentLoaded', function() {
             const navLinks = document.querySelectorAll('.nav-links a, .nav-links button');
             navLinks.forEach(link => {
@@ -614,7 +642,6 @@
             });
         });
         
-        // Close menu on window resize
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768) {
                 const navLinks = document.getElementById('navLinks');
@@ -656,8 +683,6 @@
             showAlert('Added to Cart ✅', name + ' has been added to your cart', '🛒', '#10b981');
         }
 
-   
-        // NEW:
         initNavbar();
         loadProducts().then(() => {
             applyUrlFilters();
@@ -685,14 +710,14 @@
             </div>
             
             <!-- Customer Service -->
-                     <div>
-    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
-    <ul style="list-style:none;padding:0;">
-        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
-        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
-        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
-    </ul>
-</div>
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+                <ul style="list-style:none;padding:0;">
+                    <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+                </ul>
+            </div>
             
             <!-- Contact -->
             <div>
@@ -716,7 +741,6 @@
 </footer>
 
 <script>
-    // Set current year automatically
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 </script>
     

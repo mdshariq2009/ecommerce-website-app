@@ -222,16 +222,16 @@
             font-weight: 700;
         }
 
-        .orders-table {
+        .orders-table, .users-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .orders-table thead {
+        .orders-table thead, .users-table thead {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
-        .orders-table th {
+        .orders-table th, .users-table th {
             padding: 1.2rem 1rem;
             text-align: center;
             font-weight: 700;
@@ -242,22 +242,22 @@
             border-bottom: none;
         }
 
-        .orders-table td {
+        .orders-table td, .users-table td {
             padding: 1.2rem 1rem;
             border-bottom: 1px solid #f3f4f6;
             text-align: center;
         }
 
-        .orders-table tbody tr {
+        .orders-table tbody tr, .users-table tbody tr {
             transition: all 0.3s ease;
             background: white;
         }
 
-        .orders-table tbody tr:nth-child(even) {
+        .orders-table tbody tr:nth-child(even), .users-table tbody tr:nth-child(even) {
             background: #f9fafb;
         }
 
-        .orders-table tbody tr:hover {
+        .orders-table tbody tr:hover, .users-table tbody tr:hover {
             background: #f3f4f6;
             transform: scale(1.01);
         }
@@ -278,13 +278,32 @@
         .status-cancelled { background: #fee2e2; color: #991b1b; }
         .status-completed { background: #d1fae5; color: #065f46; }
 
+        .role-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .role-admin {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .role-user {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
         /* Modals */
         .custom-modal {
             display: none;
             position: fixed;
-            top: 50%;
+            top: 2%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
             background: white;
             padding: 2.5rem;
             border-radius: 20px;
@@ -292,19 +311,19 @@
             z-index: 10000;
             min-width: 600px;
             max-width: 900px;
-            max-height: 85vh;
+            max-height: 96vh;
             overflow-y: auto;
             text-align: center;
         }
         
         .custom-modal.show {
             display: block;
-            animation: modalSlideIn 0.3s ease;
+            animation: modalSlideDown 0.3s ease;
         }
         
-        @keyframes modalSlideIn {
-            from { opacity: 0; transform: translate(-50%, -60%); }
-            to { opacity: 1; transform: translate(-50%, -50%); }
+        @keyframes modalSlideDown {
+            from { opacity: 0; top: -10%; }
+            to { opacity: 1; top: 2%; }
         }
         
         .modal-overlay {
@@ -326,6 +345,7 @@
         .order-details-content {
             text-align: left;
             margin: 1.5rem 0;
+            max-width: 100%;
         }
         
         .detail-row {
@@ -333,6 +353,7 @@
             justify-content: space-between;
             padding: 0.5rem 0;
             border-bottom: 1px solid #e5e7eb;
+            gap: 1rem;
         }
         
         .detail-section {
@@ -341,6 +362,12 @@
             background: #f9fafb;
             border-radius: 12px;
             border: 1px solid #e5e7eb;
+        }
+
+        .detail-section h4 {
+            margin-bottom: 1rem;
+            color: #1f2937;
+            font-size: 1.1rem;
         }
 
         .info-box {
@@ -422,6 +449,271 @@
             text-align: center;
             padding: 4rem 2rem;
         }
+
+        /* User card for mobile */
+        .user-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .user-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f3f4f6;
+        }
+
+        /* RESPONSIVE STYLES FOR SMALL SCREENS */
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 0 1rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+
+            .stat-card {
+                padding: 1.5rem 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.8rem;
+            }
+
+            .stat-icon {
+                font-size: 2rem;
+            }
+
+            /* Make filters stack vertically */
+            .filters-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-select, .search-input {
+                width: 100%;
+                min-width: auto;
+            }
+
+            /* Form grid to single column */
+            .section-content > form > div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Hide table, show cards instead */
+            .orders-table thead, .users-table thead {
+                display: none;
+            }
+
+            .orders-table, .users-table,
+            .orders-table tbody, .users-table tbody,
+            .orders-table tr, .users-table tr {
+                display: block;
+                width: 100%;
+            }
+
+            .orders-table tr, .users-table tr {
+                margin-bottom: 1.5rem;
+                border: 2px solid #e5e7eb;
+                border-radius: 12px;
+                padding: 1rem;
+                background: white;
+            }
+
+            .orders-table tr:hover, .users-table tr:hover {
+                transform: none;
+            }
+
+            .orders-table td, .users-table td {
+                display: block;
+                text-align: left !important;
+                padding: 0.8rem 0;
+                border-bottom: 1px solid #f3f4f6;
+                position: relative;
+                padding-left: 45%;
+            }
+
+            .orders-table td:last-child, .users-table td:last-child {
+                border-bottom: none;
+            }
+
+            .orders-table td::before, .users-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                width: 40%;
+                padding-right: 10px;
+                font-weight: 700;
+                color: #667eea;
+                text-align: left;
+            }
+
+            .orders-table select, .users-table select,
+            .orders-table input, .users-table input {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
+            .action-btn {
+                margin-bottom: 0.5rem;
+            }
+
+            /* FIXED MODAL FOR MOBILE - FULL SCREEN SCROLLABLE */
+            .custom-modal {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                transform: none !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                padding: 1rem !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            #customAlert {
+                font-size: 0.9rem;
+            }
+
+            #alertTitle {
+                font-size: 1.3rem !important;
+                margin-top: 1rem !important;
+            }
+
+            #alertMessage {
+                font-size: 0.95rem !important;
+            }
+
+            #alertIcon {
+                font-size: 3rem !important;
+                margin-top: 1rem !important;
+            }
+
+            /* Order details - single column */
+            .order-details-content {
+                margin: 0.5rem 0 !important;
+            }
+
+            .order-details-content > div[style*="grid"] {
+                display: block !important;
+            }
+
+            .detail-section {
+                padding: 1rem !important;
+                margin: 0.8rem 0 !important;
+            }
+
+            .detail-section h4 {
+                font-size: 1rem !important;
+                margin-bottom: 0.8rem !important;
+            }
+
+            .detail-row {
+                display: block !important;
+                padding: 0.5rem 0 !important;
+            }
+
+            .detail-row > span, .detail-row > div {
+                display: block !important;
+                margin-bottom: 0.3rem;
+            }
+
+            .detail-row > span:first-child, .detail-row > div:first-child {
+                color: #667eea !important;
+                font-weight: 700 !important;
+                font-size: 0.85rem !important;
+            }
+
+            .table-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+                padding: 1.2rem;
+            }
+
+            .table-title {
+                font-size: 1.2rem;
+            }
+
+            /* Close button more accessible */
+            .custom-modal .btn {
+                position: sticky !important;
+                bottom: 0 !important;
+                background: white !important;
+                box-shadow: 0 -4px 10px rgba(0,0,0,0.1) !important;
+                z-index: 10 !important;
+                margin: 1rem -1rem -1rem -1rem !important;
+                padding: 1.2rem !important;
+                border-radius: 0 !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card {
+                padding: 1.2rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .page-title {
+                font-size: 1.75rem;
+            }
+
+            .section-title {
+                font-size: 1.1rem;
+            }
+
+            .orders-table td, .users-table td {
+                padding-left: 0;
+                padding-top: 0.5rem;
+            }
+
+            .orders-table td::before, .users-table td::before {
+                position: relative;
+                display: block;
+                width: 100%;
+                padding-bottom: 0.3rem;
+                text-align: left;
+            }
+
+            .custom-modal {
+                padding: 0.8rem !important;
+            }
+
+            .detail-section {
+                padding: 0.8rem !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -445,26 +737,20 @@
             <p style="margin:0;color:#991b1b;"><strong>Order ID:</strong> #<span id="deleteOrderId"></span></p>
             <p style="margin:0.5rem 0 0 0;color:#991b1b;"><strong>Customer:</strong> <span id="deleteCustomerName"></span></p>
         </div>
-        <div style="display:flex;gap:1rem;margin-top:2rem;">
-            <button onclick="closeDeleteConfirm()" class="btn" style="flex:1;background:linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">Cancel</button>
-            <button onclick="deleteOrderConfirmed()" class="btn btn-danger" style="flex:1;">Yes, Delete Order</button>
+        <div style="display:flex;gap:1rem;margin-top:2rem;flex-wrap:wrap;">
+            <button onclick="closeDeleteConfirm()" class="btn" style="flex:1;background:linear-gradient(135deg, #6b7280 0%, #4b5563 100%);min-width:120px;">Cancel</button>
+            <button onclick="deleteOrderConfirmed()" class="btn btn-danger" style="flex:1;min-width:120px;">Yes, Delete Order</button>
         </div>
     </div>
-    
 
-    <!-- Mobile Menu Overlay -->
 <div class="nav-overlay" id="navOverlay" onclick="toggleMobileMenu()"></div>
 
 <nav class="navbar">
     <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
     
-    <!-- Hamburger Button -->
     <button class="menu-toggle" id="menuToggle" onclick="toggleMobileMenu()">☰</button>
     
     <div class="nav-links" id="navLinks">
-        <!-- Close Button -->
-        
-        
         <a href="/">Home</a>
         <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
         <a href="/web/products">Products</a>
@@ -474,8 +760,6 @@
         
         <span id="userName"></span>
         <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
-        <a href="/web/login" id="loginLink">Login</a>
-        <a href="/web/register" id="registerLink">Register</a>
     </div>
 </nav>
 
@@ -509,10 +793,31 @@
             </div>
         </div>
 
+        <!-- NEW: User Management Section -->
+        <div class="section-card">
+            <div class="section-header" onclick="toggleSection('usersSection')">
+                <div class="section-title">👥 User Management</div>
+                <div class="toggle-icon" id="usersToggle">▼</div>
+            </div>
+            <div class="section-content" id="usersSection">
+                <div style="background:#e0e7ff;padding:1.5rem;border-radius:12px;margin-bottom:1.5rem;border-left:4px solid #667eea;">
+                    <p style="margin:0;color:#4338ca;"><strong>ℹ️ Registered Users:</strong> <span id="registeredUsersCount">0</span></p>
+                    <p style="margin:0.5rem 0 0 0;color:#4338ca;">Admins: <strong><span id="adminUsersCount">0</span></strong> | Regular Users: <strong><span id="regularUsersCount">0</span></strong></p>
+                </div>
+                
+                <div id="usersContainer" style="margin-top:1.5rem;">
+                    <div style="text-align:center;padding:2rem;">
+                        <div class="loading-spinner"></div>
+                        <p style="color:#6b7280;margin-top:1rem;">Loading users...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Shipping Settings Section -->
         <div class="section-card">
             <div class="section-header" onclick="toggleSection('shippingSection')">
-                <div class="section-title">Shipping Settings</div>
+                <div class="section-title">🚚 Shipping Settings</div>
                 <div class="toggle-icon" id="shippingToggle">▼</div>
             </div>
             <div class="section-content" id="shippingSection">
@@ -551,7 +856,7 @@
         <!-- Add Product Section -->
         <div class="section-card">
             <div class="section-header" onclick="toggleSection('productSection')">
-                <div class="section-title">Add New Product</div>
+                <div class="section-title">➕ Add New Product</div>
                 <div class="toggle-icon" id="productToggle">▼</div>
             </div>
             <div class="section-content" id="productSection">
@@ -620,7 +925,7 @@
                 </select>
             </div>
             <div style="margin-left:auto;">
-                <button onclick="clearFilters()" class="btn" style="padding:0.6rem 1.0rem;">
+                <button onclick="clearFilters()" class="btn" style="padding:0.6rem 1.5rem;width:100%;">
                     Clear Filters
                 </button>
             </div>
@@ -629,7 +934,7 @@
         <!-- Orders Table -->
         <div class="orders-table-wrapper">
             <div class="table-header">
-                <div class="table-title">All Orders</div>
+                <div class="table-title">📦 All Orders</div>
                 <button onclick="loadOrders()" class="btn" style="background:rgba(255,255,255,0.2);border:2px solid white;color:white;padding:0.6rem 1.5rem;">
                     Refresh
                 </button>
@@ -642,38 +947,31 @@
             </div>
         </div>
     </div>
-<!-- Footer -->
+
 <footer style="background:#1f2937;color:white;padding:3rem 2rem;margin-top:4rem;">
     <div style="max-width:1400px;margin:0 auto;">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:3rem;margin-bottom:3rem;">
-            <!-- Company Info -->
             <div>
                 <h3 style="font-size:1.5rem;margin-bottom:1rem;font-weight:800;">🛒 E-Commerce Store</h3>
                 <p style="color:#9ca3af;line-height:1.6;">Your trusted online shopping destination for quality products at great prices.</p>
             </div>
-            
-            <!-- Quick Links -->
             <div>
                 <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Quick Links</h4>
                 <ul style="list-style:none;padding:0;">
-                    <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Home</a></li>
-                    <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Products</a></li>
-                    <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">My Orders</a></li>
-                    <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Profile</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/" style="color:#9ca3af;text-decoration:none;">Home</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/products" style="color:#9ca3af;text-decoration:none;">Products</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/orders" style="color:#9ca3af;text-decoration:none;">My Orders</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/profile" style="color:#9ca3af;text-decoration:none;">Profile</a></li>
                 </ul>
             </div>
-            
-            <!-- Customer Service -->
-                    <div>
-    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
-    <ul style="list-style:none;padding:0;">
-        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
-        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
-        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
-    </ul>
-</div>
-            
-            <!-- Contact -->
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+                <ul style="list-style:none;padding:0;">
+                    <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;">Contact Us</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;">Returns & Refunds</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;">Privacy Policy</a></li>
+                </ul>
+            </div>
             <div>
                 <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Get in Touch</h4>
                 <p style="color:#9ca3af;margin-bottom:0.5rem;">📧 support@ecommerce.com</p>
@@ -681,21 +979,14 @@
                 <p style="color:#9ca3af;">📍 123 Commerce St, City, State 12345</p>
             </div>
         </div>
-        
-        <!-- Copyright Bar -->
         <div style="border-top:1px solid #374151;padding-top:2rem;text-align:center;">
-            <p style="color:#9ca3af;margin-bottom:0.5rem;">
-                © <span id="currentYear"></span> E-Commerce Store. All rights reserved.
-            </p>
-            <p style="color:#6b7280;font-size:0.9rem;">
-                Powered by Stripe | Secure Shopping Experience
-            </p>
+            <p style="color:#9ca3af;margin-bottom:0.5rem;">© <span id="currentYear"></span> E-Commerce Store. All rights reserved.</p>
+            <p style="color:#6b7280;font-size:0.9rem;">Powered by Stripe | Secure Shopping Experience</p>
         </div>
     </div>
 </footer>
 
 <script>
-    // Set current year automatically
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 </script>
 
@@ -704,6 +995,7 @@
     const token = localStorage.getItem('token');
     let allOrders = [];
     let filteredOrders = [];
+    let allUsers = [];
     let orderToDelete = null;
 
     console.log('🚀 Admin Dashboard Loaded');
@@ -729,12 +1021,12 @@
         
         if (user && token) {
             document.getElementById('userName').textContent = 'Hi, ' + user.name;
-            document.getElementById('logoutBtn').style.display = 'inline-block';
-            document.getElementById('ordersLink').style.display = 'inline-block';
-            document.getElementById('profileLink').style.display = 'inline-block';
+            document.getElementById('logoutBtn').style.display = 'block';
+            document.getElementById('ordersLink').style.display = 'block';
+            document.getElementById('profileLink').style.display = 'block';
             
             if (user.role === 'ADMIN') {
-                document.getElementById('adminLink').style.display = 'inline-block';
+                document.getElementById('adminLink').style.display = 'block';
             }
         }
     }
@@ -752,6 +1044,8 @@
             
             if (sectionId === 'shippingSection') {
                 loadShippingConfig();
+            } else if (sectionId === 'usersSection') {
+                loadUsers();
             }
         }
     }
@@ -788,54 +1082,210 @@
         filterOrders();
     }
 
-    // ADDED: Carrier detection function
+ // Replace the loadUsers function with this improved version:
+
+    async function loadUsers() {
+        try {
+            document.getElementById('usersContainer').innerHTML = `
+                <div style="text-align:center;padding:2rem;">
+                    <div class="loading-spinner"></div>
+                    <p style="color:#6b7280;margin-top:1rem;">Loading users...</p>
+                </div>
+            `;
+
+            // Try multiple possible endpoints
+            let response;
+            let users = [];
+            
+            try {
+                // Try primary endpoint
+                response = await fetch('/api/admin/users', {
+                    headers: { 
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    users = await response.json();
+                }
+            } catch (e) {
+                console.log('Primary endpoint failed, trying alternative...');
+            }
+
+            // If primary failed, try to extract users from orders
+            if (users.length === 0 && allOrders.length > 0) {
+                console.log('📋 Extracting users from orders...');
+                
+                const userMap = new Map();
+                allOrders.forEach(order => {
+                    if (order.user && order.user.id) {
+                        if (!userMap.has(order.user.id)) {
+                            userMap.set(order.user.id, {
+                                id: order.user.id,
+                                name: order.user.name,
+                                email: order.user.email,
+                                role: order.user.role || 'USER',
+                                createdAt: order.createdAt
+                            });
+                        }
+                    }
+                });
+                
+                users = Array.from(userMap.values());
+            }
+
+            allUsers = users;
+
+            // Update user counts
+            const adminCount = users.filter(u => u.role === 'ADMIN').length;
+            const regularCount = users.filter(u => u.role === 'USER' || !u.role).length;
+            
+            document.getElementById('registeredUsersCount').textContent = users.length;
+            document.getElementById('adminUsersCount').textContent = adminCount;
+            document.getElementById('regularUsersCount').textContent = regularCount;
+
+            if (users.length === 0) {
+                document.getElementById('usersContainer').innerHTML = 
+                    `<div class="empty-state">
+                        <div style="font-size:4rem;opacity:0.5;margin-bottom:1rem;">👥</div>
+                        <h3 style="color:#1f2937;margin-bottom:0.5rem;">No Users Found</h3>
+                        <p style="color:#6b7280;margin-bottom:1rem;">No registered users available</p>
+                        <div style="background:#fef3c7;padding:1rem;border-radius:8px;border-left:4px solid #f59e0b;text-align:left;">
+                            <p style="margin:0;color:#92400e;font-size:0.9rem;"><strong>ℹ️ Note:</strong> User data is extracted from orders. Users will appear here once they place orders.</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            displayUsers(users);
+        } catch (error) {
+            console.error('Error loading users:', error);
+            document.getElementById('usersContainer').innerHTML = 
+                `<div class="empty-state">
+                    <div style="font-size:3rem;color:#ef4444;margin-bottom:1rem;">❌</div>
+                    <h3 style="color:#1f2937;margin-bottom:0.5rem;">Error Loading Users</h3>
+                    <p style="color:#6b7280;margin-bottom:1rem;">${error.message}</p>
+                    <div style="background:#fee2e2;padding:1rem;border-radius:8px;border-left:4px solid #ef4444;text-align:left;">
+                        <p style="margin:0;color:#991b1b;font-size:0.9rem;"><strong>⚠️ API Error:</strong> The user endpoint may not be available. User data is being extracted from order history instead.</p>
+                    </div>
+                    <button onclick="loadUsers()" class="btn" style="margin-top:1rem;width:auto;padding:0.8rem 2rem;">🔄 Retry</button>
+                </div>`;
+            
+            // Still try to show users from orders
+            if (allOrders.length > 0) {
+                const userMap = new Map();
+                allOrders.forEach(order => {
+                    if (order.user && order.user.id) {
+                        if (!userMap.has(order.user.id)) {
+                            userMap.set(order.user.id, {
+                                id: order.user.id,
+                                name: order.user.name,
+                                email: order.user.email,
+                                role: order.user.role || 'USER',
+                                createdAt: order.createdAt
+                            });
+                        }
+                    }
+                });
+                
+                const users = Array.from(userMap.values());
+                if (users.length > 0) {
+                    allUsers = users;
+                    const adminCount = users.filter(u => u.role === 'ADMIN').length;
+                    const regularCount = users.filter(u => u.role === 'USER' || !u.role).length;
+                    
+                    document.getElementById('registeredUsersCount').textContent = users.length;
+                    document.getElementById('adminUsersCount').textContent = adminCount;
+                    document.getElementById('regularUsersCount').textContent = regularCount;
+                    
+                    displayUsers(users);
+                }
+            }
+        }
+    }
+
+    // NEW: Display Users Function
+    function displayUsers(users) {
+        const html = `
+            <div style="overflow-x:auto;">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Registered Date</th>
+                            <th>Total Orders</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(user => {
+                            const orderCount = allOrders.filter(o => o.user && o.user.id === user.id).length;
+                            const registeredDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A';
+                            
+                            return `
+                                <tr>
+                                    <td data-label="User ID"><strong style="color:#667eea;">#${user.id}</strong></td>
+                                    <td data-label="Name">
+                                        <div style="font-weight:600;color:#1f2937;">${user.name}</div>
+                                    </td>
+                                    <td data-label="Email">
+                                        <div style="color:#6b7280;word-break:break-all;">${user.email}</div>
+                                    </td>
+                                    <td data-label="Role">
+                                        <span class="role-badge role-${user.role.toLowerCase()}">${user.role}</span>
+                                    </td>
+                                    <td data-label="Registered">
+                                        <small style="color:#6b7280;">${registeredDate}</small>
+                                    </td>
+                                    <td data-label="Orders">
+                                        <strong style="color:#10b981;">${orderCount}</strong>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        document.getElementById('usersContainer').innerHTML = html;
+    }
+
     function detectCarrier(trackingNumber) {
         if (!trackingNumber) return 'USPS';
         
         const tracking = trackingNumber.trim().toUpperCase().replace(/\s+/g, '');
         
-        // UPS Detection
         if (tracking.match(/^1Z[A-Z0-9]{16}$/)) return 'UPS';
         if (tracking.match(/^T\d{10}$/)) return 'UPS';
         if (tracking.match(/^\d{18}$/)) return 'UPS';
-        
-        // USPS Detection (check BEFORE FedEx)
         if (tracking.match(/^(94|92|93|82|71|61|42|41|40|23|03|02|01)\d{18,24}$/)) return 'USPS';
         if (tracking.match(/^[A-Z]{2}\d{9}US$/)) return 'USPS';
-        
-        // FedEx Detection (check AFTER USPS)
         if (tracking.match(/^\d{12}$/) && !tracking.match(/^(94|92|93|82|71|61|42|41|40|23|03|02|01)/)) return 'FedEx';
+        
         const length = tracking.length;
         if (tracking.match(/^\d+$/) && [14, 15, 20, 22].includes(length)) return 'FedEx';
         if (tracking.match(/^(96|02|03|04|05|06|07|08|09)\d{10,20}$/)) return 'FedEx';
-        
-        // DHL Detection
         if (tracking.match(/^\d{10,11}$/) && !tracking.match(/^(94|92|93|82|71|61|42|41|40|23|03|02|01)/)) return 'DHL';
         if (tracking.match(/^(JJD|JVGL|GM|LX|RX)\d{10,20}$/)) return 'DHL';
-        
-        // Amazon
         if (tracking.match(/^TBA\d{12,13}$/)) return 'Amazon Logistics';
         
         return 'USPS';
     }
 
-    // ADDED: Get tracking URL function
     function getTrackingUrl(trackingNumber, carrier) {
         if (!trackingNumber) return '#';
         
         switch (carrier.toUpperCase()) {
-            case 'UPS':
-                return `https://www.ups.com/track?tracknum=${trackingNumber}`;
-            case 'FEDEX':
-                return `https://www.fedex.com/fedextrack/?trknbr=${trackingNumber}`;
-            case 'DHL':
-                return `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNumber}`;
-            case 'USPS':
-                return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`;
-            case 'AMAZON LOGISTICS':
-                return `https://track.amazon.com/tracking/${trackingNumber}`;
-            default:
-                return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`;
+            case 'UPS': return `https://www.ups.com/track?tracknum=${trackingNumber}`;
+            case 'FEDEX': return `https://www.fedex.com/fedextrack/?trknbr=${trackingNumber}`;
+            case 'DHL': return `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNumber}`;
+            case 'USPS': return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`;
+            case 'AMAZON LOGISTICS': return `https://track.amazon.com/tracking/${trackingNumber}`;
+            default: return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`;
         }
     }
 
@@ -848,9 +1298,7 @@
         let filtered = [...allOrders];
 
         if (orderIdSearch) {
-            filtered = filtered.filter(order => 
-                order.id.toString().includes(orderIdSearch)
-            );
+            filtered = filtered.filter(order => order.id.toString().includes(orderIdSearch));
         }
 
         if (customerSearch) {
@@ -879,7 +1327,6 @@
         }
 
         filteredOrders = filtered;
-        console.log('🔍 Filtered orders:', filtered.length);
         displayOrders(filtered);
     }
 
@@ -891,7 +1338,6 @@
             
             if (response.ok) {
                 const stats = await response.json();
-                
                 document.getElementById('totalOrders').textContent = stats.totalOrders || 0;
                 document.getElementById('totalUsers').textContent = stats.totalUsers || 0;
                 document.getElementById('totalProducts').textContent = stats.totalProducts || 0;
@@ -904,8 +1350,6 @@
 
     async function loadOrders() {
         try {
-            console.log('📦 Loading orders...');
-
             document.getElementById('ordersContainer').innerHTML = `
                 <div style="text-align:center;padding:2rem;">
                     <div class="loading-spinner"></div>
@@ -921,9 +1365,6 @@
             });
 
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ API Error:', errorText);
-                
                 document.getElementById('ordersContainer').innerHTML = 
                     `<div class="empty-state">
                         <div style="font-size:3rem;color:#ef4444;margin-bottom:1rem;">❌</div>
@@ -937,8 +1378,6 @@
             const orders = await response.json();
             allOrders = orders;
             filteredOrders = orders;
-            
-            console.log('✅ Orders loaded:', orders.length);
 
             if (orders.length === 0) {
                 document.getElementById('filtersSection').style.display = 'none';
@@ -953,10 +1392,7 @@
 
             document.getElementById('filtersSection').style.display = 'flex';
             displayOrders(orders);
-        } 
-        catch (error) {
-            console.error('❌ Exception:', error);
-            
+        } catch (error) {
             document.getElementById('ordersContainer').innerHTML = 
                 `<div class="empty-state">
                     <div style="font-size:3rem;color:#ef4444;margin-bottom:1rem;">❌</div>
@@ -1001,14 +1437,14 @@
                             
                             return `
                                 <tr>
-                                    <td><strong style="color:#667eea;">#${order.id}</strong></td>
-                                    <td>
+                                    <td data-label="Order ID"><strong style="color:#667eea;">#${order.id}</strong></td>
+                                    <td data-label="Customer">
                                         <div style="font-weight:600;color:#1f2937;">${order.user ? order.user.name : 'N/A'}</div>
                                         <small style="color:#6b7280;">${order.user ? order.user.email : 'N/A'}</small>
                                     </td>
-                                    <td><strong style="color:#10b981;font-size:1.1rem;">$${(order.totalAmount || 0).toFixed(2)}</strong></td>
-                                    <td><span class="order-status status-${paymentStatus.toLowerCase()}">${paymentStatus}</span></td>
-                                    <td>
+                                    <td data-label="Amount"><strong style="color:#10b981;font-size:1.1rem;">$${(order.totalAmount || 0).toFixed(2)}</strong></td>
+                                    <td data-label="Payment"><span class="order-status status-${paymentStatus.toLowerCase()}">${paymentStatus}</span></td>
+                                    <td data-label="Order Status">
                                         <select id="status_${order.id}" onchange="handleStatusChange(${order.id})" style="padding:0.6rem;border:2px solid #e5e7eb;border-radius:8px;font-weight:600;width:140px;cursor:pointer;">
                                             <option value="PENDING" ${orderStatus === 'PENDING' ? 'selected' : ''}>Pending</option>
                                             <option value="PROCESSING" ${orderStatus === 'PROCESSING' ? 'selected' : ''}>Processing</option>
@@ -1017,7 +1453,7 @@
                                             <option value="CANCELLED" ${orderStatus === 'CANCELLED' ? 'selected' : ''}>Cancelled</option>
                                         </select>
                                     </td>
-                                    <td>
+                                    <td data-label="Tracking">
                                         <input 
                                             type="text" 
                                             id="tracking_${order.id}" 
@@ -1027,8 +1463,8 @@
                                         >
                                         <div id="trackingStatus_${order.id}" style="font-size:0.75rem;margin-top:0.3rem;min-height:18px;"></div>
                                     </td>
-                                    <td><small style="color:#6b7280;">${new Date(order.orderDate || order.createdAt).toLocaleDateString()}</small></td>
-                                    <td>
+                                    <td data-label="Date"><small style="color:#6b7280;">${new Date(order.orderDate || order.createdAt).toLocaleDateString()}</small></td>
+                                    <td data-label="Actions">
                                         <button onclick="viewOrderDetails(${order.id})" class="action-btn btn-view">View</button>
                                         <button onclick="updateOrderClick(${order.id})" class="action-btn btn-update">Update</button>
                                         <button onclick="confirmDeleteOrder(${order.id})" class="action-btn btn-delete">Delete</button>
@@ -1042,25 +1478,19 @@
         `;
 
         document.getElementById('ordersContainer').innerHTML = html;
-
-        orders.forEach(order => {
-            handleStatusChange(order.id);
-        });
+        orders.forEach(order => handleStatusChange(order.id));
     }
 
     function confirmDeleteOrder(orderId) {
         const order = allOrders.find(o => o.id === orderId);
-        
         if (!order) {
             showCustomAlert('Error', 'Order not found', 'error');
             return;
         }
         
         orderToDelete = orderId;
-        
         document.getElementById('deleteOrderId').textContent = orderId;
         document.getElementById('deleteCustomerName').textContent = order.user ? order.user.name : 'N/A';
-        
         document.getElementById('deleteOverlay').classList.add('show');
         document.getElementById('deleteConfirmModal').classList.add('show');
     }
@@ -1074,17 +1504,15 @@
     async function deleteOrderConfirmed() {
         if (!orderToDelete) return;
         
-        const orderId = orderToDelete;
-        
         try {
-            const response = await fetch(`/api/admin/orders/${orderId}`, {
+            const response = await fetch(`/api/admin/orders/${orderToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': 'Bearer ' + token }
             });
 
             if (response.ok || response.status === 204) {
                 closeDeleteConfirm();
-                showCustomAlert('Order Deleted ✅', `Order #${orderId} has been permanently deleted`, 'success');
+                showCustomAlert('Order Deleted ✅', `Order #${orderToDelete} has been permanently deleted`, 'success');
                 loadOrders();
                 loadStats();
             } else {
@@ -1105,7 +1533,6 @@
             
             if (response.ok) {
                 const config = await response.json();
-                
                 document.getElementById('currentShippingCost').textContent = config.shippingCost.toFixed(2);
                 document.getElementById('currentThreshold').textContent = config.freeShippingThreshold.toFixed(2);
                 document.getElementById('shippingCost').value = config.shippingCost;
@@ -1197,9 +1624,7 @@
                 
                 if (statusDiv) {
                     statusDiv.innerHTML = '<span style="color:#10b981;font-weight:600;">✓ Saved</span>';
-                    setTimeout(() => {
-                        statusDiv.innerHTML = '';
-                    }, 3000);
+                    setTimeout(() => statusDiv.innerHTML = '', 3000);
                 }
                 
                 const index = allOrders.findIndex(o => o.id === orderId);
@@ -1209,7 +1634,6 @@
                 
                 showCustomAlert('Success! ✅', `Order #${orderId} updated successfully!`, 'success');
                 loadStats();
-                
             } else {
                 if (statusDiv) {
                     statusDiv.innerHTML = '<span style="color:#ef4444;">✗ Failed</span>';
@@ -1224,6 +1648,7 @@
             showCustomAlert('Error', 'Failed to update: ' + error.message, 'error');
         }
     }
+
     function toggleMobileMenu() {
         const navLinks = document.getElementById('navLinks');
         const overlay = document.getElementById('navOverlay');
@@ -1234,14 +1659,12 @@
         const isActive = navLinks.classList.contains('active');
         
         if (isActive) {
-            // Close menu
             navLinks.classList.remove('active');
             overlay.classList.remove('active');
             menuToggle.textContent = '☰';
             menuToggle.style.fontSize = '1.8rem';
             document.body.style.overflow = 'auto';
         } else {
-            // Open menu
             navLinks.classList.add('active');
             overlay.classList.add('active');
             menuToggle.textContent = '×';
@@ -1250,14 +1673,12 @@
         }
     }
     
-    // Close menu when clicking a link
     document.addEventListener('DOMContentLoaded', function() {
         const navLinks = document.querySelectorAll('.nav-links a, .nav-links button');
         navLinks.forEach(link => {
             link.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
                     const menu = document.getElementById('navLinks');
-                    const overlay = document.getElementById('navOverlay');
                     if (menu && menu.classList.contains('active')) {
                         toggleMobileMenu();
                     }
@@ -1266,7 +1687,6 @@
         });
     });
     
-    // Close menu on window resize
     window.addEventListener('resize', () => {
         if (window.innerWidth > 768) {
             const navLinks = document.getElementById('navLinks');
@@ -1282,21 +1702,13 @@
             document.body.style.overflow = 'auto';
         }
     });
-    // UPDATED: viewOrderDetails with carrier detection
+
     function viewOrderDetails(orderId) {
         const order = allOrders.find(o => o.id === orderId);
-        
         if (!order) {
             showCustomAlert('Error', 'Order not found', 'error');
             return;
         }
-
-        console.log('========================================');
-        console.log('📋 Viewing order details');
-        console.log('Order:', order);
-        console.log('Tracking:', order.trackingNumber);
-        console.log('Carrier (DB):', order.carrier);
-        console.log('========================================');
 
         const items = order.items || [];
         const subtotal = order.subtotal || 0;
@@ -1304,19 +1716,14 @@
         const shipping = order.shipping || 0;
         const total = order.totalAmount || 0;
         
-        // Detect carrier from tracking number if not set or is default USPS
         const trackingNumber = order.trackingNumber || '';
         let carrier = order.carrier || 'USPS';
         
         if (trackingNumber && (!order.carrier || order.carrier === 'USPS')) {
             carrier = detectCarrier(trackingNumber);
-            console.log('🔍 Auto-detected carrier:', carrier);
         }
         
-        // Generate tracking URL
         const trackingUrl = trackingNumber ? getTrackingUrl(trackingNumber, carrier) : '#';
-        
-        // Get carrier emoji
         const carrierEmoji = {
             'UPS': '📦',
             'FEDEX': '🚚',
@@ -1326,97 +1733,96 @@
         }[carrier.toUpperCase()] || '📦';
         
         const itemsList = items.map(item => `
-            <div class="detail-row">
-                <span style="font-weight:600;">${item.productName || 'Product'}</span>
-                <span style="color:#6b7280;">Qty: ${item.quantity || 1}</span>
-                <span style="color:#6b7280;">@ $${(item.price || 0).toFixed(2)}</span>
-                <span style="font-weight:700;color:#10b981;">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+            <div style="padding:0.8rem 0;border-bottom:1px solid #e5e7eb;">
+                <div style="font-weight:600;margin-bottom:0.3rem;">${item.productName || 'Product'}</div>
+                <div style="display:flex;justify-content:space-between;color:#6b7280;font-size:0.9rem;">
+                    <span>Qty: ${item.quantity || 1} × $${(item.price || 0).toFixed(2)}</span>
+                    <span style="font-weight:700;color:#10b981;">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+                </div>
             </div>
         `).join('');
 
         const content = `
             <div class="order-details-content">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+                <div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1rem;">
                     <div class="detail-section">
-                        <h4 style="margin-bottom:1rem;color:#1f2937;">📦 Order Information</h4>
-                        <div class="detail-row">
-                            <span><strong>Order ID:</strong></span>
-                            <span>#${order.id}</span>
+                        <h4>📦 Order Information</h4>
+                        <div style="padding:0.5rem 0;border-bottom:1px solid #e5e7eb;">
+                            <div style="color:#667eea;font-weight:700;font-size:0.85rem;margin-bottom:0.2rem;">ORDER ID</div>
+                            <div>#${order.id}</div>
                         </div>
-                        <div class="detail-row">
-                            <span><strong>Date:</strong></span>
-                            <span>${new Date(order.orderDate || order.createdAt).toLocaleString()}</span>
+                        <div style="padding:0.5rem 0;border-bottom:1px solid #e5e7eb;">
+                            <div style="color:#667eea;font-weight:700;font-size:0.85rem;margin-bottom:0.2rem;">DATE</div>
+                            <div>${new Date(order.orderDate || order.createdAt).toLocaleString()}</div>
                         </div>
-                        <div class="detail-row">
-                            <span><strong>Status:</strong></span>
+                        <div style="padding:0.5rem 0;">
+                            <div style="color:#667eea;font-weight:700;font-size:0.85rem;margin-bottom:0.2rem;">STATUS</div>
                             <span class="order-status status-${(order.orderStatus || 'PENDING').toLowerCase()}">${order.orderStatus || 'PENDING'}</span>
                         </div>
                     </div>
 
                     <div class="detail-section">
-                        <h4 style="margin-bottom:1rem;color:#1f2937;">👤 Customer</h4>
-                        <div class="detail-row">
-                            <span><strong>Name:</strong></span>
-                            <span>${order.user ? order.user.name : 'N/A'}</span>
+                        <h4>👤 Customer</h4>
+                        <div style="padding:0.5rem 0;border-bottom:1px solid #e5e7eb;">
+                            <div style="color:#667eea;font-weight:700;font-size:0.85rem;margin-bottom:0.2rem;">NAME</div>
+                            <div>${order.user ? order.user.name : 'N/A'}</div>
                         </div>
-                        <div class="detail-row">
-                            <span><strong>Email:</strong></span>
-                            <span>${order.user ? order.user.email : 'N/A'}</span>
+                        <div style="padding:0.5rem 0;">
+                            <div style="color:#667eea;font-weight:700;font-size:0.85rem;margin-bottom:0.2rem;">EMAIL</div>
+                            <div style="word-break:break-all;">${order.user ? order.user.email : 'N/A'}</div>
                         </div>
                     </div>
                 </div>
 
                 ${trackingNumber ? `
                     <div class="detail-section" style="background:#dbeafe;border-left:4px solid #3b82f6;">
-                        <h4 style="color:#1e40af;margin-bottom:1rem;">🚚 Tracking Information</h4>
-                        <div class="detail-row">
-                            <span><strong>Carrier:</strong></span>
-                            <span style="color:#3b82f6;font-weight:800;font-size:1.1rem;">${carrierEmoji} ${carrier}</span>
+                        <h4 style="color:#1e40af;">🚚 Tracking Information</h4>
+                        <div style="padding:0.5rem 0;border-bottom:1px solid rgba(59,130,246,0.2);">
+                            <div style="color:#1e40af;font-weight:700;font-size:0.85rem;margin-bottom:0.2rem;">CARRIER</div>
+                            <div style="color:#3b82f6;font-weight:800;font-size:1.1rem;">${carrierEmoji} ${carrier}</div>
                         </div>
-                        <div class="detail-row" style="border-bottom:none;">
-                            <span><strong>Tracking Number:</strong></span>
-                            <span style="color:#1e40af;font-family:monospace;font-size:1.1rem;font-weight:700;">${trackingNumber}</span>
+                        <div style="padding:0.5rem 0;">
+                            <div style="color:#1e40af;font-weight:700;font-size:0.85rem;margin-bottom:0.2rem;">TRACKING NUMBER</div>
+                            <div style="color:#1e40af;font-family:monospace;font-size:1.1rem;font-weight:700;word-break:break-all;">${trackingNumber}</div>
                         </div>
-                        <div style="text-align:center;margin-top:1.5rem;">
+                        <div style="text-align:center;margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(59,130,246,0.2);">
                             <a href="${trackingUrl}" target="_blank" 
-                               style="display:inline-block;padding:0.8rem 2rem;background:#3b82f6;color:white;text-decoration:none;border-radius:8px;font-weight:600;transition:all 0.3s ease;"
-                               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 15px rgba(59,130,246,0.4)'"
-                               onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
-                                ${carrierEmoji} Track on ${carrier} Website →
+                               style="display:inline-block;padding:0.8rem 1.5rem;background:#3b82f6;color:white;text-decoration:none;border-radius:8px;font-weight:600;">
+                                ${carrierEmoji} Track Package →
                             </a>
                         </div>
                     </div>
                 ` : ''}
 
                 <div class="detail-section">
-                    <h4 style="margin-bottom:1rem;color:#1f2937;">📍 Shipping Address</h4>
-                    <p style="margin:0.3rem 0;color:#374151;">${order.shippingStreet || 'N/A'}</p>
+                    <h4>📍 Shipping Address</h4>
+                    <p style="margin:0.3rem 0;color:#374151;line-height:1.6;">${order.shippingStreet || 'N/A'}</p>
                     <p style="margin:0.3rem 0;color:#374151;">${order.shippingCity || 'N/A'}, ${order.shippingState || 'N/A'} ${order.shippingZipCode || ''}</p>
                     <p style="margin:0.3rem 0;color:#374151;">${order.shippingCountry || 'USA'}</p>
                 </div>
 
                 <div class="detail-section">
-                    <h4 style="margin-bottom:1rem;color:#1f2937;">🛍️ Order Items</h4>
-                    ${itemsList}
+                    <h4>🛍️ Order Items (${items.length})</h4>
+                    ${itemsList || '<p style="color:#6b7280;text-align:center;padding:1rem;">No items</p>'}
                 </div>
 
                 <div class="detail-section" style="background:#f0fdf4;border-left:4px solid #10b981;">
-                    <h4 style="color:#065f46;margin-bottom:1rem;">💰 Payment Summary</h4>
-                    <div class="detail-row">
+                    <h4 style="color:#065f46;">💰 Payment Summary</h4>
+                    <div style="padding:0.5rem 0;border-bottom:1px solid #d1fae5;display:flex;justify-content:space-between;">
                         <span><strong>Subtotal:</strong></span>
                         <span>$${subtotal.toFixed(2)}</span>
                     </div>
-                    <div class="detail-row">
+                    <div style="padding:0.5rem 0;border-bottom:1px solid #d1fae5;display:flex;justify-content:space-between;">
                         <span><strong>Tax:</strong></span>
                         <span>$${tax.toFixed(2)}</span>
                     </div>
-                    <div class="detail-row">
+                    <div style="padding:0.5rem 0;border-bottom:1px solid #d1fae5;display:flex;justify-content:space-between;">
                         <span><strong>Shipping:</strong></span>
-                        <span>${shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2)}</span>
+                        <span>${shipping === 0 ? '<span style="color:#10b981;font-weight:700;">FREE</span>' : '$' + shipping.toFixed(2)}</span>
                     </div>
-                    <div class="detail-row" style="border-top:2px solid #10b981;margin-top:0.5rem;padding-top:0.5rem;border-bottom:none;">
+                    <div style="padding:0.8rem 0;padding-top:1rem;border-top:2px solid #10b981;margin-top:0.5rem;display:flex;justify-content:space-between;align-items:center;">
                         <span style="font-size:1.2rem;"><strong>Total:</strong></span>
-                        <span style="font-size:1.3rem;font-weight:800;color:#10b981;">$${total.toFixed(2)}</span>
+                        <span style="font-size:1.5rem;font-weight:800;color:#10b981;">$${total.toFixed(2)}</span>
                     </div>
                 </div>
             </div>
@@ -1424,7 +1830,7 @@
 
         document.getElementById('alertIcon').textContent = '📦';
         document.getElementById('alertIcon').style.color = '#3b82f6';
-        showCustomAlert('Order Details - #' + orderId, '', 'success', content);
+        showCustomAlert('Order #' + orderId, '', 'success', content);
     }
 
     document.getElementById('addProductForm').addEventListener('submit', async (e) => {
@@ -1451,7 +1857,6 @@
 
             if (response.ok) {
                 showCustomAlert('Product Added! ✅', 'Product has been added successfully', 'success');
-                
                 document.getElementById('addProductForm').reset();
                 toggleSection('productSection');
                 loadStats();
@@ -1482,9 +1887,7 @@
             
             if (response.ok) {
                 const config = await response.json();
-                
                 showCustomAlert('Settings Saved! ✅', 'Shipping configuration updated successfully', 'success');
-                
                 document.getElementById('currentShippingCost').textContent = config.shippingCost.toFixed(2);
                 document.getElementById('currentThreshold').textContent = config.freeShippingThreshold.toFixed(2);
             } else {
@@ -1495,14 +1898,9 @@
         }
     });
 
-    // Initialize
     initNavbar();
     loadStats();
     loadOrders();
-    
-
-  
-
 </script>
 </body>
 </html>

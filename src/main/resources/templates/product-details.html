@@ -21,6 +21,7 @@
             margin-bottom: 2rem;
             font-size: 0.9rem;
             color: #6b7280;
+            flex-wrap: wrap;
         }
 
         .breadcrumb a {
@@ -267,9 +268,11 @@
 
         .tabs-header {
             display: flex;
-            gap: 2rem;
+            gap: 1rem;
             border-bottom: 2px solid #e5e7eb;
             margin-bottom: 2rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .tab-btn {
@@ -282,11 +285,17 @@
             cursor: pointer;
             border-bottom: 3px solid transparent;
             transition: all 0.3s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .tab-btn.active {
             color: #667eea;
             border-bottom-color: #667eea;
+        }
+
+        .tab-btn:hover {
+            color: #667eea;
         }
 
         .tab-content {
@@ -393,11 +402,132 @@
             .product-layout {
                 grid-template-columns: 1fr;
                 gap: 2rem;
+                padding: 2rem;
             }
 
             .product-images {
                 position: relative;
                 top: 0;
+            }
+
+            .main-image {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .product-details-container {
+                padding: 0 1rem;
+            }
+
+            .product-layout {
+                padding: 1.5rem;
+            }
+
+            .product-title {
+                font-size: 1.5rem;
+            }
+
+            .current-price {
+                font-size: 2rem;
+            }
+
+            .main-image {
+                height: 300px;
+            }
+
+            .thumbnail-images {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.5rem;
+            }
+
+            .thumbnail {
+                height: 70px;
+            }
+
+            /* Make tabs scrollable and responsive */
+            .tabs-header {
+                gap: 0.5rem;
+                border-bottom: 2px solid #e5e7eb;
+                padding-bottom: 0;
+                overflow-x: auto;
+                scrollbar-width: thin;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tabs-header::-webkit-scrollbar {
+                height: 4px;
+            }
+
+            .tabs-header::-webkit-scrollbar-track {
+                background: #f3f4f6;
+                border-radius: 4px;
+            }
+
+            .tabs-header::-webkit-scrollbar-thumb {
+                background: #667eea;
+                border-radius: 4px;
+            }
+
+            .tab-btn {
+                padding: 0.8rem 1.2rem;
+                font-size: 0.95rem;
+                min-width: auto;
+                flex-shrink: 0;
+            }
+
+            .details-tabs {
+                padding: 1.5rem;
+            }
+
+            .specs-table td {
+                padding: 0.8rem 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .specs-table td:first-child {
+                width: 40%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .product-layout {
+                padding: 1rem;
+            }
+
+            .product-title {
+                font-size: 1.3rem;
+            }
+
+            .current-price {
+                font-size: 1.8rem;
+            }
+
+            .main-image {
+                height: 250px;
+            }
+
+            .thumbnail {
+                height: 60px;
+            }
+
+            .tab-btn {
+                padding: 0.7rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .custom-modal {
+                min-width: 90%;
+                padding: 1.5rem;
+            }
+
+            .action-buttons {
+                gap: 0.8rem;
+            }
+
+            .btn-add-cart, .btn-buy-now {
+                padding: 1rem;
+                font-size: 1rem;
             }
         }
     </style>
@@ -419,9 +549,7 @@
     <button class="menu-toggle" id="menuToggle" onclick="toggleMobileMenu()">☰</button>
     
     <div class="nav-links" id="navLinks">
-        <!-- Close Button -->
-        
-        
+               
         <a href="/">Home</a>
         <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
         <a href="/web/products">Products</a>
@@ -517,9 +645,9 @@
         <!-- Product Details Tabs -->
         <div class="details-tabs" style="background:white;padding:3rem;border-radius:20px;box-shadow:0 4px 15px rgba(0,0,0,0.08);margin-top:2rem;border:2px solid #f3f4f6;">
             <div class="tabs-header">
-                <button class="tab-btn active" onclick="switchTab('description')">📝 Description</button>
-                <button class="tab-btn" onclick="switchTab('specifications')">📋 Specifications</button>
-                <button class="tab-btn" onclick="switchTab('reviews')">⭐ Reviews</button>
+                <button class="tab-btn active" onclick="switchTab(event, 'description')">📝 Description</button>
+                <button class="tab-btn" onclick="switchTab(event, 'specifications')">📋 Specifications</button>
+                <button class="tab-btn" onclick="switchTab(event, 'reviews')">⭐ Reviews</button>
             </div>
 
             <div class="tab-content active" id="descriptionTab">
@@ -576,39 +704,39 @@
                     
                     <div style="max-width:600px;margin:0 auto;">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
-                            <span style="color:#6b7280;">5 stars</span>
+                            <span style="color:#6b7280;min-width:60px;">5 stars</span>
                             <div style="flex:1;margin:0 1rem;background:#e5e7eb;height:8px;border-radius:4px;overflow:hidden;">
                                 <div style="width:80%;background:#f59e0b;height:100%;"></div>
                             </div>
-                            <span style="color:#6b7280;font-weight:600;">80%</span>
+                            <span style="color:#6b7280;font-weight:600;min-width:40px;text-align:right;">80%</span>
                         </div>
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
-                            <span style="color:#6b7280;">4 stars</span>
+                            <span style="color:#6b7280;min-width:60px;">4 stars</span>
                             <div style="flex:1;margin:0 1rem;background:#e5e7eb;height:8px;border-radius:4px;overflow:hidden;">
                                 <div style="width:15%;background:#f59e0b;height:100%;"></div>
                             </div>
-                            <span style="color:#6b7280;font-weight:600;">15%</span>
+                            <span style="color:#6b7280;font-weight:600;min-width:40px;text-align:right;">15%</span>
                         </div>
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
-                            <span style="color:#6b7280;">3 stars</span>
+                            <span style="color:#6b7280;min-width:60px;">3 stars</span>
                             <div style="flex:1;margin:0 1rem;background:#e5e7eb;height:8px;border-radius:4px;overflow:hidden;">
                                 <div style="width:3%;background:#f59e0b;height:100%;"></div>
                             </div>
-                            <span style="color:#6b7280;font-weight:600;">3%</span>
+                            <span style="color:#6b7280;font-weight:600;min-width:40px;text-align:right;">3%</span>
                         </div>
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
-                            <span style="color:#6b7280;">2 stars</span>
+                            <span style="color:#6b7280;min-width:60px;">2 stars</span>
                             <div style="flex:1;margin:0 1rem;background:#e5e7eb;height:8px;border-radius:4px;overflow:hidden;">
                                 <div style="width:1%;background:#f59e0b;height:100%;"></div>
                             </div>
-                            <span style="color:#6b7280;font-weight:600;">1%</span>
+                            <span style="color:#6b7280;font-weight:600;min-width:40px;text-align:right;">1%</span>
                         </div>
                         <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <span style="color:#6b7280;">1 star</span>
+                            <span style="color:#6b7280;min-width:60px;">1 star</span>
                             <div style="flex:1;margin:0 1rem;background:#e5e7eb;height:8px;border-radius:4px;overflow:hidden;">
                                 <div style="width:1%;background:#f59e0b;height:100%;"></div>
                             </div>
-                            <span style="color:#6b7280;font-weight:600;">1%</span>
+                            <span style="color:#6b7280;font-weight:600;min-width:40px;text-align:right;">1%</span>
                         </div>
                     </div>
                 </div>
@@ -779,11 +907,15 @@
             document.getElementById('quantity').textContent = currentQuantity;
         }
 
-        function switchTab(tabName) {
+        function switchTab(event, tabName) {
+            // Remove active class from all buttons and contents
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
+            // Add active class to clicked button
             event.target.classList.add('active');
+            
+            // Show corresponding content
             document.getElementById(tabName + 'Tab').classList.add('active');
         }
 
@@ -819,6 +951,7 @@
             
             showAlert('Added to Cart ✅', `${currentQuantity} × ${currentProduct.name} added to your cart`, '🛒', '#10b981');
         }
+        
         function toggleMobileMenu() {
             const navLinks = document.getElementById('navLinks');
             const overlay = document.getElementById('navOverlay');
@@ -829,14 +962,12 @@
             const isActive = navLinks.classList.contains('active');
             
             if (isActive) {
-                // Close menu
                 navLinks.classList.remove('active');
                 overlay.classList.remove('active');
                 menuToggle.textContent = '☰';
                 menuToggle.style.fontSize = '1.8rem';
                 document.body.style.overflow = 'auto';
             } else {
-                // Open menu
                 navLinks.classList.add('active');
                 overlay.classList.add('active');
                 menuToggle.textContent = '×';
@@ -845,7 +976,6 @@
             }
         }
         
-        // Close menu when clicking a link
         document.addEventListener('DOMContentLoaded', function() {
             const navLinks = document.querySelectorAll('.nav-links a, .nav-links button');
             navLinks.forEach(link => {
@@ -861,7 +991,6 @@
             });
         });
         
-        // Close menu on window resize
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768) {
                 const navLinks = document.getElementById('navLinks');
@@ -877,6 +1006,7 @@
                 document.body.style.overflow = 'auto';
             }
         });
+
         function buyNow() {
             addToCart();
             setTimeout(() => {
@@ -910,14 +1040,14 @@
             </div>
             
             <!-- Customer Service -->
-                     <div>
-    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
-    <ul style="list-style:none;padding:0;">
-        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
-        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
-        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
-    </ul>
-</div>
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+                <ul style="list-style:none;padding:0;">
+                    <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+                </ul>
+            </div>
             
             <!-- Contact -->
             <div>
@@ -941,7 +1071,6 @@
 </footer>
 
 <script>
-    // Set current year automatically
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 </script>
     

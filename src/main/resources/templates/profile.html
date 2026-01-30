@@ -556,15 +556,25 @@
             localStorage.clear();
             window.location.href = '/';
         }
-
+        
         function initNavbar() {
             updateCartCount();
-            document.getElementById('userName').textContent = 'Hi, ' + user.name;
             
-            if (user.role === 'ADMIN') {
-                document.getElementById('adminLink').style.display = 'inline-block';
+            if (user && token) {
+                document.getElementById('userName').textContent = 'Hi, ' + user.name;
+                document.getElementById('logoutBtn').style.display = 'block';  // Changed
+                document.getElementById('ordersLink').style.display = 'block';  // Changed
+                document.getElementById('profileLink').style.display = 'block';  // Changed
+                document.getElementById('loginLink').style.display = 'none';
+                document.getElementById('registerLink').style.display = 'none';
+                
+                if (user.role === 'ADMIN') {
+                    document.getElementById('adminLink').style.display = 'inline-block';
+                }
             }
         }
+
+ 
 
         function showAlert(title, message, icon = '✅', iconColor = '#10b981') {
             document.getElementById('alertIcon').textContent = icon;

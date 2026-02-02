@@ -25,19 +25,19 @@
             text-align: center;
         }
         .page-header {
-    margin-bottom: 3rem;
-    text-align: center;
-}
+            margin-bottom: 3rem;
+            text-align: center;
+        }
 
-.page-title {
-    font-size: 3rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.5rem;
-}
+        .page-title {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
         
         .custom-alert.show {
             display: block;
@@ -68,11 +68,295 @@
         .cart-item {
             opacity: 1;
             transition: all 0.3s ease;
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
         .cart-item.removing {
             opacity: 0;
             transform: translateX(-100%);
+        }
+
+        .cart-item-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .cart-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .cart-item-name {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .cart-item-price {
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: #f9fafb;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+        }
+
+        .quantity-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quantity-btn:hover {
+            background: #5568d3;
+            transform: scale(1.1);
+        }
+
+        .quantity-display {
+            min-width: 30px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .item-total {
+            min-width: 100px;
+            text-align: right;
+        }
+
+        .item-total-price {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #667eea;
+            margin: 0;
+        }
+
+        /* Cart Total Styling */
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        .total-label {
+            font-size: 1.2rem;
+            color: #6b7280;
+            text-align: left;
+            flex-shrink: 0;
+        }
+
+        .total-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .grand-total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 2px solid #667eea;
+            gap: 1rem;
+        }
+
+        .grand-total-label {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .grand-total-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #667eea;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem;
+                gap: 1rem;
+            }
+
+            .cart-item-image {
+                width: 100%;
+                height: 200px;
+                max-width: 100%;
+            }
+
+            .cart-item-info {
+                width: 100%;
+            }
+
+            .cart-item-name {
+                font-size: 1.1rem;
+            }
+
+            .cart-item-actions {
+                width: 100%;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .quantity-controls {
+                width: 100%;
+                justify-content: center;
+                padding: 0.75rem 1rem;
+            }
+
+            .quantity-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.4rem;
+            }
+
+            .quantity-display {
+                font-size: 1.3rem;
+                min-width: 40px;
+            }
+
+            .item-total {
+                width: 100%;
+                text-align: center;
+            }
+
+            .item-total-price {
+                font-size: 1.5rem;
+            }
+
+            .btn-danger {
+                width: 100% !important;
+                padding: 1rem !important;
+                font-size: 1.1rem !important;
+            }
+
+            .cart-total {
+                padding: 1rem !important;
+            }
+
+            /* Mobile alignment fixes */
+            .total-row {
+                margin-bottom: 0.75rem;
+            }
+
+            .total-label {
+                font-size: 1rem;
+            }
+
+            .total-value {
+                font-size: 1rem;
+            }
+
+            .grand-total-row {
+                padding-top: 0.75rem;
+            }
+
+            .grand-total-label {
+                font-size: 1.2rem;
+            }
+
+            .grand-total-value {
+                font-size: 1.4rem;
+            }
+
+            .custom-alert {
+                min-width: 90%;
+                max-width: 95%;
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .cart-item {
+                padding: 0.75rem;
+            }
+
+            .cart-item-image {
+                height: 150px;
+            }
+
+            .cart-item-name {
+                font-size: 1rem;
+            }
+
+            .cart-item-price {
+                font-size: 0.9rem;
+            }
+
+            .quantity-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+            .item-total-price {
+                font-size: 1.3rem;
+            }
+
+            .total-label {
+                font-size: 0.95rem;
+            }
+
+            .total-value {
+                font-size: 0.95rem;
+            }
+
+            .grand-total-label {
+                font-size: 1.1rem;
+            }
+
+            .grand-total-value {
+                font-size: 1.3rem;
+            }
         }
     </style>
 </head>
@@ -94,9 +378,6 @@
     <button class="menu-toggle" id="menuToggle" onclick="toggleMobileMenu()">☰</button>
     
     <div class="nav-links" id="navLinks">
-        <!-- Close Button -->
-        
-        
         <a href="/">Home</a>
         <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
         <a href="/web/products">Products</a>
@@ -113,30 +394,30 @@
 
     <div class="container">
         <div class="page-header">
-        <h1 class="page-title">🛒 Shopping Cart</h1>
-        <p class="page-subtitle">Review your items before checkout</p>
-    </div>
+            <h1 class="page-title">🛒 Shopping Cart</h1>
+            <p class="page-subtitle">Review your items before checkout</p>
+        </div>
         <div class="cart-container">
         
             <div id="cartItems"></div>
             <div id="cartTotal" class="cart-total" style="display:none;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-                    <span style="font-size:1.2rem;color:#6b7280;">Subtotal:</span>
-                    <span style="font-size:1.2rem;font-weight:600;">$<span id="subtotalAmount">0.00</span></span>
+                <div class="total-row">
+                    <span class="total-label">Subtotal:</span>
+                    <span class="total-value">$<span id="subtotalAmount">0.00</span></span>
                 </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-                    <span style="font-size:1.2rem;color:#6b7280;">Estimated Shipping:</span>
-                    <span id="shippingText" style="font-size:1.2rem;font-weight:600;color:#10b981;">FREE</span>
+                <div class="total-row">
+                    <span class="total-label">Estimated Shipping:</span>
+                    <span id="shippingText" class="total-value" style="color:#10b981;">FREE</span>
                 </div>
-                <p id="shippingNote" style="font-size:0.9rem;color:#6b7280;margin:0.5rem 0;"></p>
-                <p style="font-size:0.9rem;color:#6b7280;margin:1rem 0;font-style:italic;">
+                <p id="shippingNote" style="font-size:0.9rem;color:#6b7280;margin:0.5rem 0;text-align:left;"></p>
+                <p style="font-size:0.9rem;color:#6b7280;margin:1rem 0;font-style:italic;text-align:left;">
                     💡 Tax will be calculated at checkout based on your location
                 </p>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding-top:1rem;border-top:2px solid #667eea;">
-                    <span style="font-size:1.5rem;font-weight:700;">Estimated Total:</span>
-                    <span style="font-size:1.8rem;font-weight:800;color:#667eea;">$<span id="totalAmount">0.00</span></span>
+                <div class="grand-total-row">
+                    <span class="grand-total-label">Estimated Total:</span>
+                    <span class="grand-total-value">$<span id="totalAmount">0.00</span></span>
                 </div>
-                <p style="font-size:0.85rem;color:#9ca3af;margin-top:0.5rem;">*Excluding tax</p>
+                <p style="font-size:0.85rem;color:#9ca3af;margin-top:0.5rem;text-align:left;">*Excluding tax</p>
                 <button class="btn btn-success" onclick="window.location.href='/web/checkout'" style="margin-top:1.5rem;">
                     Proceed to Checkout
                 </button>
@@ -166,7 +447,7 @@
                 document.getElementById('userName').textContent = 'Hi, ' + user.name;
                 document.getElementById('logoutBtn').style.display = 'inline-block';
                 document.getElementById('ordersLink').style.display = 'inline-block';
-                document.getElementById('profileLink').style.display = 'inline-block';  // Add this line
+                document.getElementById('profileLink').style.display = 'inline-block';
                 document.getElementById('loginLink').style.display = 'none';
                 document.getElementById('registerLink').style.display = 'none';
                 
@@ -190,54 +471,29 @@
         }
 
         let shippingConfig = {
-        	    shippingCost: 10.0,
-        	    freeShippingThreshold: 50.0
-        	};
+            shippingCost: 10.0,
+            freeShippingThreshold: 50.0
+        };
 
-        	async function loadShippingConfig() {
-        	    try {
-        	        const response = await fetch('/api/admin/shipping');
-        	        if (response.ok) {
-        	            shippingConfig = await response.json();
-        	            console.log('📦 Shipping config loaded:', shippingConfig);
-        	        }
-        	    } catch (error) {
-        	        console.log('Using default shipping config');
-        	    }
-        	}
+        async function loadShippingConfig() {
+            try {
+                const response = await fetch('/api/admin/shipping');
+                if (response.ok) {
+                    shippingConfig = await response.json();
+                    console.log('📦 Shipping config loaded:', shippingConfig);
+                }
+            } catch (error) {
+                console.log('Using default shipping config');
+            }
+        }
 
-        	function calculateTotals(cart) {
-        	    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        	    const shipping = subtotal >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.shippingCost;
-        	    const total = subtotal + shipping;
-        	    
-        	    return { subtotal, shipping, total };
-        	}
-
-        	function updateTotals() {
-        	    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        	    const { subtotal, shipping, total } = calculateTotals(cart);
-        	    
-        	    document.getElementById('subtotalAmount').textContent = subtotal.toFixed(2);
-        	    document.getElementById('totalAmount').textContent = total.toFixed(2);
-        	    
-        	    const shippingText = document.getElementById('shippingText');
-        	    const shippingNote = document.getElementById('shippingNote');
-        	    
-        	    if (shipping === 0) {
-        	        shippingText.textContent = 'FREE ✓';
-        	        shippingText.style.color = '#10b981';
-        	        shippingNote.textContent = '🎉 You qualify for free shipping!';
-        	        shippingNote.style.color = '#10b981';
-        	    } else {
-        	        shippingText.textContent = '$' + shipping.toFixed(2);
-        	        shippingText.style.color = '#6b7280';
-        	        const needed = (shippingConfig.freeShippingThreshold - subtotal).toFixed(2);
-        	        shippingNote.textContent = `Add $${needed} more to get FREE shipping!`;
-        	        shippingNote.style.color = '#f59e0b';
-        	    }
-        	}
-
+        function calculateTotals(cart) {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const shipping = subtotal >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.shippingCost;
+            const total = subtotal + shipping;
+            
+            return { subtotal, shipping, total };
+        }
 
         function updateTotals() {
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -257,7 +513,7 @@
             } else {
                 shippingText.textContent = '$' + shipping.toFixed(2);
                 shippingText.style.color = '#6b7280';
-                const needed = (50 - subtotal).toFixed(2);
+                const needed = (shippingConfig.freeShippingThreshold - subtotal).toFixed(2);
                 shippingNote.textContent = `Add $${needed} more to get FREE shipping!`;
                 shippingNote.style.color = '#f59e0b';
             }
@@ -285,23 +541,21 @@
                 
                 return `
                     <div class="cart-item" id="cartItem${item.id}" style="animation-delay: ${index * 0.1}s;">
-                        <div style="display:flex; gap:1.5rem; align-items:center;flex:1;">
-                            <img src="${item.image}" alt="${item.name}" style="width:100px;height:100px;object-fit:cover;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                            <div style="flex:1;">
-                                <h4 style="font-size:1.2rem;margin-bottom:0.5rem;color:#1f2937;">${item.name}</h4>
-                                <p style="color:#6b7280;margin:0;">$${item.price.toFixed(2)} each</p>
-                            </div>
+                        <img src="${item.image}" alt="${item.name}" class="cart-item-image">
+                        <div class="cart-item-info">
+                            <h4 class="cart-item-name">${item.name}</h4>
+                            <p class="cart-item-price">$${item.price.toFixed(2)} each</p>
                         </div>
-                        <div class="cart-item-actions" style="gap:1.5rem;">
-                            <div style="display:flex;align-items:center;gap:1rem;background:#f9fafb;padding:0.5rem 1rem;border-radius:10px;">
-                                <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})" style="width:35px;height:35px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:bold;">−</button>
-                                <span style="min-width:30px;text-align:center;font-weight:700;font-size:1.1rem;">${item.quantity}</span>
-                                <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})" style="width:35px;height:35px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:bold;">+</button>
+                        <div class="cart-item-actions">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity - 1})">−</button>
+                                <span class="quantity-display">${item.quantity}</span>
+                                <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
                             </div>
-                            <div style="min-width:100px;text-align:right;">
-                                <p style="font-size:1.3rem;font-weight:800;color:#667eea;margin:0;">$${itemTotal.toFixed(2)}</p>
+                            <div class="item-total">
+                                <p class="item-total-price">$${itemTotal.toFixed(2)}</p>
                             </div>
-                            <button onclick="removeFromCart(${item.id}, '${safeName}', event)" class="btn-danger" style="padding:0.8rem 1.2rem;border-radius:10px;">
+                            <button onclick="removeFromCart(${item.id}, '${safeName}', event)" class="btn-danger" style="padding:0.8rem 1.2rem;border-radius:10px;white-space:nowrap;">
                                 🗑️ Remove
                             </button>
                         </div>
@@ -359,7 +613,7 @@
             }, 300);
         }
 
-     // Initialize on page load
+        // Initialize on page load
         initNavbar();
         loadShippingConfig().then(() => {
             loadCart();
@@ -375,14 +629,12 @@
             const isActive = navLinks.classList.contains('active');
             
             if (isActive) {
-                // Close menu
                 navLinks.classList.remove('active');
                 overlay.classList.remove('active');
                 menuToggle.textContent = '☰';
                 menuToggle.style.fontSize = '1.8rem';
                 document.body.style.overflow = 'auto';
             } else {
-                // Open menu
                 navLinks.classList.add('active');
                 overlay.classList.add('active');
                 menuToggle.textContent = '×';
@@ -391,7 +643,6 @@
             }
         }
         
-        // Close menu when clicking a link
         document.addEventListener('DOMContentLoaded', function() {
             const navLinks = document.querySelectorAll('.nav-links a, .nav-links button');
             navLinks.forEach(link => {
@@ -407,7 +658,6 @@
             });
         });
         
-        // Close menu on window resize
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768) {
                 const navLinks = document.getElementById('navLinks');
@@ -447,14 +697,14 @@
             </div>
             
             <!-- Customer Service -->
-                     <div>
-    <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
-    <ul style="list-style:none;padding:0;">
-        <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
-        <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
-        <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
-    </ul>
-</div>
+            <div>
+                <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
+                <ul style="list-style:none;padding:0;">
+                    <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/returns" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Returns & Refunds</a></li>
+                    <li style="margin-bottom:0.5rem;"><a href="/web/privacy" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Privacy Policy</a></li>
+                </ul>
+            </div>
             
             <!-- Contact -->
             <div>
@@ -478,7 +728,6 @@
 </footer>
 
 <script>
-    // Set current year automatically
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 </script>
     

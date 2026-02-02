@@ -3,13 +3,17 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
     <meta charset="UTF-8">
     <title>Checkout - E-Commerce Store</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
         .custom-alert {
             display: none;
             position: fixed;
@@ -63,6 +67,8 @@
             justify-content: space-between;
             padding: 0.5rem 0;
             border-bottom: 1px solid #ecf0f1;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
         
         .detail-section {
@@ -70,6 +76,91 @@
             padding: 1rem;
             background: #f8f9fa;
             border-radius: 4px;
+        }
+
+        .detail-section h4 {
+            margin-bottom: 1rem;
+            color: #1f2937;
+            font-size: 1.1rem;
+        }
+
+        /* Responsive Design for Mobile */
+        @media (max-width: 768px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .custom-alert {
+                min-width: 90%;
+                max-width: 95%;
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+
+            .detail-row {
+                font-size: 0.9rem;
+            }
+
+            .detail-row span:first-child {
+                flex: 1 1 100%;
+                margin-bottom: 0.25rem;
+            }
+
+            .detail-row span:last-child {
+                flex: 1 1 100%;
+                text-align: right;
+                font-weight: bold;
+            }
+
+            .detail-section {
+                padding: 0.75rem;
+            }
+
+            .detail-section h4 {
+                font-size: 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .form-container {
+                padding: 1rem;
+            }
+
+            .cart-container {
+                padding: 1rem;
+            }
+
+            /* Make alert buttons stack on mobile */
+            .custom-alert > div:last-child {
+                flex-direction: column !important;
+            }
+
+            .custom-alert > div:last-child .btn {
+                width: 100% !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .custom-alert {
+                padding: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .custom-alert h2 {
+                font-size: 1.3rem;
+            }
+
+            .detail-section {
+                padding: 0.5rem;
+            }
+
+            .detail-row {
+                font-size: 0.85rem;
+                padding: 0.4rem 0;
+            }
         }
     </style>
 </head>
@@ -97,7 +188,7 @@
     
     <div class="nav-links" id="navLinks">
         <!-- Close Button -->
-        <button class="menu-close" onclick="toggleMobileMenu()">×</button>
+        
         
         <a href="/">Home</a>
         <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
@@ -115,9 +206,19 @@
 
     <div class="container">
         <h1>Checkout</h1>
+        <br>
         <div id="message"></div>
         
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
+        <div class="checkout-grid">
+        
+        <div class="cart-container">
+                <h3>Order Summary</h3>
+                <div id="orderSummary"></div>
+                <div class="cart-total">
+                    <h3>Total: $<span id="totalAmount">0.00</span></h3>
+                </div>
+            </div>
+        
             <div class="form-container" style="margin:0;">
                 <h3>Shipping Information</h3>
                 <form id="checkoutForm">
@@ -162,13 +263,7 @@
                 </form>
             </div>
 
-            <div class="cart-container">
-                <h3>Order Summary</h3>
-                <div id="orderSummary"></div>
-                <div class="cart-total">
-                    <h3>Total: $<span id="totalAmount">0.00</span></h3>
-                </div>
-            </div>
+            
         </div>
     </div>
 
@@ -222,7 +317,7 @@
                 document.getElementById('userName').textContent = 'Hi, ' + user.name;
                 document.getElementById('logoutBtn').style.display = 'inline-block';
                 document.getElementById('ordersLink').style.display = 'inline-block';
-                document.getElementById('profileLink').style.display = 'inline-block';  // Add this line
+                document.getElementById('profileLink').style.display = 'inline-block';
                 document.getElementById('loginLink').style.display = 'none';
                 document.getElementById('registerLink').style.display = 'none';
                 
@@ -247,12 +342,12 @@
                 const itemTotal = item.price * item.quantity;
                 subtotal += itemTotal;
                 return `
-                    <div style="display:flex; justify-content:space-between; padding:1rem; border-bottom:1px solid #e5e7eb;border-radius:8px;transition:all 0.3s;">
-                        <div>
+                    <div style="display:flex; justify-content:space-between; padding:1rem; border-bottom:1px solid #e5e7eb;border-radius:8px;transition:all 0.3s;flex-wrap:wrap;gap:0.5rem;">
+                        <div style="flex:1;min-width:200px;">
                             <strong style="color:#1f2937;">${item.name}</strong>
                             <p style="margin:5px 0;color:#6b7280;">Qty: ${item.quantity} × $${item.price.toFixed(2)}</p>
                         </div>
-                        <strong style="color:#10b981;">$${itemTotal.toFixed(2)}</strong>
+                        <strong style="color:#10b981;white-space:nowrap;">$${itemTotal.toFixed(2)}</strong>
                     </div>
                 `;
             }).join('');
@@ -277,7 +372,7 @@
                         tax = calculation.tax;
                         taxRate = calculation.taxRate;
                         taxDisplay = `
-                            <div style="display:flex;justify-content:space-between;margin:8px 0;color:#1f2937;">
+                            <div style="display:flex;justify-content:space-between;margin:8px 0;color:#1f2937;flex-wrap:wrap;gap:0.5rem;">
                                 <span style="font-weight:600;">Tax (${taxRate.toFixed(2)}%):</span>
                                 <span style="font-weight:700;color:#667eea;">$${tax.toFixed(2)}</span>
                             </div>
@@ -302,11 +397,11 @@
             const summaryHtml = `
                 ${itemsHtml}
                 <div style="padding:1.5rem 1rem;background:#f9fafb;border-radius:12px;margin-top:1rem;">
-                    <div style="display:flex;justify-content:space-between;margin:8px 0;color:#1f2937;">
+                    <div style="display:flex;justify-content:space-between;margin:8px 0;color:#1f2937;flex-wrap:wrap;gap:0.5rem;">
                         <span style="font-weight:600;">Subtotal:</span>
                         <span style="font-weight:700;">$${subtotal.toFixed(2)}</span>
                     </div>
-                    <div style="display:flex;justify-content:space-between;margin:8px 0;color:#1f2937;">
+                    <div style="display:flex;justify-content:space-between;margin:8px 0;color:#1f2937;flex-wrap:wrap;gap:0.5rem;">
                         <span style="font-weight:600;">Shipping:</span>
                         <span style="font-weight:700;color:${shipping === 0 ? '#10b981' : '#6b7280'};">
                             ${shipping === 0 ? 'FREE ✓' : '$' + shipping.toFixed(2)}
@@ -401,55 +496,6 @@
         });
 
 
-        async function calculateOrderTotal() {
-            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            const state = document.getElementById('state').value;
-            const zipCode = document.getElementById('zipCode').value;
-            
-            if (!state || !zipCode) return null;
-            
-            const orderData = {
-                items: cart.map(item => ({
-                    productId: item.id,
-                    quantity: item.quantity
-                })),
-                shippingState: state,
-                shippingZipCode: zipCode,
-                shippingStreet: 'temp',
-                shippingCity: 'temp',
-                shippingCountry: 'USA',
-                paymentMethod: 'card'
-            };
-
-            try {
-                const response = await fetch('/api/orders/calculate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify(orderData)
-                });
-
-                if (response.ok) {
-                    return await response.json();
-                }
-            } catch (error) {
-                console.error('Failed to calculate order:', error);
-            }
-            
-            return null;
-        }
-
-        // Recalculate when state or zip changes
-        document.getElementById('state').addEventListener('change', loadOrderSummary);
-        document.getElementById('zipCode').addEventListener('input', function() {
-            if (this.value.length >= 3) {
-                loadOrderSummary();
-            }
-        });
-
-
         function showOrderSuccessAlert(order) {
             const itemsList = order.items.map(item => 
                 `<div class="detail-row">
@@ -481,9 +527,9 @@
 
                 <div class="detail-section">
                     <h4>Shipping To:</h4>
-                    <p>${order.shippingStreet}</p>
-                    <p>${order.shippingCity}, ${order.shippingState} ${order.shippingZipCode}</p>
-                    <p>${order.shippingCountry}</p>
+                    <p style="margin:0.5rem 0;word-wrap:break-word;">${order.shippingStreet}</p>
+                    <p style="margin:0.5rem 0;">${order.shippingCity}, ${order.shippingState} ${order.shippingZipCode}</p>
+                    <p style="margin:0.5rem 0;">${order.shippingCountry}</p>
                 </div>
 
                 <div class="detail-section">
@@ -509,7 +555,7 @@
                 </div>
 
                 <div style="background:#d4edda;padding:1rem;border-radius:4px;margin-top:1rem;">
-                    <p style="color:#155724;margin:0;">
+                    <p style="color:#155724;margin:0;word-wrap:break-word;">
                         <strong>✓ Order Confirmed!</strong><br>
                         Confirmation email sent to ${user.email}
                     </p>
@@ -604,17 +650,6 @@
             }
         });
 
-        function handlePaymentMethodChange() {
-            const method = document.getElementById('paymentMethod').value;
-            const stripeNote = document.getElementById('stripeNote');
-            
-            if (method === 'stripe') {
-                stripeNote.style.display = 'block';
-            } else {
-                stripeNote.style.display = 'none';
-            }
-        }
-
 
         initNavbar();
         loadShippingConfig().then(() => {
@@ -702,7 +737,7 @@
             </div>
             
             <!-- Customer Service -->
-                     <div>
+            <div>
     <h4 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700;">Customer Service</h4>
     <ul style="list-style:none;padding:0;">
         <li style="margin-bottom:0.5rem;"><a href="/web/contact" style="color:#9ca3af;text-decoration:none;transition:color 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#9ca3af'">Contact Us</a></li>
@@ -738,4 +773,3 @@
 </script>
 </body>
 </html>
-

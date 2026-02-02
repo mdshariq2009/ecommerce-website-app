@@ -192,7 +192,7 @@
     
     <div class="nav-links" id="navLinks">
         <!-- Close Button -->
-        <button class="menu-close" onclick="toggleMobileMenu()">×</button>
+       
         
         <a href="/">Home</a>
         <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
@@ -210,9 +210,26 @@
 
     <div class="container">
         <div class="payment-form">
-            <h2 style="font-size:2.5rem;margin-bottom:2rem;color:#1f2937;font-weight:800;">💳 Complete Your Payment</h2>
+            <h2 style="font-size:2.5rem;margin-bottom:2rem;color:#1f2937;font-weight:800;">Complete Your Payment</h2>
             
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;">
+               
+               <!-- Order Summary -->
+                <div class="payment-summary">
+                    <h3 style="margin-bottom:1.5rem;font-size:1.5rem;color:#1f2937;">📋 Order Summary</h3>
+                    <div id="orderSummary">
+                        <div style="text-align:center;padding:2rem;color:#6b7280;">
+                            <div style="font-size:3rem;margin-bottom:1rem;">📦</div>
+                            <p>Loading order summary...</p>
+                        </div>
+                    </div>
+                    <hr style="margin: 1.5rem 0;border:none;border-top:2px solid #e5e7eb;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;padding:1rem;background:linear-gradient(135deg, #f9fafb 0%, #e0e7ff 100%);border-radius:12px;">
+                        <span style="font-size:1.5rem;font-weight:800;color:#1f2937;">Total:</span>
+                        <span style="font-size:1.8rem;font-weight:800;color:#10b981;">$<span id="totalAmount">0.00</span></span>
+                    </div>
+                </div>
+               
                 <!-- Payment Method Selection -->
                 <div>
                     <div class="payment-summary">
@@ -271,21 +288,7 @@
                     </form>
                 </div>
 
-                <!-- Order Summary -->
-                <div class="payment-summary">
-                    <h3 style="margin-bottom:1.5rem;font-size:1.5rem;color:#1f2937;">📋 Order Summary</h3>
-                    <div id="orderSummary">
-                        <div style="text-align:center;padding:2rem;color:#6b7280;">
-                            <div style="font-size:3rem;margin-bottom:1rem;">📦</div>
-                            <p>Loading order summary...</p>
-                        </div>
-                    </div>
-                    <hr style="margin: 1.5rem 0;border:none;border-top:2px solid #e5e7eb;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;padding:1rem;background:linear-gradient(135deg, #f9fafb 0%, #e0e7ff 100%);border-radius:12px;">
-                        <span style="font-size:1.5rem;font-weight:800;color:#1f2937;">Total:</span>
-                        <span style="font-size:1.8rem;font-weight:800;color:#10b981;">$<span id="totalAmount">0.00</span></span>
-                    </div>
-                </div>
+                
             </div>
         </div>
     </div>

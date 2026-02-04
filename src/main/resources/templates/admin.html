@@ -9,8 +9,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
-        * {
+        *, *::before, *::after {
             box-sizing: border-box;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
         }
 
         .admin-container {
@@ -454,476 +460,580 @@
             padding: 4rem 2rem;
         }
 
-        /* User card for mobile */
-        .user-card {
-            background: white;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .user-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #f3f4f6;
-        }
-
-        /* RESPONSIVE STYLES FOR SMALL SCREENS */
-        @media (max-width: 768px) {
-            body {
-                overflow-x: hidden;
-            }
-
-            .admin-container {
-                padding: 0 0.5rem;
-                margin: 0.5rem auto;
-                max-width: 100%;
-                overflow-x: hidden;
-            }
-
-            .page-header {
-                margin-bottom: 1.5rem;
-                padding: 0 0.5rem;
-            }
-
-            .page-title {
-                font-size: 1.8rem;
-            }
-
-            .page-subtitle {
-                font-size: 0.9rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.8rem;
-            }
-
-            .stat-card {
-                padding: 1rem 0.8rem;
-            }
-
-            .stat-value {
-                font-size: 1.5rem;
-            }
-
-            .stat-icon {
-                font-size: 1.8rem;
-            }
-
-            .stat-label {
-                font-size: 0.75rem;
-            }
-
-            /* Make filters stack vertically */
-            .filters-section {
-                flex-direction: column;
-                align-items: stretch;
-                padding: 0.8rem;
-            }
-
-            .filter-group {
-                width: 100%;
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .filter-select, .search-input {
-                width: 100%;
-                min-width: auto;
-                padding: 0.5rem 0.7rem;
-                font-size: 0.85rem;
-            }
-
-            /* Form grid to single column */
-            .section-content > form > div[style*="grid-template-columns"] {
-                grid-template-columns: 1fr !important;
-            }
-
-            /* Hide table headers */
-            .orders-table thead, .users-table thead {
-                display: none;
-            }
-
-            .orders-table, .users-table,
-            .orders-table tbody, .users-table tbody,
-            .orders-table tr, .users-table tr {
-                display: block;
-                width: 100%;
-            }
-
-            /* FIXED: Card layout for mobile with proper spacing and NO OVERFLOW */
-            .orders-table tr, .users-table tr {
-                margin-bottom: 1rem;
-                border: 2px solid #e5e7eb;
-                border-radius: 10px;
-                padding: 0.8rem;
-                background: white;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                width: 100%;
-                max-width: 100%;
-                overflow: hidden;
-            }
-
-            .orders-table tr:hover, .users-table tr:hover {
-                transform: none;
-            }
-
-            /* FIXED: Better mobile table cell layout - STRICT WIDTH CONTROL */
-            .orders-table td, .users-table td {
-                display: block;
-                width: 100%;
-                max-width: 100%;
-                text-align: left !important;
-                padding: 0.5rem 0;
-                border-bottom: 1px solid #f3f4f6;
-                position: relative;
-                word-wrap: break-word;
-                overflow-wrap: break-word;
-                overflow: hidden;
-            }
-
-            .orders-table td:last-child, .users-table td:last-child {
-                border-bottom: none;
-                padding-bottom: 0.3rem;
-                padding-top: 0.6rem;
-            }
-
-            .orders-table td::before, .users-table td::before {
-                content: attr(data-label);
-                display: block;
-                font-weight: 700;
-                color: #667eea;
-                font-size: 0.7rem;
-                text-transform: uppercase;
-                margin-bottom: 0.25rem;
-                letter-spacing: 0.3px;
-            }
-
-            .orders-table td:last-child::before, .users-table td:last-child::before {
-                content: "ACTIONS";
-                margin-bottom: 0.4rem;
-            }
-
-            /* CRITICAL FIX: All form inputs MUST fit within container */
-            .orders-table select, .users-table select,
-            .orders-table input[type="text"], .users-table input[type="text"] {
-                width: 100% !important;
-                max-width: 100% !important;
-                min-width: 0 !important;
-                box-sizing: border-box !important;
-                padding: 0.5rem 0.4rem !important;
-                font-size: 0.8rem !important;
-                margin: 0 !important;
-                border: 2px solid #e5e7eb !important;
-                border-radius: 6px !important;
-            }
-
-            /* FIXED: Dropdown specific styling */
-            .orders-table select {
-                appearance: none;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-                background-repeat: no-repeat;
-                background-position: right 0.3rem center;
-                background-size: 1.2em;
-                padding-right: 1.8rem !important;
-            }
-
-            /* FIXED: Compact action buttons container */
-            .orders-table td:last-child,
-            .users-table td:last-child {
-                display: flex;
-                flex-direction: column;
-                gap: 0.4rem;
-                padding: 0.6rem 0 0.3rem 0 !important;
-                width: 100%;
-                max-width: 100%;
-            }
-
-            /* FIXED: Smaller action buttons - GUARANTEED FIT */
-            .action-btn {
-                padding: 0.5rem 0.5rem !important;
-                font-size: 0.75rem !important;
-                margin-bottom: 0 !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                display: block !important;
-                box-sizing: border-box !important;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                border: none;
-            }
-
-            /* FIXED: Smaller buttons in table header */
-            .table-header {
-                flex-direction: column;
-                gap: 0.6rem;
-                text-align: center;
-                padding: 1rem 0.8rem;
-            }
-
-            .table-header button {
-                padding: 0.5rem 0.8rem !important;
-                font-size: 0.8rem !important;
-                width: 100%;
-                max-width: 100%;
-            }
-
-            .table-title {
-                font-size: 1.1rem;
-            }
-
-            /* FIXED: Smaller filter buttons */
-            .filters-section button {
-                padding: 0.5rem 0.8rem !important;
-                font-size: 0.85rem !important;
-            }
-
-            /* FIXED: Modal for mobile - full screen scrollable */
-            .custom-modal {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                bottom: 0 !important;
-                transform: none !important;
-                min-width: 100% !important;
-                max-width: 100% !important;
-                width: 100% !important;
-                height: 100vh !important;
-                max-height: 100vh !important;
-                padding: 1rem !important;
-                margin: 0 !important;
-                border-radius: 0 !important;
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch;
-            }
-
-            #customAlert {
-                font-size: 0.85rem;
-            }
-
-            #alertTitle {
-                font-size: 1.2rem !important;
-                margin-top: 0.5rem !important;
-                margin-bottom: 0.6rem !important;
-            }
-
-            #alertMessage {
-                font-size: 0.85rem !important;
-            }
-
-            #alertIcon {
-                font-size: 2.5rem !important;
-                margin-top: 0.3rem !important;
-                margin-bottom: 0.6rem !important;
-            }
-
-            /* FIXED: Order details - better spacing */
-            .order-details-content {
-                margin: 0.3rem 0 !important;
-            }
-
-            .order-details-content > div[style*="grid"] {
-                display: block !important;
-            }
-
-            .detail-section {
-                padding: 0.8rem !important;
-                margin: 0.6rem 0 !important;
-            }
-
-            .detail-section h4 {
-                font-size: 0.95rem !important;
-                margin-bottom: 0.6rem !important;
-            }
-
-            /* FIXED: Detail rows - no extra padding */
-            .detail-row {
-                display: block !important;
-                padding: 0.4rem 0 !important;
-            }
-
-            .detail-row > span, .detail-row > div {
-                display: block !important;
-                margin-bottom: 0.25rem;
-                font-size: 0.85rem;
-            }
-
-            .detail-row > span:first-child, .detail-row > div:first-child {
-                color: #667eea !important;
-                font-weight: 700 !important;
-                font-size: 0.75rem !important;
-            }
-
-            /* FIXED: Smaller close button */
-            .custom-modal .btn {
-                position: sticky !important;
-                bottom: 0 !important;
-                background: white !important;
-                box-shadow: 0 -4px 10px rgba(0,0,0,0.1) !important;
-                z-index: 10 !important;
-                margin: 1rem -1rem -1rem -1rem !important;
-                padding: 0.8rem !important;
-                border-radius: 0 !important;
-                font-size: 0.85rem !important;
-            }
-
-            /* Delete confirmation modal */
-            #deleteConfirmModal {
-                min-width: 100% !important;
-            }
-
-            #deleteConfirmModal > div[style*="display:flex"] {
-                flex-direction: column !important;
-                gap: 0.5rem !important;
-            }
-
-            #deleteConfirmModal > div[style*="display:flex"] button {
-                width: 100% !important;
-                min-width: 100% !important;
-                max-width: 100% !important;
-                margin: 0 !important;
-                padding: 0.6rem !important;
-                font-size: 0.85rem !important;
-            }
-
-            /* FIXED: Section content padding */
-            .section-content {
-                padding: 1rem !important;
-            }
-
-            /* FIXED: Info boxes */
-            .info-box {
-                padding: 0.7rem !important;
-                font-size: 0.8rem !important;
-            }
-
-            /* FIXED: Form submit buttons */
-            .section-content form button[type="submit"] {
-                padding: 0.6rem 0.8rem !important;
-                font-size: 0.85rem !important;
-            }
-
-            /* FIXED: Status badges smaller */
-            .order-status {
-                padding: 0.3rem 0.5rem !important;
-                font-size: 0.7rem !important;
-                display: inline-block;
-                max-width: 100%;
-            }
-
-            .role-badge {
-                padding: 0.3rem 0.5rem !important;
-                font-size: 0.7rem !important;
-            }
-
-            /* FIXED: Orders container padding */
-            #ordersContainer {
-                padding: 0.5rem !important;
-            }
-
-            /* FIXED: Section headers */
-            .section-header {
-                padding: 1rem 0.8rem;
-            }
-
-            .section-title {
-                font-size: 1rem;
-            }
-
-            /* CRITICAL: Prevent any horizontal scroll */
-            .orders-table-wrapper {
-                overflow-x: hidden;
-                max-width: 100%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .stat-card {
-                padding: 1rem 0.8rem;
-            }
-
-            .stat-value {
-                font-size: 1.4rem;
-            }
-
-            .page-title {
-                font-size: 1.5rem;
-            }
-
-            .section-title {
-                font-size: 0.95rem;
-            }
-
-            /* FIXED: Even more compact on very small screens */
-            .orders-table td, .users-table td {
-                padding: 0.4rem 0;
-            }
-
-            .orders-table td::before, .users-table td::before {
-                font-size: 0.65rem;
-                margin-bottom: 0.2rem;
-            }
-
-            /* FIXED: Extra small buttons for very small screens */
-            .action-btn {
-                padding: 0.45rem 0.4rem !important;
-                font-size: 0.7rem !important;
-            }
-
-            .custom-modal {
-                padding: 0.8rem !important;
-            }
-
-            .detail-section {
-                padding: 0.7rem !important;
-                margin: 0.5rem 0 !important;
-            }
-
-            #alertTitle {
-                font-size: 1.05rem !important;
-            }
-
-            #alertIcon {
-                font-size: 2rem !important;
-            }
-
-            .table-title {
-                font-size: 1rem;
-            }
-
-            .filter-select, .search-input {
-                padding: 0.45rem 0.6rem;
-                font-size: 0.8rem;
-            }
-
-            .orders-table tr, .users-table tr {
-                padding: 0.7rem;
-            }
-
-            /* CRITICAL: Extra small screen input controls */
-            .orders-table select, .users-table select,
-            .orders-table input[type="text"], .users-table input[type="text"] {
-                padding: 0.4rem 0.3rem !important;
-                font-size: 0.75rem !important;
-            }
-
-            .orders-table select {
-                padding-right: 1.5rem !important;
-            }
-        }
+        /* ============================================
+   RESPONSIVE STYLES FOR SMALL SCREENS
+   ============================================ */
+@media (max-width: 768px) {
+    body {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+    }
+
+    .admin-container {
+        padding: 0 0.5rem;
+        margin: 0.5rem auto;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .page-header {
+        margin-bottom: 1rem;
+        padding: 0 0.25rem;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    .stat-card {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.65rem;
+    }
+
+    /* Filters Section - Mobile Optimized */
+    .filters-section {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .filter-group {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
+    }
+
+    .filter-group label {
+        font-size: 0.75rem;
+        margin-bottom: 0.15rem;
+    }
+
+    .filter-select, .search-input {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        padding: 0.4rem 0.5rem !important;
+        font-size: 0.75rem !important;
+        box-sizing: border-box;
+        height: 36px !important;
+    }
+
+    /* Section Content Forms */
+    .section-content > form > div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Hide Table Headers on Mobile */
+    .orders-table thead, .users-table thead {
+        display: none;
+    }
+
+    .orders-table, .users-table,
+    .orders-table tbody, .users-table tbody,
+    .orders-table tr, .users-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    /* Order/User Cards - Compact */
+    .orders-table tr, .users-table tr {
+        margin-bottom: 0.75rem;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 0.5rem;
+        background: white;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    .orders-table tr:hover, .users-table tr:hover {
+        transform: none;
+    }
+
+    /* Table Cells - Mobile Layout */
+    .orders-table td, .users-table td {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        text-align: left !important;
+        padding: 0.35rem 0;
+        border-bottom: 1px solid #f3f4f6;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        box-sizing: border-box;
+    }
+
+    .orders-table td:last-child, .users-table td:last-child {
+        border-bottom: none;
+        padding-bottom: 0.35rem;
+        padding-top: 0.5rem;
+    }
+
+    /* Data Labels */
+    .orders-table td::before, .users-table td::before {
+        content: attr(data-label);
+        display: block;
+        font-weight: 700;
+        color: #667eea;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        margin-bottom: 0.25rem;
+        letter-spacing: 0.3px;
+    }
+
+    .orders-table td:last-child::before, .users-table td:last-child::before {
+        content: "ACTIONS";
+        margin-bottom: 0.4rem;
+    }
+
+    /* ============================================
+       CRITICAL: DROPDOWN (SELECT) - VERY COMPACT
+       ============================================ */
+    .orders-table select, .users-table select {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+        padding: 0.35rem 1.5rem 0.35rem 0.4rem !important;
+        font-size: 0.7rem !important;
+        margin: 0 !important;
+        height: 32px !important;
+        line-height: 1.2 !important;
+        border: 1.5px solid #d1d5db !important;
+        border-radius: 5px !important;
+        background-color: white !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 0.3rem center !important;
+        background-size: 0.9em !important;
+        cursor: pointer !important;
+        font-weight: 600 !important;
+        color: #374151 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* Dropdown options */
+    .orders-table select option, .users-table select option {
+        padding: 0.4rem !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* ============================================
+       CRITICAL: TEXT INPUT (TRACKING) - COMPACT
+       ============================================ */
+    .orders-table input[type="text"], .users-table input[type="text"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+        padding: 0.35rem 0.4rem !important;
+        font-size: 0.7rem !important;
+        margin: 0 !important;
+        height: 32px !important;
+        line-height: 1.2 !important;
+        border: 1.5px solid #d1d5db !important;
+        border-radius: 5px !important;
+        font-family: monospace !important;
+    }
+
+    /* Tracking input when enabled */
+    .orders-table input[id^="tracking"]:enabled {
+        background: #dbeafe !important;
+        border-color: #3b82f6 !important;
+        color: #1e40af !important;
+        font-weight: 600 !important;
+    }
+
+    /* Tracking input when disabled */
+    .orders-table input[id^="tracking"]:disabled {
+        background: #f3f4f6 !important;
+        border-color: #e5e7eb !important;
+        color: #9ca3af !important;
+    }
+
+    /* ============================================
+       CRITICAL: ACTION BUTTONS - VERY COMPACT
+       ============================================ */
+    .orders-table td:last-child,
+    .users-table td:last-child {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        padding: 0.5rem 0 0.35rem 0 !important;
+        width: 100%;
+    }
+
+    .action-btn {
+        padding: 0.45rem 0.5rem !important;
+        font-size: 0.7rem !important;
+        margin-bottom: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 32px !important;
+        height: 32px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+        white-space: nowrap !important;
+        text-align: center !important;
+        font-weight: 700 !important;
+        border-radius: 5px !important;
+        line-height: 1 !important;
+    }
+
+    /* Table Header - Mobile */
+    .table-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+        padding: 0.75rem 0.5rem;
+    }
+
+    .table-header button {
+        padding: 0.45rem 0.75rem !important;
+        font-size: 0.75rem !important;
+        width: 100%;
+        max-width: 100%;
+        height: 36px !important;
+    }
+
+    .table-title {
+        font-size: 1rem;
+    }
+
+    /* Filter Section Buttons */
+    .filters-section button {
+        padding: 0.45rem 0.75rem !important;
+        font-size: 0.75rem !important;
+        height: 36px !important;
+    }
+
+    /* ============================================
+       MODALS - FULL SCREEN ON MOBILE
+       ============================================ */
+    .custom-modal {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        transform: none !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        padding: 1.5rem 1rem 1rem 1rem !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Main Close Button - Sticky at Bottom - SMALLER SIZE */
+    #mainCloseBtn {
+        position: sticky !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: calc(100% + 2rem) !important;
+        margin: 1rem -1rem -1rem -1rem !important;
+        padding: 0.6rem !important;
+        border-radius: 0 !important;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        box-shadow: 0 -4px 15px rgba(0,0,0,0.2) !important;
+        z-index: 100 !important;
+        border: none !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    /* Ensure modal content has proper padding */
+    #alertContent {
+        padding-bottom: 1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    #customAlert {
+        font-size: 0.8rem;
+    }
+
+    #alertTitle {
+        font-size: 1.1rem !important;
+        margin-top: 0.4rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    #alertMessage {
+        font-size: 0.8rem !important;
+    }
+
+    #alertIcon {
+        font-size: 2.2rem !important;
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .order-details-content {
+        margin: 0.3rem 0 !important;
+    }
+
+    .order-details-content > div[style*="grid"] {
+        display: block !important;
+    }
+
+    .detail-section {
+        padding: 0.65rem !important;
+        margin: 0.5rem 0 !important;
+    }
+
+    .detail-section h4 {
+        font-size: 0.9rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .detail-row {
+        display: block !important;
+        padding: 0.3rem 0 !important;
+    }
+
+    .detail-row > span, .detail-row > div {
+        display: block !important;
+        margin-bottom: 0.2rem;
+        font-size: 0.75rem;
+    }
+
+    .detail-row > span:first-child, .detail-row > div:first-child {
+        color: #667eea !important;
+        font-weight: 700 !important;
+        font-size: 0.7rem !important;
+    }
+
+    /* Delete Confirmation Modal */
+    #deleteConfirmModal {
+        min-width: 100% !important;
+        padding: 1.5rem 1rem 1rem 1rem !important;
+    }
+
+    #deleteConfirmModal > div[style*="display:flex"] {
+        flex-direction: column !important;
+        gap: 0.4rem !important;
+    }
+
+    #deleteConfirmModal > div[style*="display:flex"] button {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0.55rem !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Section Content */
+    .section-content {
+        padding: 0.75rem !important;
+    }
+
+    .info-box {
+        padding: 0.6rem !important;
+        font-size: 0.75rem !important;
+    }
+
+    .section-content form button[type="submit"] {
+        padding: 0.55rem 0.75rem !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Order Status Badges */
+    .order-status {
+        padding: 0.25rem 0.45rem !important;
+        font-size: 0.65rem !important;
+        display: inline-block;
+        max-width: fit-content;
+    }
+
+    .role-badge {
+        padding: 0.25rem 0.45rem !important;
+        font-size: 0.65rem !important;
+    }
+
+    #ordersContainer {
+        padding: 0.5rem !important;
+    }
+
+    .section-header {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .section-title {
+        font-size: 0.9rem;
+    }
+
+    .orders-table-wrapper {
+        overflow-x: hidden;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    /* Tracking Status Indicator */
+    .orders-table td > div[id^="trackingStatus"] {
+        font-size: 0.6rem !important;
+        margin-top: 0.15rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Small text elements */
+    .orders-table td small,
+    .orders-table td div,
+    .users-table td small,
+    .users-table td div {
+        font-size: 0.75rem;
+        line-height: 1.3;
+    }
+
+    .orders-table td strong,
+    .users-table td strong {
+        font-size: 0.8rem;
+    }
+}
+
+/* ============================================
+   EXTRA SMALL SCREENS (< 480px)
+   ============================================ */
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.2rem;
+    }
+
+    .page-title {
+        font-size: 1.3rem;
+    }
+
+    .section-title {
+        font-size: 0.85rem;
+    }
+
+    .orders-table td, .users-table td {
+        padding: 0.3rem 0;
+    }
+
+    .orders-table td::before, .users-table td::before {
+        font-size: 0.6rem;
+        margin-bottom: 0.2rem;
+    }
+
+    /* EXTRA COMPACT for very small screens */
+    .action-btn {
+        padding: 0.4rem 0.45rem !important;
+        font-size: 0.65rem !important;
+        min-height: 30px !important;
+        height: 30px !important;
+    }
+
+    .orders-table select, .users-table select {
+        padding: 0.3rem 1.4rem 0.3rem 0.35rem !important;
+        font-size: 0.65rem !important;
+        height: 30px !important;
+    }
+
+    .orders-table input[type="text"], .users-table input[type="text"] {
+        padding: 0.3rem 0.35rem !important;
+        font-size: 0.65rem !important;
+        height: 30px !important;
+    }
+
+    .custom-modal {
+        padding: 1.25rem 0.85rem 0.85rem 0.85rem !important;
+    }
+
+    .detail-section {
+        padding: 0.55rem !important;
+        margin: 0.4rem 0 !important;
+    }
+
+    #alertTitle {
+        font-size: 1rem !important;
+    }
+
+    #alertIcon {
+        font-size: 1.8rem !important;
+    }
+
+    .table-title {
+        font-size: 0.95rem;
+    }
+
+    .filter-select, .search-input {
+        padding: 0.35rem 0.45rem !important;
+        font-size: 0.7rem !important;
+        height: 32px !important;
+    }
+
+    .orders-table tr, .users-table tr {
+        padding: 0.45rem;
+    }
+
+    .orders-table td small,
+    .orders-table td div,
+    .users-table td small,
+    .users-table td div {
+        font-size: 0.7rem;
+    }
+
+    .orders-table td strong,
+    .users-table td strong {
+        font-size: 0.75rem;
+    }
+
+    /* Smaller close button on very small screens */
+    #mainCloseBtn {
+        padding: 0.55rem !important;
+        font-size: 0.8rem !important;
+    }
+}
     </style>
 </head>
 <body>
@@ -934,7 +1044,7 @@
         <h3 id="alertTitle" style="font-size:1.8rem;margin-bottom:1rem;color:#1f2937;">Success</h3>
         <p id="alertMessage" style="color:#6b7280;font-size:1.1rem;margin-bottom:2rem;">Operation completed successfully</p>
         <div id="alertContent"></div>
-        <button class="btn" onclick="closeCustomAlert()" style="margin-top:1.5rem;width:auto;padding:0.8rem 2.5rem;">Close</button>
+        <button class="btn" onclick="closeCustomAlert()" id="mainCloseBtn" style="margin-top:1.5rem;width:auto;padding:0.8rem 2.5rem;">Close</button>
     </div>
 
     <!-- Delete Confirmation Modal -->
@@ -1641,9 +1751,9 @@
                                         <div style="font-weight:600;color:#1f2937;">${order.user ? order.user.name : 'N/A'}</div>
                                         <small style="color:#6b7280;word-break:break-all;">${order.user ? order.user.email : 'N/A'}</small>
                                     </td>
-                                    <td data-label="Amount"><strong style="color:#10b981;font-size:1.1rem;">$${(order.totalAmount || 0).toFixed(2)}</strong></td>
+                                    <td data-label="Amount"><strong style="color:#10b981;">$${(order.totalAmount || 0).toFixed(2)}</strong></td>
                                     <td data-label="Payment"><span class="order-status status-${paymentStatus.toLowerCase()}">${paymentStatus}</span></td>
-                                    <td data-label="Order Status">
+                                    <td data-label="Status">
                                         <select id="status_${order.id}" onchange="handleStatusChange(${order.id})">
                                             <option value="PENDING" ${orderStatus === 'PENDING' ? 'selected' : ''}>Pending</option>
                                             <option value="PROCESSING" ${orderStatus === 'PROCESSING' ? 'selected' : ''}>Processing</option>
@@ -1657,9 +1767,9 @@
                                             type="text" 
                                             id="tracking_${order.id}" 
                                             value="${order.trackingNumber || ''}" 
-                                            placeholder="Tracking #"
+                                            placeholder="Track #"
                                         >
-                                        <div id="trackingStatus_${order.id}" style="font-size:0.7rem;margin-top:0.2rem;min-height:14px;"></div>
+                                        <div id="trackingStatus_${order.id}"></div>
                                     </td>
                                     <td data-label="Date"><small style="color:#6b7280;">${new Date(order.orderDate || order.createdAt).toLocaleDateString()}</small></td>
                                     <td data-label="Actions">
@@ -1754,7 +1864,7 @@
             trackingInput.style.background = '#dbeafe';
             trackingInput.style.borderColor = '#3b82f6';
             trackingInput.style.color = '#1e40af';
-            trackingInput.placeholder = 'Tracking #';
+            trackingInput.placeholder = 'Track #';
             
             if (!trackingInput.value) {
                 setTimeout(() => trackingInput.focus(), 100);
@@ -1800,7 +1910,7 @@
         try {
             const statusDiv = document.getElementById('trackingStatus_' + orderId);
             if (statusDiv) {
-                statusDiv.innerHTML = '<span style="color:#f59e0b;">⏳</span>';
+                statusDiv.innerHTML = '<span style="color:#f59e0b;font-size:0.65rem;">⏳</span>';
             }
             
             let url = `/api/admin/orders/${orderId}?orderStatus=${orderStatus}&paymentStatus=${paymentStatus}`;
@@ -1821,7 +1931,7 @@
                 const updatedOrder = await response.json();
                 
                 if (statusDiv) {
-                    statusDiv.innerHTML = '<span style="color:#10b981;font-weight:600;">✓</span>';
+                    statusDiv.innerHTML = '<span style="color:#10b981;font-weight:600;font-size:0.65rem;">✓</span>';
                     setTimeout(() => statusDiv.innerHTML = '', 3000);
                 }
                 
@@ -1834,14 +1944,14 @@
                 loadStats();
             } else {
                 if (statusDiv) {
-                    statusDiv.innerHTML = '<span style="color:#ef4444;">✗</span>';
+                    statusDiv.innerHTML = '<span style="color:#ef4444;font-size:0.65rem;">✗</span>';
                 }
                 showCustomAlert('Update Failed', 'Failed to update order', 'error');
             }
         } catch (error) {
             const statusDiv = document.getElementById('trackingStatus_' + orderId);
             if (statusDiv) {
-                statusDiv.innerHTML = '<span style="color:#ef4444;">✗</span>';
+                statusDiv.innerHTML = '<span style="color:#ef4444;font-size:0.65rem;">✗</span>';
             }
             showCustomAlert('Error', 'Failed to update: ' + error.message, 'error');
         }

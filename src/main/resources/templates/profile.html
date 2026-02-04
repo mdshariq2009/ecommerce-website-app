@@ -71,6 +71,7 @@
             color: white;
             font-weight: 800;
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            flex-shrink: 0;
         }
         
         .section-header {
@@ -196,6 +197,9 @@
             z-index: 10000;
             min-width: 400px;
             max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
             text-align: center;
         }
         
@@ -236,13 +240,13 @@
         }
 
         .card-actions {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 0.8rem;
             margin-top: 1rem;
         }
 
         .card-actions button {
-            flex: 1;
             border: none;
             padding: 0.8rem 1.5rem;
             border-radius: 8px;
@@ -289,6 +293,244 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
         }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* ========== RESPONSIVE DESIGN ========== */
+        
+        /* Tablets and smaller laptops */
+        @media (max-width: 768px) {
+            .profile-container {
+                padding: 0 1rem;
+                margin: 1rem auto;
+            }
+
+            .page-header {
+                margin-bottom: 2rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .page-subtitle {
+                font-size: 1rem;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+                padding: 1.5rem;
+            }
+
+            .profile-avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 2.5rem;
+            }
+
+            #profileName {
+                font-size: 1.5rem !important;
+            }
+
+            #profileEmail {
+                font-size: 1rem !important;
+            }
+
+            .section-header {
+                padding: 1rem 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.1rem;
+            }
+
+            .section-content {
+                padding: 0 1.5rem 1.5rem 1.5rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .card-actions {
+                grid-template-columns: 1fr;
+                gap: 0.6rem;
+            }
+
+            .card-actions button {
+                padding: 0.7rem 1rem;
+            }
+
+            .custom-modal {
+                min-width: unset;
+                width: 90%;
+                padding: 2rem 1.5rem;
+            }
+
+            .saved-card {
+                padding: 1.2rem;
+            }
+
+            .card-number {
+                font-size: 1.1rem;
+                letter-spacing: 1px;
+            }
+
+            .default-badge {
+                position: static;
+                display: inline-block;
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        /* Mobile phones */
+        @media (max-width: 480px) {
+            .profile-container {
+                padding: 0 0.75rem;
+                margin: 0.5rem auto;
+            }
+
+            .page-header {
+                margin-bottom: 1.5rem;
+            }
+
+            .page-title {
+                font-size: 1.75rem;
+            }
+
+            .page-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .profile-card {
+                border-radius: 15px;
+                margin-bottom: 1rem;
+            }
+
+            .profile-header {
+                padding: 1.25rem;
+            }
+
+            .profile-avatar {
+                width: 70px;
+                height: 70px;
+                font-size: 2rem;
+            }
+
+            #profileName {
+                font-size: 1.3rem !important;
+            }
+
+            #profileEmail {
+                font-size: 0.9rem !important;
+            }
+
+            #profileRole {
+                font-size: 0.85rem !important;
+            }
+
+            .section-header {
+                padding: 1rem;
+            }
+
+            .section-title {
+                font-size: 1rem;
+            }
+
+            .toggle-icon {
+                font-size: 1.3rem;
+            }
+
+            .section-content {
+                padding: 0 1rem 1rem 1rem;
+            }
+
+            .custom-modal {
+                padding: 1.5rem 1rem;
+                border-radius: 15px;
+            }
+
+            #confirmIcon, #alertIcon {
+                font-size: 3rem !important;
+            }
+
+            #confirmTitle, #alertTitle {
+                font-size: 1.3rem !important;
+            }
+
+            #confirmMessage, #alertMessage {
+                font-size: 0.95rem !important;
+            }
+
+            .saved-card {
+                padding: 1rem;
+                border-radius: 10px;
+            }
+
+            .card-number {
+                font-size: 1rem;
+                letter-spacing: 0.5px;
+                word-break: break-all;
+            }
+
+            .info-box {
+                padding: 0.8rem;
+                font-size: 0.85rem;
+            }
+
+            #card-element, #edit-card-element {
+                padding: 1rem;
+            }
+
+            .btn, .card-actions button {
+                padding: 0.75rem 1rem;
+                font-size: 0.95rem;
+            }
+
+            #editCardSection, #addPaymentSection {
+                padding: 1.5rem !important;
+            }
+
+            #editCardSection h4, #addPaymentSection h4 {
+                font-size: 1.1rem !important;
+            }
+        }
+
+        /* Very small phones */
+        @media (max-width: 360px) {
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .profile-avatar {
+                width: 60px;
+                height: 60px;
+                font-size: 1.75rem;
+            }
+
+            #profileName {
+                font-size: 1.1rem !important;
+            }
+
+            .section-title {
+                font-size: 0.95rem;
+            }
+
+            .card-number {
+                font-size: 0.9rem;
+            }
+
+            .custom-modal {
+                padding: 1.25rem 0.75rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -298,9 +540,9 @@
         <div id="confirmIcon" style="font-size:4rem;margin-bottom:1rem;">❓</div>
         <h3 id="confirmTitle" style="font-size:1.6rem;margin-bottom:1rem;color:#1f2937;">Confirm Action</h3>
         <p id="confirmMessage" style="color:#6b7280;font-size:1.1rem;margin-bottom:2rem;">Are you sure?</p>
-        <div style="display:flex;gap:1rem;">
-            <button onclick="cancelConfirm()" class="btn" style="flex:1;background:linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">Cancel</button>
-            <button id="confirmYesBtn" class="btn btn-danger" style="flex:1;">Confirm</button>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+            <button onclick="cancelConfirm()" class="btn" style="flex:1;min-width:120px;background:linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">Cancel</button>
+            <button id="confirmYesBtn" class="btn btn-danger" style="flex:1;min-width:120px;">Confirm</button>
         </div>
     </div>
 
@@ -363,7 +605,7 @@
             </div>
             <div class="section-content" id="profileSection">
                 <form id="profileForm">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                    <div class="form-grid">
                         <div class="form-group">
                             <label>Full Name</label>
                             <input type="text" id="name" required>
@@ -465,9 +707,9 @@
                                 <span>Set as default payment method</span>
                             </label>
                         </div>
-                        <div style="display:flex;gap:1rem;margin-top:1.5rem;">
-                            <button type="submit" class="btn btn-success" id="updateCardBtn" style="flex:1;">💾 Update Card</button>
-                            <button type="button" onclick="cancelEditCard()" class="btn" style="flex:1;background:linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">Cancel</button>
+                        <div style="display:flex;gap:1rem;margin-top:1.5rem;flex-wrap:wrap;">
+                            <button type="submit" class="btn btn-success" id="updateCardBtn" style="flex:1;min-width:120px;">💾 Update Card</button>
+                            <button type="button" onclick="cancelEditCard()" class="btn" style="flex:1;min-width:120px;background:linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">Cancel</button>
                         </div>
                     </form>
                 </div>
@@ -492,9 +734,9 @@
                             </label>
                             <small style="color:#6b7280;">The default card will be auto-selected during checkout</small>
                         </div>
-                        <div style="display:flex;gap:1rem;margin-top:1.5rem;">
-                            <button type="submit" class="btn btn-success" id="saveCardBtn" style="flex:1;">💾 Save Card</button>
-                            <button type="button" onclick="toggleAddPayment()" class="btn" style="flex:1;background:linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">Cancel</button>
+                        <div style="display:flex;gap:1rem;margin-top:1.5rem;flex-wrap:wrap;">
+                            <button type="submit" class="btn btn-success" id="saveCardBtn" style="flex:1;min-width:120px;">💾 Save Card</button>
+                            <button type="button" onclick="toggleAddPayment()" class="btn" style="flex:1;min-width:120px;background:linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">Cancel</button>
                         </div>
                     </form>
                 </div>
@@ -562,9 +804,9 @@
             
             if (user && token) {
                 document.getElementById('userName').textContent = 'Hi, ' + user.name;
-                document.getElementById('logoutBtn').style.display = 'block';  // Changed
-                document.getElementById('ordersLink').style.display = 'block';  // Changed
-                document.getElementById('profileLink').style.display = 'block';  // Changed
+                document.getElementById('logoutBtn').style.display = 'block';
+                document.getElementById('ordersLink').style.display = 'block';
+                document.getElementById('profileLink').style.display = 'block';
                 document.getElementById('loginLink').style.display = 'none';
                 document.getElementById('registerLink').style.display = 'none';
                 
@@ -669,8 +911,8 @@
             const html = methods.map(pm => `
                 <div class="saved-card" id="card-${pm.id}">
                     ${pm.isDefault ? '<div class="default-badge">DEFAULT</div>' : ''}
-                    <div style="display:flex;justify-content:space-between;align-items:start;">
-                        <div style="flex:1;">
+                    <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;">
+                        <div style="flex:1;min-width:200px;">
                             <p style="margin:0;font-size:0.9rem;opacity:0.8;">Saved Card</p>
                             <div class="card-number">
                                 ---- ---- ---- <span>${pm.cardLastFour}</span>
@@ -678,12 +920,12 @@
                             <p style="margin:0;font-size:0.95rem;opacity:0.9;font-weight:600;">${(pm.cardBrand || 'CARD').toUpperCase()}</p>
                         </div>
                     </div>
-                    <div class="card-actions" style="grid-template-columns: 1fr 1fr 1fr;display:grid;">
+                    <div class="card-actions">
                         <button class="btn-edit" onclick="showEditCard(${pm.id}, '${pm.cardLastFour}', ${pm.isDefault})">
                             Edit
                         </button>
                         <button class="btn-default" onclick="setAsDefault(${pm.id})" ${pm.isDefault ? 'disabled' : ''}>
-                            ${pm.isDefault ? 'Default' : 'Set As Default'}
+                            ${pm.isDefault ? 'Default' : 'Set Default'}
                         </button>
                         <button class="btn-remove" onclick="confirmDeleteSpecificPayment(${pm.id}, '${pm.cardLastFour}')">
                             Remove

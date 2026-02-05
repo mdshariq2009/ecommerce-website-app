@@ -287,6 +287,18 @@
         .status-delivered { background: #d1fae5; color: #065f46; }
         .status-cancelled { background: #fee2e2; color: #991b1b; }
         .status-completed { background: #d1fae5; color: #065f46; }
+        .status-returned { background: #fde68a; color: #78350f; }
+
+        .return-notice {
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            margin-top: 0.3rem;
+            font-size: 0.7rem;
+            color: #92400e;
+            font-weight: 600;
+        }
 
         .role-badge {
             padding: 0.4rem 0.8rem;
@@ -460,6 +472,39 @@
             padding: 4rem 2rem;
         }
 
+        /* File Upload Styles */
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            background: #f9fafb;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 1rem 0;
+        }
+
+        .file-upload-area:hover {
+            border-color: #667eea;
+            background: #f3f4f6;
+        }
+
+        .file-upload-area.has-file {
+            border-color: #10b981;
+            background: #d1fae5;
+        }
+
+        #labelPreviewContent iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+
+        /* Mobile Close Button - Hidden on Desktop */
+        #mobileCloseBtn {
+            display: none;
+        }
+
         /* ============================================
    RESPONSIVE STYLES FOR SMALL SCREENS
    ============================================ */
@@ -612,9 +657,7 @@
         margin-bottom: 0.4rem;
     }
 
-    /* ============================================
-       CRITICAL: DROPDOWN (SELECT) - VERY COMPACT
-       ============================================ */
+    /* DROPDOWN (SELECT) - VERY COMPACT */
     .orders-table select, .users-table select {
         width: 100% !important;
         max-width: 100% !important;
@@ -647,9 +690,7 @@
         font-size: 0.75rem !important;
     }
 
-    /* ============================================
-       CRITICAL: TEXT INPUT (TRACKING) - COMPACT
-       ============================================ */
+    /* TEXT INPUT (TRACKING) - COMPACT */
     .orders-table input[type="text"], .users-table input[type="text"] {
         width: 100% !important;
         max-width: 100% !important;
@@ -680,9 +721,7 @@
         color: #9ca3af !important;
     }
 
-    /* ============================================
-       CRITICAL: ACTION BUTTONS - VERY COMPACT
-       ============================================ */
+    /* ACTION BUTTONS - VERY COMPACT */
     .orders-table td:last-child,
     .users-table td:last-child {
         display: flex;
@@ -738,9 +777,7 @@
         height: 36px !important;
     }
 
-    /* ============================================
-       MODALS - FULL SCREEN ON MOBILE
-       ============================================ */
+    /* MODALS - FULL SCREEN ON MOBILE */
     .custom-modal {
         position: fixed !important;
         top: 0 !important;
@@ -885,6 +922,11 @@
         max-width: fit-content;
     }
 
+    .return-notice {
+        font-size: 0.6rem !important;
+        padding: 0.3rem 0.5rem !important;
+    }
+
     .role-badge {
         padding: 0.25rem 0.45rem !important;
         font-size: 0.65rem !important;
@@ -930,11 +972,22 @@
     .users-table td strong {
         font-size: 0.8rem;
     }
+
+    #labelPreviewContent iframe {
+        height: 70vh;
+    }
+
+    #labelPreviewModal {
+        min-width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .file-upload-area {
+        padding: 1.5rem 1rem;
+    }
 }
 
-/* ============================================
-   EXTRA SMALL SCREENS (< 480px)
-   ============================================ */
+/* EXTRA SMALL SCREENS (< 480px) */
 @media (max-width: 480px) {
     .stats-grid {
         grid-template-columns: 1fr;
@@ -1063,6 +1116,57 @@
         </div>
     </div>
 
+    <!-- Shipping Label Preview Modal -->
+    <div class="modal-overlay" id="labelOverlay" onclick="closeLabelPreview()"></div>
+    <div class="custom-modal" id="labelPreviewModal" style="min-width:700px;max-width:900px;">
+        <div style="border-bottom:2px solid #e5e7eb;padding-bottom:1.5rem;margin-bottom:1.5rem;">
+            <h3 style="font-size:1.8rem;margin-bottom:0.5rem;color:#1f2937;">📄 Return Shipping Label</h3>
+            <p style="color:#6b7280;font-size:1rem;">Order #<span id="labelOrderId"></span> - <span id="labelCustomerEmail"></span></p>
+        </div>
+        
+        <!-- File Upload Area -->
+        <div class="file-upload-area" id="fileUploadArea" onclick="document.getElementById('labelFileInput').click()">
+            <input type="file" id="labelFileInput" accept=".pdf" style="display:none;" onchange="handleFileUpload(event)">
+            <div id="uploadPrompt">
+                <div style="font-size:3rem;margin-bottom:1rem;">📎</div>
+                <h4 style="color:#1f2937;margin-bottom:0.5rem;">Attach Custom Shipping Label</h4>
+                <p style="color:#6b7280;font-size:0.95rem;">Click to browse or drag and drop your PDF label here</p>
+                <p style="color:#9ca3af;font-size:0.85rem;margin-top:0.5rem;">Supported format: PDF only</p>
+            </div>
+            <div id="uploadedFile" style="display:none;">
+                <div style="font-size:3rem;margin-bottom:1rem;color:#10b981;">✅</div>
+                <h4 style="color:#10b981;margin-bottom:0.5rem;">Label Attached</h4>
+                <p style="color:#1f2937;font-size:1rem;font-weight:600;" id="fileName"></p>
+                <p style="color:#6b7280;font-size:0.85rem;margin-top:0.5rem;">Click to change file</p>
+            </div>
+        </div>
+        
+        <!-- OR Divider -->
+        <div style="display:flex;align-items:center;gap:1rem;margin:1.5rem 0;">
+            <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+            <span style="color:#6b7280;font-weight:600;">OR</span>
+            <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+        </div>
+        
+        <!-- Generated Label Preview -->
+        <div id="labelPreviewContent" style="border:2px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#f9fafb;">
+            <div style="text-align:center;padding:3rem;">
+                <div class="loading-spinner"></div>
+                <p style="color:#6b7280;margin-top:1rem;">Generating label...</p>
+            </div>
+        </div>
+        
+        <div style="display:flex;gap:1rem;margin-top:1.5rem;flex-wrap:wrap;">
+            <button onclick="closeLabelPreview()" class="btn" style="flex:1;min-width:120px;background:#6b7280;">Close</button>
+            <button onclick="downloadCurrentLabel()" class="btn" style="flex:1;min-width:120px;background:#3b82f6;">
+                💾 Download PDF
+            </button>
+            <button onclick="sendCurrentLabel()" class="btn btn-success" id="sendLabelBtn" style="flex:1;min-width:120px;background:#10b981;">
+                📧 Send to Customer
+            </button>
+        </div>
+    </div>
+
 <div class="nav-overlay" id="navOverlay" onclick="toggleMobileMenu()"></div>
 
 <nav class="navbar">
@@ -1129,6 +1233,27 @@
                     <div style="text-align:center;padding:2rem;">
                         <div class="loading-spinner"></div>
                         <p style="color:#6b7280;margin-top:1rem;">Loading users...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Returned Orders & Shipping Labels Section -->
+        <div class="section-card">
+            <div class="section-header" onclick="toggleSection('returnedOrdersSection')">
+                <div class="section-title">🔄 Returns - Shipping Labels</div>
+                <div class="toggle-icon" id="returnedOrdersToggle">▼</div>
+            </div>
+            <div class="section-content" id="returnedOrdersSection">
+                <div style="background:#fef3c7;padding:1.5rem;border-radius:12px;margin-bottom:1.5rem;border-left:4px solid #f59e0b;">
+                    <p style="margin:0;color:#92400e;"><strong>📦 Returned Orders:</strong> <span id="returnedOrdersCount">0</span></p>
+                    <p style="margin:0.5rem 0 0 0;color:#92400e;">Generate labels or attach custom labels to send to customers</p>
+                </div>
+                
+                <div id="returnedOrdersContainer" style="margin-top:1.5rem;">
+                    <div style="text-align:center;padding:2rem;">
+                        <div class="loading-spinner"></div>
+                        <p style="color:#6b7280;margin-top:1rem;">Loading returned orders...</p>
                     </div>
                 </div>
             </div>
@@ -1233,6 +1358,7 @@
                     <option value="SHIPPED">Shipped</option>
                     <option value="DELIVERED">Delivered</option>
                     <option value="CANCELLED">Cancelled</option>
+                    <option value="RETURNED">Returned</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -1317,6 +1443,11 @@
     let filteredOrders = [];
     let allUsers = [];
     let orderToDelete = null;
+    let currentLabelOrderId = null;
+    let currentLabelBase64 = null;
+    let uploadedLabelFile = null;
+    let currentOrderForLabel = null; // Store entire order object
+
 
     console.log('🚀 Admin Dashboard Loaded');
 
@@ -1366,6 +1497,8 @@
                 loadShippingConfig();
             } else if (sectionId === 'usersSection') {
                 loadUsers();
+            } else if (sectionId === 'returnedOrdersSection') {
+                loadReturnedOrders();
             }
         }
     }
@@ -1401,6 +1534,55 @@
         document.getElementById('sortFilter').value = 'newest';
         filterOrders();
     }
+
+    // ========== FILE UPLOAD HANDLING ==========
+    
+    function handleFileUpload(event) {
+    const file = event.target.files[0];
+    
+    console.log('========================================');
+    console.log('📎 FILE UPLOAD EVENT TRIGGERED');
+    console.log('📎 File:', file);
+    console.log('========================================');
+    
+    if (!file) {
+        console.log('⚠️ No file selected');
+        return;
+    }
+    
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+        showCustomAlert('Invalid File ⚠️', 'Please upload a PDF file only', 'error');
+        event.target.value = '';
+        uploadedLabelFile = null;
+        return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showCustomAlert('File Too Large ⚠️', 'Please upload a file smaller than 5MB', 'error');
+        event.target.value = '';
+        uploadedLabelFile = null;
+        return;
+    }
+    
+    uploadedLabelFile = file;
+    
+    console.log('✅ File validated and stored');
+    console.log('📎 File name:', file.name);
+    console.log('📎 File size:', file.size, 'bytes');
+    console.log('📎 File type:', file.type);
+    
+    // Update UI to show file is attached
+    document.getElementById('uploadPrompt').style.display = 'none';
+    document.getElementById('uploadedFile').style.display = 'block';
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileUploadArea').classList.add('has-file');
+    
+    console.log('✅ UI updated - file attached successfully');
+}
+
+    // ========== RETURNED ORDERS FUNCTIONS ==========
 
     async function loadUsers() {
         try {
@@ -1561,6 +1743,446 @@
         `;
 
         document.getElementById('usersContainer').innerHTML = html;
+    }
+
+    async function loadReturnedOrders() {
+        try {
+            document.getElementById('returnedOrdersContainer').innerHTML = `
+                <div style="text-align:center;padding:2rem;">
+                    <div class="loading-spinner"></div>
+                    <p style="color:#6b7280;margin-top:1rem;">Loading returned orders...</p>
+                </div>
+            `;
+
+            const response = await fetch('/api/admin/returned-orders', {
+                headers: { 
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const returnedOrders = await response.json();
+                document.getElementById('returnedOrdersCount').textContent = returnedOrders.length;
+                
+                if (returnedOrders.length === 0) {
+                    document.getElementById('returnedOrdersContainer').innerHTML = 
+                        `<div class="empty-state">
+                            <div style="font-size:4rem;opacity:0.5;margin-bottom:1rem;">🔄</div>
+                            <h3 style="color:#1f2937;margin-bottom:0.5rem;">No Returned Orders</h3>
+                            <p style="color:#6b7280;">No return requests at the moment</p>
+                        </div>`;
+                    return;
+                }
+                
+                displayReturnedOrders(returnedOrders);
+            }
+        } catch (error) {
+            console.error('Error loading returned orders:', error);
+            document.getElementById('returnedOrdersContainer').innerHTML = 
+                `<div class="empty-state">
+                    <div style="font-size:3rem;color:#ef4444;margin-bottom:1rem;">❌</div>
+                    <h3 style="color:#1f2937;margin-bottom:0.5rem;">Error Loading Returned Orders</h3>
+                    <p style="color:#6b7280;margin-bottom:1rem;">${error.message}</p>
+                    <button onclick="loadReturnedOrders()" class="btn" style="margin-top:1rem;width:auto;padding:0.8rem 2rem;">🔄 Retry</button>
+                </div>`;
+        }
+    }
+
+    function displayReturnedOrders(orders) {
+        const html = `
+            <div style="overflow-x:auto;">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Return Date</th>
+                            <th>Items</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orders.map(order => {
+                            const returnDate = order.returnRequestDate ? new Date(order.returnRequestDate).toLocaleDateString() : 'N/A';
+                            const itemCount = order.items ? order.items.length : 0;
+                            const customerEmail = order.user ? order.user.email : 'N/A';
+                            
+                            return `
+                                <tr>
+                                    <td data-label="Order ID"><strong style="color:#667eea;">#${order.id}</strong></td>
+                                    <td data-label="Customer">
+                                        <div style="font-weight:600;color:#1f2937;">${order.user ? order.user.name : 'N/A'}</div>
+                                        <small style="color:#6b7280;word-break:break-all;">${customerEmail}</small>
+                                    </td>
+                                    <td data-label="Amount"><strong style="color:#f59e0b;">$${(order.totalAmount || 0).toFixed(2)}</strong></td>
+                                    <td data-label="Return Date"><small style="color:#6b7280;">${returnDate}</small></td>
+                                    <td data-label="Items"><strong>${itemCount}</strong></td>
+                                    <td data-label="Actions">
+                                        <button onclick="openLabelModal(${order.id})" class="action-btn" style="background:#94603a;color:white;margin-bottom:0.5rem;">
+                                            📄 View/Attach Label
+                                        </button>
+                                        <button onclick="sendLabelQuick(${order.id})" class="action-btn" style="background:#10b981;color:white;">
+                                            📧 Send Generated
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        document.getElementById('returnedOrdersContainer').innerHTML = html;
+    }
+
+    async function openLabelModal(orderId) {
+        try {
+            // Find the order from allOrders array
+            const order = allOrders.find(o => o.id === orderId);
+            
+            if (!order) {
+                showCustomAlert('Error', 'Order not found', 'error');
+                return;
+            }
+            
+            currentLabelOrderId = orderId;
+            currentOrderForLabel = order;
+            uploadedLabelFile = null;
+            currentLabelBase64 = null;
+            
+            const customerEmail = order.user ? order.user.email : 'Unknown';
+            const customerName = order.user ? order.user.name : 'Unknown';
+            
+            console.log('========================================');
+            console.log('📦 Opening label modal for Order #' + orderId);
+            console.log('👤 Customer:', customerName);
+            console.log('📧 Customer email:', customerEmail);
+            console.log('========================================');
+            
+            // Reset file upload UI
+            document.getElementById('uploadPrompt').style.display = 'block';
+            document.getElementById('uploadedFile').style.display = 'none';
+            document.getElementById('fileUploadArea').classList.remove('has-file');
+            document.getElementById('labelFileInput').value = '';
+            
+            // Show modal with loading state
+            document.getElementById('labelOrderId').textContent = orderId;
+            document.getElementById('labelCustomerEmail').textContent = customerEmail;
+            document.getElementById('labelPreviewContent').innerHTML = `
+                <div style="text-align:center;padding:3rem;">
+                    <div class="loading-spinner"></div>
+                    <p style="color:#6b7280;margin-top:1rem;">Generating USPS-style shipping label...</p>
+                </div>
+            `;
+            document.getElementById('labelOverlay').classList.add('show');
+            document.getElementById('labelPreviewModal').classList.add('show');
+            
+            const response = await fetch(`/api/admin/orders/${orderId}/preview-label`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                currentLabelBase64 = result.labelBase64;
+                
+                // Display PDF in iframe
+                document.getElementById('labelPreviewContent').innerHTML = `
+                    <iframe src="data:application/pdf;base64,${result.labelBase64}" 
+                            style="width:100%;height:600px;border:none;"></iframe>
+                `;
+                
+                console.log('✅ Label preview loaded successfully');
+            } else {
+                currentLabelBase64 = null;
+                document.getElementById('labelPreviewContent').innerHTML = `
+                    <div style="text-align:center;padding:3rem;">
+                        <div style="font-size:3rem;color:#ef4444;margin-bottom:1rem;">❌</div>
+                        <h3 style="color:#1f2937;">Failed to Generate Label</h3>
+                        <p style="color:#6b7280;">You can still attach a custom label above</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error generating label:', error);
+            document.getElementById('labelPreviewContent').innerHTML = `
+                <div style="text-align:center;padding:3rem;">
+                    <div style="font-size:3rem;color:#ef4444;margin-bottom:1rem;">❌</div>
+                    <h3 style="color:#1f2937;">Error</h3>
+                    <p style="color:#6b7280;">${error.message}</p>
+                    <p style="color:#6b7280;margin-top:1rem;">You can still attach a custom label above</p>
+                </div>
+            `;
+        }
+    }
+
+    function closeLabelPreview() {
+        console.log('🔒 Closing label preview modal');
+        
+        document.getElementById('labelPreviewModal').classList.remove('show');
+        document.getElementById('labelOverlay').classList.remove('show');
+        
+        currentLabelOrderId = null;
+        currentLabelBase64 = null;
+        uploadedLabelFile = null;
+        currentOrderForLabel = null;
+        
+        // Reset file input
+        const fileInput = document.getElementById('labelFileInput');
+        if (fileInput) fileInput.value = '';
+        
+        document.getElementById('uploadPrompt').style.display = 'block';
+        document.getElementById('uploadedFile').style.display = 'none';
+        document.getElementById('fileUploadArea').classList.remove('has-file');
+        
+        console.log('✅ Label modal closed and all variables reset');
+    }
+
+    async function downloadCurrentLabel() {
+        if (!currentLabelBase64 && !uploadedLabelFile) {
+            showCustomAlert('Error', 'No label to download', 'error');
+            return;
+        }
+        
+        try {
+            if (uploadedLabelFile) {
+                // Download the uploaded file
+                const url = URL.createObjectURL(uploadedLabelFile);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = uploadedLabelFile.name;
+                document.body.appendChild(a);
+                a.click();
+                URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showCustomAlert('Downloaded! ✅', `Your custom label has been downloaded`, 'success');
+            } else {
+                // Download the generated label
+                const byteCharacters = atob(currentLabelBase64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+                
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `USPS_Return_Label_Order_${currentLabelOrderId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showCustomAlert('Downloaded! ✅', `Label for Order #${currentLabelOrderId} has been downloaded`, 'success');
+            }
+        } catch (error) {
+            showCustomAlert('Error', 'Failed to download: ' + error.message, 'error');
+        }
+    }
+
+    async function sendCurrentLabel() {
+        console.log('========================================');
+        console.log('🚀 SEND CURRENT LABEL FUNCTION CALLED');
+        console.log('📦 Order ID:', currentLabelOrderId);
+        console.log('📧 Order Object:', currentOrderForLabel);
+        console.log('📎 Uploaded File:', uploadedLabelFile);
+        console.log('📄 Generated Label Base64:', currentLabelBase64 ? 'Available' : 'Not available');
+        console.log('========================================');
+        
+        if (!currentLabelOrderId || !currentOrderForLabel) {
+            showCustomAlert('Error', 'No order selected', 'error');
+            return;
+        }
+        
+        const customerEmail = currentOrderForLabel.user ? currentOrderForLabel.user.email : null;
+        const customerName = currentOrderForLabel.user ? currentOrderForLabel.user.name : 'Customer';
+        
+        if (!customerEmail) {
+            showCustomAlert('Error', 'Customer email not found', 'error');
+            return;
+        }
+        
+        if (!uploadedLabelFile && !currentLabelBase64) {
+            showCustomAlert('Error', 'No label available to send. Please generate or attach a label first.', 'error');
+            return;
+        }
+        
+        try {
+            const sendBtn = document.getElementById('sendLabelBtn');
+            const originalText = sendBtn.innerHTML;
+            sendBtn.disabled = true;
+            
+            // Check which label to send - UPLOADED FILE HAS PRIORITY
+            if (uploadedLabelFile && uploadedLabelFile instanceof File) {
+                console.log('========================================');
+                console.log('📎 SENDING CUSTOM UPLOADED LABEL');
+                console.log('📎 File name:', uploadedLabelFile.name);
+                console.log('📎 File size:', uploadedLabelFile.size, 'bytes');
+                console.log('📎 File type:', uploadedLabelFile.type);
+                console.log('📧 Sending to:', customerEmail);
+                console.log('========================================');
+                
+                sendBtn.innerHTML = '📧 Sending Custom Label...';
+                
+                // Create FormData and append file
+                const formData = new FormData();
+                formData.append('labelFile', uploadedLabelFile);
+                
+                console.log('📤 FormData created, sending request...');
+                
+                const response = await fetch(`/api/admin/orders/${currentLabelOrderId}/send-custom-label`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: formData
+                });
+                
+                console.log('📥 Response status:', response.status);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = originalText;
+                    
+                    console.log('✅ SUCCESS! Custom label sent');
+                    console.log('✅ Response:', result);
+                    
+                    closeLabelPreview();
+                    
+                    showCustomAlert(
+                        'Custom Label Sent! ✅', 
+                        `Your custom label has been sent to ${customerEmail}`, 
+                        'success'
+                    );
+                } else {
+                    const errorText = await response.text();
+                    console.error('❌ Error response:', errorText);
+                    
+                    let errorData;
+                    try {
+                        errorData = JSON.parse(errorText);
+                    } catch (e) {
+                        errorData = { error: errorText || 'Unknown error' };
+                    }
+                    
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = originalText;
+                    
+                    showCustomAlert('Error', errorData.error || 'Failed to send custom label', 'error');
+                }
+            } else if (currentLabelBase64) {
+                console.log('========================================');
+                console.log('📄 SENDING AUTO-GENERATED LABEL');
+                console.log('📧 Sending to:', customerEmail);
+                console.log('========================================');
+                
+                sendBtn.innerHTML = '📧 Sending Generated Label...';
+                
+                // Send generated label
+                const response = await fetch(`/api/admin/orders/${currentLabelOrderId}/send-label`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = originalText;
+                    
+                    console.log('✅ Generated label sent successfully');
+                    
+                    closeLabelPreview();
+                    
+                    showCustomAlert('Label Sent! ✅', `Generated label sent to ${customerEmail}`, 'success');
+                } else {
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = originalText;
+                    showCustomAlert('Error', 'Failed to send shipping label', 'error');
+                }
+            } else {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = originalText;
+                showCustomAlert('Error', 'No label available. Please attach a file or wait for generation.', 'error');
+            }
+        } catch (error) {
+            console.error('========================================');
+            console.error('❌ CRITICAL ERROR SENDING LABEL');
+            console.error('Error:', error);
+            console.error('Stack:', error.stack);
+            console.error('========================================');
+            
+            const sendBtn = document.getElementById('sendLabelBtn');
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '📧 Send to Customer';
+            }
+            showCustomAlert('Error', 'Error sending label: ' + error.message, 'error');
+        }
+    }
+    
+    async function sendLabelQuick(orderId) {
+        const order = allOrders.find(o => o.id === orderId);
+        if (!order) {
+            showCustomAlert('Error', 'Order not found', 'error');
+            return;
+        }
+        
+        const customerEmail = order.user ? order.user.email : null;
+        
+        if (!customerEmail) {
+            showCustomAlert('Error', 'Customer email not found', 'error');
+            return;
+        }
+        
+        try {
+            showCustomAlert('Sending...', 'Generating and sending shipping label to ' + customerEmail, 'success');
+            
+            const response = await fetch(`/api/admin/orders/${orderId}/send-label`, {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                closeCustomAlert();
+                showCustomAlert('Label Sent! ✅', `Generated shipping label sent to ${customerEmail}`, 'success');
+            } else {
+                closeCustomAlert();
+                showCustomAlert('Error', 'Failed to send shipping label', 'error');
+            }
+        } catch (error) {
+            closeCustomAlert();
+            showCustomAlert('Error', 'Error sending label: ' + error.message, 'error');
+        }
+    }
+
+    async function sendLabel(orderId) {
+        try {
+            showCustomAlert('Sending...', 'Generating and sending shipping label via email', 'success');
+            
+            const response = await fetch(`/api/admin/orders/${orderId}/send-label`, {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                closeCustomAlert();
+                showCustomAlert('Label Sent! ✅', result.message, 'success');
+            } else {
+                closeCustomAlert();
+                showCustomAlert('Error', 'Failed to send shipping label', 'error');
+            }
+        } catch (error) {
+            closeCustomAlert();
+            showCustomAlert('Error', 'Error sending label: ' + error.message, 'error');
+        }
     }
 
     function detectCarrier(trackingNumber) {
@@ -1743,6 +2365,14 @@
                         ${orders.map(order => {
                             const orderStatus = order.orderStatus || order.status || 'PENDING';
                             const paymentStatus = order.paymentStatus || 'PENDING';
+                            const isReturned = orderStatus === 'RETURNED';
+                            
+                            // Return notice for RETURNED orders
+                            const returnNotice = isReturned ? `
+                                <div class="return-notice">
+                                    🔄 Return requested by customer
+                                </div>
+                            ` : '';
                             
                             return `
                                 <tr>
@@ -1754,13 +2384,15 @@
                                     <td data-label="Amount"><strong style="color:#10b981;">$${(order.totalAmount || 0).toFixed(2)}</strong></td>
                                     <td data-label="Payment"><span class="order-status status-${paymentStatus.toLowerCase()}">${paymentStatus}</span></td>
                                     <td data-label="Status">
-                                        <select id="status_${order.id}" onchange="handleStatusChange(${order.id})">
+                                        <select id="status_${order.id}" onchange="handleStatusChange(${order.id})" ${isReturned ? 'disabled' : ''}>
                                             <option value="PENDING" ${orderStatus === 'PENDING' ? 'selected' : ''}>Pending</option>
                                             <option value="PROCESSING" ${orderStatus === 'PROCESSING' ? 'selected' : ''}>Processing</option>
                                             <option value="SHIPPED" ${orderStatus === 'SHIPPED' ? 'selected' : ''}>Shipped</option>
                                             <option value="DELIVERED" ${orderStatus === 'DELIVERED' ? 'selected' : ''}>Delivered</option>
                                             <option value="CANCELLED" ${orderStatus === 'CANCELLED' ? 'selected' : ''}>Cancelled</option>
+                                            <option value="RETURNED" ${orderStatus === 'RETURNED' ? 'selected' : ''}>Returned</option>
                                         </select>
+                                        ${returnNotice}
                                     </td>
                                     <td data-label="Tracking">
                                         <input 
@@ -1768,13 +2400,14 @@
                                             id="tracking_${order.id}" 
                                             value="${order.trackingNumber || ''}" 
                                             placeholder="Track #"
+                                            ${isReturned ? 'disabled' : ''}
                                         >
                                         <div id="trackingStatus_${order.id}"></div>
                                     </td>
                                     <td data-label="Date"><small style="color:#6b7280;">${new Date(order.orderDate || order.createdAt).toLocaleDateString()}</small></td>
                                     <td data-label="Actions">
                                         <button onclick="viewOrderDetails(${order.id})" class="action-btn btn-view">View</button>
-                                        <button onclick="updateOrderClick(${order.id})" class="action-btn btn-update">Update</button>
+                                        <button onclick="updateOrderClick(${order.id})" class="action-btn btn-update" ${isReturned ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Update</button>
                                         <button onclick="confirmDeleteOrder(${order.id})" class="action-btn btn-delete">Delete</button>
                                     </td>
                                 </tr>
@@ -1795,8 +2428,7 @@
             showCustomAlert('Error', 'Order not found', 'error');
             return;
         }
-        
-        orderToDelete = orderId;
+                orderToDelete = orderId;
         document.getElementById('deleteOrderId').textContent = orderId;
         document.getElementById('deleteCustomerName').textContent = order.user ? order.user.name : 'N/A';
         document.getElementById('deleteOverlay').classList.add('show');
@@ -1859,6 +2491,16 @@
         
         const status = statusSelect.value;
         
+        // Disable editing for RETURNED orders
+        if (status === 'RETURNED') {
+            trackingInput.disabled = true;
+            statusSelect.disabled = true;
+            trackingInput.style.background = '#fef3c7';
+            trackingInput.style.borderColor = '#f59e0b';
+            trackingInput.style.color = '#92400e';
+            return;
+        }
+        
         if (status === 'SHIPPED') {
             trackingInput.disabled = false;
             trackingInput.style.background = '#dbeafe';
@@ -1879,6 +2521,20 @@
     }
 
     function updateOrderClick(orderId) {
+        const order = allOrders.find(o => o.id === orderId);
+        if (!order) {
+            showCustomAlert('Error', 'Order not found', 'error');
+            return;
+        }
+        
+        const orderStatus = order.orderStatus || order.status || 'PENDING';
+        
+        // Prevent updates on RETURNED orders
+        if (orderStatus === 'RETURNED') {
+            showCustomAlert('Cannot Update ⚠️', 'Returned orders cannot be updated. Please handle the return request first.', 'error');
+            return;
+        }
+        
         const statusSelect = document.getElementById('status_' + orderId);
         const trackingInput = document.getElementById('tracking_' + orderId);
         
@@ -1889,12 +2545,6 @@
         
         const newStatus = statusSelect.value;
         const trackingNumber = trackingInput.value.trim();
-        const order = allOrders.find(o => o.id === orderId);
-        
-        if (!order) {
-            showCustomAlert('Error', 'Order not found', 'error');
-            return;
-        }
         
         if (newStatus === 'SHIPPED' && !trackingNumber) {
             showCustomAlert('Tracking Required ⚠️', 'Please enter a tracking number for shipped orders', 'error');
@@ -2023,6 +2673,7 @@
         const tax = order.tax || 0;
         const shipping = order.shipping || 0;
         const total = order.totalAmount || 0;
+        const orderStatus = order.orderStatus || order.status || 'PENDING';
         
         const trackingNumber = order.trackingNumber || '';
         let carrier = order.carrier || 'USPS';
@@ -2039,6 +2690,34 @@
             'USPS': '📮',
             'AMAZON LOGISTICS': '📦'
         }[carrier.toUpperCase()] || '📦';
+        
+        // Return information section
+        let returnSection = '';
+        if (orderStatus === 'RETURNED') {
+            const returnDate = order.returnRequestDate ? new Date(order.returnRequestDate).toLocaleString() : 'N/A';
+            returnSection = `
+                <div class="detail-section" style="background:#fef3c7;border-left:4px solid #f59e0b;">
+                    <h4 style="color:#92400e;">🔄 Return Information</h4>
+                    <div style="padding:0.5rem 0;border-bottom:1px solid rgba(245,158,11,0.2);">
+                        <div style="color:#92400e;font-weight:700;font-size:0.85rem;margin-bottom:0.2rem;">RETURN STATUS</div>
+                        <div style="color:#f59e0b;font-weight:800;">AWAITING PICKUP</div>
+                    </div>
+                    <div style="padding:0.5rem 0;border-bottom:1px solid rgba(245,158,11,0.2);">
+                        <div style="color:#92400e;font-weight:700;font-size:0.85rem;margin-bottom:0.2rem;">RETURN REQUEST DATE</div>
+                        <div>${returnDate}</div>
+                    </div>
+                    <div style="padding:0.5rem 0;">
+                        <div style="color:#92400e;font-weight:700;font-size:0.85rem;margin-bottom:0.2rem;">ACTION REQUIRED</div>
+                        <div style="color:#991b1b;font-weight:600;">Contact customer within 24-48 hours</div>
+                    </div>
+                    <div style="text-align:center;margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(245,158,11,0.2);">
+                        <button onclick="closeCustomAlert(); toggleSection('returnedOrdersSection');" style="padding:0.8rem 1.5rem;background:#f59e0b;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;">
+                            📦 Go to Returned Orders Section
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
         
         const itemsList = items.map(item => `
             <div style="padding:0.8rem 0;border-bottom:1px solid #e5e7eb;">
@@ -2065,7 +2744,7 @@
                         </div>
                         <div style="padding:0.5rem 0;">
                             <div style="color:#667eea;font-weight:700;font-size:0.85rem;margin-bottom:0.2rem;">STATUS</div>
-                            <span class="order-status status-${(order.orderStatus || 'PENDING').toLowerCase()}">${order.orderStatus || 'PENDING'}</span>
+                            <span class="order-status status-${orderStatus.toLowerCase()}">${orderStatus}</span>
                         </div>
                     </div>
 
@@ -2081,6 +2760,8 @@
                         </div>
                     </div>
                 </div>
+
+                ${returnSection}
 
                 ${trackingNumber ? `
                     <div class="detail-section" style="background:#dbeafe;border-left:4px solid #3b82f6;">

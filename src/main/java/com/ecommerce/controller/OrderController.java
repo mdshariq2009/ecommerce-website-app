@@ -84,6 +84,109 @@ public class OrderController {
             return ResponseEntity.status(500).body(error);
         }
     }
+ // ========================================
+ // CANCEL RETURN REQUEST ENDPOINT
+ // ========================================
+
+ @PostMapping("/{orderId}/cancel-return")
+ public ResponseEntity<?> cancelReturnRequest(
+         @PathVariable Long orderId,
+         Authentication authentication) {
+     
+     try {
+         System.out.println("========================================");
+         System.out.println("❌ CANCEL RETURN REQUEST RECEIVED");
+         System.out.println("❌ Processing cancel return for Order #" + orderId);
+         
+         // Find the order
+         Order order = orderRepository.findById(orderId)
+                 .orElseThrow(() -> new RuntimeException("Order not found"));
+         
+         // Verify the order belongs to the authenticated user
+         String email = authentication.getName();
+         if (!order.getUser().getEmail().equals(email)) {
+             System.err.println("❌ Unauthorized: Order does not belong to user");
+             return ResponseEntity.status(403).body(Map.of(
+                 "success", false,
+                 "message", "Unauthorized access"
+             ));
+         }
+         
+         System.out.println("✅ Order found: " + order.getId());
+         System.out.println("👤 Customer: " + order.getUser().getName() + " (" + order.getUser().getEmail() + ")");
+         System.out.println("📧 Current order status: " + order.getOrderStatus());
+         
+         // Update order status back to DELIVERED
+         order.setOrderStatus(Order.OrderStatus.DELIVERED);
+         order.setReturnRequestDate(null);
+         Order savedOrder = orderRepository.save(order);
+         orderRepository.flush();
+         
+         System.out.println("✅ Order status restored to DELIVERED in database");
+         System.out.println("✅ Saved order status: " + savedOrder.getOrderStatus());
+         
+         boolean customerEmailSent = false;
+         boolean adminEmailSent = false;
+         
+         // Send confirmation email to customer
+         try {
+             System.out.println("========================================");
+             System.out.println("📧 SENDING CUSTOMER CANCEL RETURN EMAIL");
+             System.out.println("📧 To: " + order.getUser().getEmail());
+             
+             emailService.sendCancelReturnConfirmationEmail(savedOrder);
+             customerEmailSent = true;
+             
+             System.out.println("✅ Customer cancel return email sent successfully!");
+         } catch (Exception emailError) {
+             System.err.println("❌ Customer email FAILED!");
+             System.err.println("❌ Error: " + emailError.getMessage());
+             emailError.printStackTrace();
+         }
+         
+         // Send notification email to admin
+         try {
+             System.out.println("========================================");
+             System.out.println("📧 SENDING ADMIN CANCEL RETURN NOTIFICATION");
+             System.out.println("📧 To: mdshariq2009@gmail.com");
+             
+             emailService.sendAdminCancelReturnNotification(savedOrder);
+             adminEmailSent = true;
+             
+             System.out.println("✅ Admin cancel return notification sent successfully!");
+         } catch (Exception emailError) {
+             System.err.println("❌ Admin email FAILED!");
+             System.err.println("❌ Error: " + emailError.getMessage());
+             emailError.printStackTrace();
+         }
+         
+         System.out.println("========================================");
+         System.out.println("📊 EMAIL STATUS SUMMARY:");
+         System.out.println("   Customer Email: " + (customerEmailSent ? "✅ SENT" : "❌ FAILED"));
+         System.out.println("   Admin Email: " + (adminEmailSent ? "✅ SENT" : "❌ FAILED"));
+         System.out.println("========================================");
+         
+         return ResponseEntity.ok(Map.of(
+             "success", true,
+             "message", "Return cancellation processed successfully",
+             "orderId", orderId,
+             "emailsSent", customerEmailSent && adminEmailSent,
+             "customerEmailSent", customerEmailSent,
+             "adminEmailSent", adminEmailSent
+         ));
+         
+     } catch (Exception e) {
+         System.err.println("========================================");
+         System.err.println("❌ ERROR CANCELLING RETURN REQUEST");
+         System.err.println("❌ Error: " + e.getMessage());
+         e.printStackTrace();
+         System.err.println("========================================");
+         return ResponseEntity.status(500).body(Map.of(
+             "success", false,
+             "message", "Error cancelling return: " + e.getMessage()
+         ));
+     }
+ }
 
     // ========================================
     // CREATE ORDER
@@ -141,12 +244,12 @@ public class OrderController {
             }
             
             // Send notification email to ADMIN
-        try {
-            emailService.sendAdminOrderNotification(order);
-            System.out.println("📧 Admin notification email queued");
-        } catch (Exception e) {
-            System.err.println("⚠️ Failed to queue admin email: " + e.getMessage());
-        }
+            try {
+                emailService.sendAdminOrderNotification(order);
+                System.out.println("📧 Admin notification email queued");
+            } catch (Exception e) {
+                System.err.println("⚠️ Failed to queue admin email: " + e.getMessage());
+            }
             
             return ResponseEntity.status(HttpStatus.CREATED).body(order);
             
@@ -225,6 +328,131 @@ public class OrderController {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.status(404).body(error);
+        }
+    }
+
+    // ========================================
+    // RETURN REQUEST ENDPOINTS
+    // ========================================
+    
+    @PostMapping("/{orderId}/return-request")
+    public ResponseEntity<?> processReturnRequest(
+            @PathVariable Long orderId,
+            @RequestBody Map<String, Object> returnData,
+            Authentication authentication) {
+        
+        return handleReturnRequest(orderId, returnData, authentication);
+    }
+    
+    @PostMapping("/{orderId}/return")
+    public ResponseEntity<?> processReturn(
+            @PathVariable Long orderId,
+            @RequestBody Map<String, Object> returnData,
+            Authentication authentication) {
+        
+        return handleReturnRequest(orderId, returnData, authentication);
+    }
+    
+    // Common method to handle return requests
+    private ResponseEntity<?> handleReturnRequest(
+            Long orderId,
+            Map<String, Object> returnData,
+            Authentication authentication) {
+        
+        try {
+            System.out.println("========================================");
+            System.out.println("🔄 RETURN REQUEST RECEIVED");
+            System.out.println("🔄 Processing return request for Order #" + orderId);
+            System.out.println("📦 Return data received: " + returnData);
+            
+            // Find the order
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new RuntimeException("Order not found"));
+            
+            // Verify the order belongs to the authenticated user
+            String email = authentication.getName();
+            if (!order.getUser().getEmail().equals(email)) {
+                System.err.println("❌ Unauthorized: Order does not belong to user");
+                return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "message", "Unauthorized access"
+                ));
+            }
+            
+            System.out.println("✅ Order found: " + order.getId());
+            System.out.println("👤 Customer: " + order.getUser().getName() + " (" + order.getUser().getEmail() + ")");
+            System.out.println("📧 Current order status: " + order.getOrderStatus());
+            
+            // Update order status to RETURNED
+            order.setOrderStatus(Order.OrderStatus.RETURNED);
+            order.setReturnRequestDate(java.time.LocalDateTime.now());
+            Order savedOrder = orderRepository.save(order);
+            orderRepository.flush();
+            
+            System.out.println("✅ Order status updated to RETURNED in database");
+            System.out.println("✅ Saved order status: " + savedOrder.getOrderStatus());
+            
+            boolean customerEmailSent = false;
+            boolean adminEmailSent = false;
+            
+            // Send confirmation email to customer
+            try {
+                System.out.println("========================================");
+                System.out.println("📧 SENDING CUSTOMER EMAIL");
+                System.out.println("📧 To: " + order.getUser().getEmail());
+                System.out.println("📧 Customer Name: " + order.getUser().getName());
+                
+                emailService.sendReturnConfirmationEmail(savedOrder, returnData);
+                customerEmailSent = true;
+                
+                System.out.println("✅ Customer return confirmation email sent successfully!");
+            } catch (Exception emailError) {
+                System.err.println("❌ Customer email FAILED!");
+                System.err.println("❌ Error: " + emailError.getMessage());
+                emailError.printStackTrace();
+            }
+            
+            // Send notification email to admin
+            try {
+                System.out.println("========================================");
+                System.out.println("📧 SENDING ADMIN EMAIL");
+                System.out.println("📧 To: mdshariq2009@gmail.com");
+                
+                emailService.sendAdminReturnNotification(savedOrder, returnData);
+                adminEmailSent = true;
+                
+                System.out.println("✅ Admin return notification email sent successfully!");
+            } catch (Exception emailError) {
+                System.err.println("❌ Admin email FAILED!");
+                System.err.println("❌ Error: " + emailError.getMessage());
+                emailError.printStackTrace();
+            }
+            
+            System.out.println("========================================");
+            System.out.println("📊 EMAIL STATUS SUMMARY:");
+            System.out.println("   Customer Email: " + (customerEmailSent ? "✅ SENT" : "❌ FAILED"));
+            System.out.println("   Admin Email: " + (adminEmailSent ? "✅ SENT" : "❌ FAILED"));
+            System.out.println("========================================");
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Return request processed successfully",
+                "orderId", orderId,
+                "emailsSent", customerEmailSent && adminEmailSent,
+                "customerEmailSent", customerEmailSent,
+                "adminEmailSent", adminEmailSent
+            ));
+            
+        } catch (Exception e) {
+            System.err.println("========================================");
+            System.err.println("❌ ERROR PROCESSING RETURN REQUEST");
+            System.err.println("❌ Error: " + e.getMessage());
+            e.printStackTrace();
+            System.err.println("========================================");
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "Error processing return: " + e.getMessage()
+            ));
         }
     }
 }

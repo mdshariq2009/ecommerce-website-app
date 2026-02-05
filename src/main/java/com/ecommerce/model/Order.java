@@ -73,8 +73,19 @@ public class Order {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
     
+    @Column(name = "return_request_date")
+    private LocalDateTime returnRequestDate;
+
+    public LocalDateTime getReturnRequestDate() {
+        return returnRequestDate;
+    }
+
+    public void setReturnRequestDate(LocalDateTime returnRequestDate) {
+        this.returnRequestDate = returnRequestDate;
+    }
+    
     public enum OrderStatus {
-        PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+        PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED, RETURNED
     }
     
     public enum PaymentStatus {

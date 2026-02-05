@@ -1744,3 +1744,19 @@ body {
     color: #6b7280;
     font-size: 0.9rem;
 }
+#labelPreviewContent iframe {
+    width: 100%;
+    height: 600px;
+    border: none;
+}
+
+@media (max-width: 768px) {
+    #labelPreviewModal {
+        min-width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    #labelPreviewContent iframe {
+        height: 70vh;
+    }
+}

@@ -1257,9 +1257,10 @@ public class EmailService {
     public void sendShippingLabelEmail(Order order, byte[] labelPdf) {
         try {
             System.out.println("========================================");
-            System.out.println("📧 PREPARING TO SEND SHIPPING LABEL EMAIL");
-            System.out.println("📧 To: " + order.getUser().getEmail());
-            System.out.println("📎 Label PDF size: " + labelPdf.length + " bytes");
+            System.out.println("📧 EMAIL SERVICE - SEND SHIPPING LABEL");
+            System.out.println("📧 Recipient: " + order.getUser().getEmail());
+            System.out.println("📎 PDF Received - Size: " + labelPdf.length + " bytes");
+            System.out.println("📎 PDF First 10 bytes: " + java.util.Arrays.toString(java.util.Arrays.copyOf(labelPdf, Math.min(10, labelPdf.length))));
             System.out.println("========================================");
             
             MimeMessage message = mailSender.createMimeMessage();
@@ -1273,22 +1274,35 @@ public class EmailService {
             String emailContent = buildShippingLabelEmail(order);
             helper.setText(emailContent, true);
             
-            // Attach the PROVIDED PDF (not generating a new one)
+            // CRITICAL: Attach the EXACT PDF that was passed in
             String filename = "Return_Shipping_Label_Order_" + order.getId() + ".pdf";
-            helper.addAttachment(filename, new ByteArrayResource(labelPdf));
             
-            System.out.println("📎 Attachment added: " + filename);
-            System.out.println("📤 Sending email...");
+            // Create ByteArrayResource from the provided PDF bytes
+            ByteArrayResource pdfResource = new ByteArrayResource(labelPdf) {
+                @Override
+                public String getFilename() {
+                    return filename;
+                }
+            };
+            
+            helper.addAttachment(filename, pdfResource);
+            
+            System.out.println("📎 Attachment created: " + filename);
+            System.out.println("📎 Attachment size: " + labelPdf.length + " bytes");
+            System.out.println("📤 Sending email with attachment...");
             
             mailSender.send(message);
             
-            System.out.println("✅ Shipping label email sent successfully to: " + order.getUser().getEmail());
+            System.out.println("✅ ✅ ✅ EMAIL SENT SUCCESSFULLY! ✅ ✅ ✅");
+            System.out.println("✅ Sent to: " + order.getUser().getEmail());
+            System.out.println("✅ Attachment: " + filename + " (" + labelPdf.length + " bytes)");
             System.out.println("========================================");
             
         } catch (Exception e) {
             System.err.println("========================================");
-            System.err.println("❌ FAILED TO SEND SHIPPING LABEL EMAIL");
+            System.err.println("❌ ❌ ❌ FAILED TO SEND EMAIL ❌ ❌ ❌");
             System.err.println("❌ Error: " + e.getMessage());
+            System.err.println("❌ Error class: " + e.getClass().getName());
             e.printStackTrace();
             System.err.println("========================================");
         }
@@ -1347,5 +1361,497 @@ public class EmailService {
         );
     }
     
+    @Async
+    public void sendCustomShippingLabelEmail(Order order, byte[] customLabelPdf, String originalFilename) {
+        try {
+            System.out.println("========================================");
+            System.out.println("📧 SENDING CUSTOM LABEL EMAIL");
+            System.out.println("📧 To: " + order.getUser().getEmail());
+            System.out.println("📎 Custom PDF size: " + customLabelPdf.length + " bytes");
+            System.out.println("📎 Original filename: " + originalFilename);
+            System.out.println("📎 First 20 bytes of PDF: " + java.util.Arrays.toString(java.util.Arrays.copyOf(customLabelPdf, Math.min(20, customLabelPdf.length))));
+            System.out.println("========================================");
+            
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(order.getUser().getEmail());
+            helper.setSubject("Return Shipping Label - Order #" + order.getId());
+            
+            // Email body
+            String emailContent = String.format(
+                "<!DOCTYPE html>" +
+                "<html>" +
+                "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;'>" +
+                "  <div style='max-width:600px;margin:20px auto;background:white;'>" +
+                "    <div style='background:linear-gradient(135deg, #f59e0b 0%%, #d97706 100%%);color:white;padding:40px 20px;text-align:center;'>" +
+                "      <h1 style='margin:0;font-size:32px;'>Return Shipping Label</h1>" +
+                "      <p style='margin:10px 0 0 0;font-size:16px;'>Your custom return label is attached!</p>" +
+                "    </div>" +
+                "    " +
+                "    <div style='padding:30px;'>" +
+                "      <h2 style='color:#2c3e50;margin-top:0;'>Hello %s,</h2>" +
+                "      <p style='color:#555;font-size:16px;line-height:1.6;'>We've attached a custom return shipping label for your Order #%d.</p>" +
+                "      " +
+                "      <div style='background:#fef3c7;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #f59e0b;'>" +
+                "        <h3 style='margin:0 0 15px 0;color:#92400e;'>📎 Attached File</h3>" +
+                "        <p style='margin:0;color:#92400e;font-weight:600;'>%s</p>" +
+                "      </div>" +
+                "      " +
+                "      <div style='background:#dbeafe;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #3b82f6;'>" +
+                "        <h3 style='margin:0 0 15px 0;color:#1e40af;'>📋 How to Use Your Return Label</h3>" +
+                "        <div style='color:#1e40af;line-height:1.8;'>" +
+                "          <p style='margin:8px 0;'><strong>1.</strong> Download and print the attached shipping label</p>" +
+                "          <p style='margin:8px 0;'><strong>2.</strong> Pack your items securely in the original packaging</p>" +
+                "          <p style='margin:8px 0;'><strong>3.</strong> Attach the label to the outside of the package</p>" +
+                "          <p style='margin:8px 0;'><strong>4.</strong> Drop off at any USPS location or schedule a pickup</p>" +
+                "          <p style='margin:8px 0;'><strong>5.</strong> Keep your receipt until refund is processed</p>" +
+                "        </div>" +
+                "      </div>" +
+                "      " +
+                "      <div style='background:#d1fae5;border-left:4px solid #10b981;padding:15px;border-radius:4px;'>" +
+                "        <p style='margin:0;color:#065f46;'><strong>✅ Next Steps:</strong></p>" +
+                "        <p style='margin:5px 0 0 0;color:#065f46;font-size:14px;'>Ship your return within 7 days. Refund will be processed within 5-7 business days after we receive and inspect the item.</p>" +
+                "      </div>" +
+                "      " +
+                "      <div style='text-align:center;margin:30px 0;'>" +
+                "        <a href='http://localhost:8080/web/orders' style='display:inline-block;background:#3498db;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;'>View Order Status</a>" +
+                "      </div>" +
+                "      " +
+                "      <p style='color:#7f8c8d;font-size:14px;margin-top:30px;'>Questions? Contact us at support@ecommerce.com</p>" +
+                "    </div>" +
+                "    " +
+                "    <div style='background:#2c3e50;color:white;padding:20px;text-align:center;'>" +
+                "      <p style='margin:0;font-size:16px;font-weight:bold;'>Thank you - E-Commerce Store</p>" +
+                "      <p style='margin:10px 0 0 0;color:#95a5a6;font-size:14px;'>© 2026 E-Commerce Store. All rights reserved.</p>" +
+                "    </div>" +
+                "  </div>" +
+                "</body>" +
+                "</html>",
+                order.getUser().getName(),
+                order.getId(),
+                originalFilename
+            );
+            
+            helper.setText(emailContent, true);
+            
+            // CRITICAL: Use the EXACT bytes provided - DO NOT regenerate
+            ByteArrayResource pdfResource = new ByteArrayResource(customLabelPdf) {
+                @Override
+                public String getFilename() {
+                    return originalFilename;
+                }
+            };
+            
+            helper.addAttachment(originalFilename, pdfResource);
+            
+            System.out.println("📎 ✅ CUSTOM PDF ATTACHED: " + originalFilename);
+            System.out.println("📎 ✅ SIZE: " + customLabelPdf.length + " bytes");
+            System.out.println("📤 Sending email NOW...");
+            
+            mailSender.send(message);
+            
+            System.out.println("========================================");
+            System.out.println("✅ ✅ ✅ CUSTOM LABEL EMAIL SENT! ✅ ✅ ✅");
+            System.out.println("✅ Recipient: " + order.getUser().getEmail());
+            System.out.println("✅ Attachment: " + originalFilename + " (" + customLabelPdf.length + " bytes)");
+            System.out.println("========================================");
+            
+        } catch (Exception e) {
+            System.err.println("========================================");
+            System.err.println("❌ FAILED TO SEND CUSTOM LABEL EMAIL");
+            System.err.println("❌ Error: " + e.getMessage());
+            e.printStackTrace();
+            System.err.println("========================================");
+        }
+    }
+    
+    @Async
+    public void sendReturnTrackingUpdateEmail(Order order) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(order.getUser().getEmail());
+            helper.setSubject("Return Tracking Update - Order #" + order.getId());
+            
+            String trackingUrl = CarrierDetector.getTrackingUrl(order.getReturnTrackingNumber(), order.getReturnCarrier());
+            String returnStatusText = order.getReturnStatus() != null ? order.getReturnStatus().toString().replace("_", " ") : "IN TRANSIT";
+            
+            String emailContent = String.format(
+                "<!DOCTYPE html>" +
+                "<html>" +
+                "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;'>" +
+                "  <div style='max-width:600px;margin:20px auto;background:white;'>" +
+                "    <div style='background:linear-gradient(135deg, #3b82f6 0%%, #2563eb 100%%);color:white;padding:40px 20px;text-align:center;'>" +
+                "      <h1 style='margin:0;font-size:32px;'>🚚 Return Package Tracking</h1>" +
+                "      <p style='margin:10px 0 0 0;font-size:16px;'>Your return is on its way!</p>" +
+                "    </div>" +
+                "    " +
+                "    <div style='padding:30px;'>" +
+                "      <h2 style='color:#2c3e50;margin-top:0;'>Hello %s,</h2>" +
+                "      <p style='color:#555;font-size:16px;line-height:1.6;'>We've received your return package and it's now in transit to our facility.</p>" +
+                "      " +
+                "      <div style='background:#dbeafe;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #3b82f6;'>" +
+                "        <h3 style='margin:0 0 15px 0;color:#1e40af;'>📦 Return Tracking Information</h3>" +
+                "        <table style='width:100%%;'>" +
+                "          <tr><td style='padding:5px 0;color:#1e40af;'><strong>Order ID:</strong></td><td style='text-align:right;'>#%d</td></tr>" +
+                "          <tr><td style='padding:5px 0;color:#1e40af;'><strong>Carrier:</strong></td><td style='text-align:right;font-weight:bold;'>%s</td></tr>" +
+                "          <tr><td style='padding:5px 0;color:#1e40af;'><strong>Tracking Number:</strong></td><td style='text-align:right;font-family:monospace;font-weight:bold;'>%s</td></tr>" +
+                "          <tr><td style='padding:5px 0;color:#1e40af;'><strong>Return Status:</strong></td><td style='text-align:right;'><span style='background:#3b82f6;color:white;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:bold;'>%s</span></td></tr>" +
+                "        </table>" +
+                "      </div>" +
+                "      " +
+                "      <div style='text-align:center;margin:30px 0;'>" +
+                "        <a href='%s' target='_blank' style='display:inline-block;background:#3b82f6;color:white;padding:12px 30px;text-decoration:none;border-radius:8px;font-weight:bold;margin-right:10px;'>🔍 Track Package</a>" +
+                "        <a href='http://localhost:8080/web/orders' style='display:inline-block;background:#10b981;color:white;padding:12px 30px;text-decoration:none;border-radius:8px;font-weight:bold;'>View Order</a>" +
+                "      </div>" +
+                "      " +
+                "      <div style='background:#fef3c7;border-left:4px solid #f59e0b;padding:15px;border-radius:4px;'>" +
+                "        <p style='margin:0;color:#92400e;'><strong>⏰ What's Next:</strong></p>" +
+                "        <p style='margin:5px 0 0 0;color:#92400e;font-size:14px;'>Once we receive and inspect your return, we'll process your refund within 5-7 business days.</p>" +
+                "      </div>" +
+                "    </div>" +
+                "    " +
+                "    <div style='background:#2c3e50;color:white;padding:20px;text-align:center;'>" +
+                "      <p style='margin:0;font-size:16px;font-weight:bold;'>E-Commerce Store</p>" +
+                "      <p style='margin:10px 0 0 0;color:#95a5a6;font-size:14px;'>© 2026 E-Commerce Store. All rights reserved.</p>" +
+                "    </div>" +
+                "  </div>" +
+                "</body>" +
+                "</html>",
+                order.getUser().getName(),
+                order.getId(),
+                order.getReturnCarrier(),
+                order.getReturnTrackingNumber(),
+                returnStatusText,
+                trackingUrl
+            );
+            
+            helper.setText(emailContent, true);
+            mailSender.send(message);
+            
+            System.out.println("✅ Return tracking update email sent to: " + order.getUser().getEmail());
+            
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send return tracking email: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @Async
+    public void sendRefundIssuedEmail(Order order) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(order.getUser().getEmail());
+            helper.setSubject("💰 Refund Issued - Order #" + order.getId());
+            
+            String refundDate = order.getRefundIssuedDate() != null ? 
+                order.getRefundIssuedDate().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a")) : 
+                java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"));
+            
+            String emailContent = String.format(
+                "<!DOCTYPE html>" +
+                "<html>" +
+                "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;'>" +
+                "  <div style='max-width:600px;margin:20px auto;background:white;'>" +
+                "    <div style='background:linear-gradient(135deg, #10b981 0%%, #059669 100%%);color:white;padding:40px 20px;text-align:center;'>" +
+                "      <h1 style='margin:0;font-size:32px;'>💰 Refund Issued!</h1>" +
+                "      <p style='margin:10px 0 0 0;font-size:16px;'>Your refund has been processed</p>" +
+                "    </div>" +
+                "    " +
+                "    <div style='padding:30px;'>" +
+                "      <h2 style='color:#2c3e50;margin-top:0;'>Hello %s,</h2>" +
+                "      <p style='color:#555;font-size:16px;line-height:1.6;'>Great news! We've received your return and processed your refund.</p>" +
+                "      " +
+                "      <div style='background:#d1fae5;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #10b981;'>" +
+                "        <h3 style='margin:0 0 15px 0;color:#065f46;'>💰 Refund Details</h3>" +
+                "        <table style='width:100%%;'>" +
+                "          <tr><td style='padding:5px 0;color:#065f46;'><strong>Order ID:</strong></td><td style='text-align:right;'>#%d</td></tr>" +
+                "          <tr><td style='padding:5px 0;color:#065f46;'><strong>Refund Amount:</strong></td><td style='text-align:right;font-size:24px;font-weight:bold;color:#10b981;'>$%.2f</td></tr>" +
+                "          <tr><td style='padding:5px 0;color:#065f46;'><strong>Refund Date:</strong></td><td style='text-align:right;'>%s</td></tr>" +
+                "          <tr><td style='padding:5px 0;color:#065f46;'><strong>Payment Method:</strong></td><td style='text-align:right;'>%s</td></tr>" +
+                "        </table>" +
+                "      </div>" +
+                "      " +
+                "      <div style='background:#dbeafe;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #3b82f6;'>" +
+                "        <h3 style='margin:0 0 15px 0;color:#1e40af;'>⏰ When Will I Receive My Refund?</h3>" +
+                "        <div style='color:#1e40af;line-height:1.8;'>" +
+                "          <p style='margin:8px 0;'>- <strong>Credit/Debit Card:</strong> 5-7 business days</p>" +
+                "          <p style='margin:8px 0;'>- <strong>PayPal:</strong> 3-5 business days</p>" +
+                "          <p style='margin:8px 0;'>- The refund will appear on your original payment method</p>" +
+                "        </div>" +
+                "      </div>" +
+                "      " +
+                "      <div style='background:#fef3c7;border-left:4px solid #f59e0b;padding:15px;border-radius:4px;'>" +
+                "        <p style='margin:0;color:#92400e;'><strong>📧 Questions?</strong></p>" +
+                "        <p style='margin:5px 0 0 0;color:#92400e;font-size:14px;'>If you don't see the refund in your account after the specified timeframe, please contact us at support@ecommerce.com</p>" +
+                "      </div>" +
+                "      " +
+                "      <div style='text-align:center;margin:30px 0;'>" +
+                "        <a href='http://localhost:8080/web/orders' style='display:inline-block;background:#3498db;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;'>View Order History</a>" +
+                "      </div>" +
+                "      " +
+                "      <p style='color:#7f8c8d;font-size:14px;margin-top:30px;text-align:center;'>Thank you for shopping with us!</p>" +
+                "    </div>" +
+                "    " +
+                "    <div style='background:#2c3e50;color:white;padding:20px;text-align:center;'>" +
+                "      <p style='margin:0;font-size:16px;font-weight:bold;'>E-Commerce Store</p>" +
+                "      <p style='margin:10px 0 0 0;color:#95a5a6;font-size:14px;'>© 2026 E-Commerce Store. All rights reserved.</p>" +
+                "    </div>" +
+                "  </div>" +
+                "</body>" +
+                "</html>",
+                order.getUser().getName(),
+                order.getId(),
+                order.getRefundAmount(),
+                refundDate,
+                order.getPaymentMethod().toUpperCase()
+            );
+            
+            helper.setText(emailContent, true);
+            mailSender.send(message);
+            
+            System.out.println("✅ Refund issued email sent to: " + order.getUser().getEmail());
+            
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send refund issued email: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+ // Method 1: Send email WITH tracking details (for LABEL_SENT status)
+    public void sendReturnLabelWithTracking(String toEmail, String customerName, 
+                                            Long orderId, String trackingNumber, 
+                                            String returnStatus, String carrier) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom("noreply@ecommerce.com");
+            helper.setTo(toEmail);
+            helper.setSubject("Return Label Sent - Order #" + orderId);
+            
+            String trackingUrl = getTrackingUrl(trackingNumber, carrier);
+            
+            String emailBody = "<!DOCTYPE html>" +
+                "<html>" +
+                "<head><style>" +
+                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
+                ".container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
+                ".header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }" +
+                ".content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }" +
+                ".tracking-box { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 8px; }" +
+                ".tracking-number { font-family: monospace; font-size: 18px; font-weight: bold; color: #1e40af; }" +
+                ".btn { display: inline-block; padding: 12px 30px; background: #3b82f6; color: white; text-decoration: none; border-radius: 8px; margin: 10px 0; }" +
+                ".info-row { padding: 10px 0; border-bottom: 1px solid #e5e7eb; }" +
+                "</style></head>" +
+                "<body>" +
+                "<div class='container'>" +
+                "<div class='header'>" +
+                "<h1>🔄 Return Label Sent</h1>" +
+                "</div>" +
+                "<div class='content'>" +
+                "<p>Dear <strong>" + customerName + "</strong>,</p>" +
+                "<p>Your return label has been generated and is ready to use!</p>" +
+                "<div class='info-row'><strong>Order ID:</strong> #" + orderId + "</div>" +
+                "<div class='info-row'><strong>Return Status:</strong> " + returnStatus + "</div>" +
+                "<div class='tracking-box'>" +
+                "<h3 style='color: #1e40af; margin-top: 0;'>📦 Shipping Information</h3>" +
+                "<p><strong>Carrier:</strong> " + (carrier != null ? carrier : "USPS") + "</p>" +
+                "<p><strong>Tracking Number:</strong></p>" +
+                "<p class='tracking-number'>" + trackingNumber + "</p>" +
+                "<a href='" + trackingUrl + "' class='btn' target='_blank'>Track Your Return →</a>" +
+                "</div>" +
+                "<p><strong>Next Steps:</strong></p>" +
+                "<ol>" +
+                "<li>Print the return label from the attachment or use the tracking number above</li>" +
+                "<li>Package your items securely</li>" +
+                "<li>Attach the label to your package</li>" +
+                "<li>Drop off at your nearest " + (carrier != null ? carrier : "USPS") + " location</li>" +
+                "</ol>" +
+                "<p>Thank you for your cooperation!</p>" +
+                "<p>Best regards,<br><strong>E-Commerce Store Team</strong></p>" +
+                "</div>" +
+                "</div>" +
+                "</body></html>";
+            
+            helper.setText(emailBody, true);
+            mailSender.send(message);
+            
+            System.out.println("✅ Return label email WITH tracking sent to: " + toEmail);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error sending return label email: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Method 2: Send email WITHOUT tracking details (for other statuses)
+    public void sendReturnStatusUpdate(String toEmail, String customerName, 
+                                       Long orderId, String returnStatus) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom("noreply@ecommerce.com");
+            helper.setTo(toEmail);
+            helper.setSubject("Return Status Update - Order #" + orderId);
+            
+            String statusMessage = getStatusMessage(returnStatus);
+            String statusColor = getStatusColor(returnStatus);
+            
+            String emailBody = "<!DOCTYPE html>" +
+                "<html>" +
+                "<head><style>" +
+                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
+                ".container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
+                ".header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }" +
+                ".content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }" +
+                ".status-box { background: " + statusColor + "; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }" +
+                ".status-text { font-size: 24px; font-weight: bold; margin: 10px 0; }" +
+                ".info-row { padding: 10px 0; border-bottom: 1px solid #e5e7eb; }" +
+                "</style></head>" +
+                "<body>" +
+                "<div class='container'>" +
+                "<div class='header'>" +
+                "<h1>🔄 Return Status Update</h1>" +
+                "</div>" +
+                "<div class='content'>" +
+                "<p>Dear <strong>" + customerName + "</strong>,</p>" +
+                "<p>Your return request has been updated.</p>" +
+                "<div class='info-row'><strong>Order ID:</strong> #" + orderId + "</div>" +
+                "<div class='status-box'>" +
+                "<p style='margin: 0; color: #6b7280;'>Current Status</p>" +
+                "<p class='status-text'>" + returnStatus + "</p>" +
+                "</div>" +
+                "<p>" + statusMessage + "</p>" +
+                "<p>If you have any questions, please don't hesitate to contact our customer support.</p>" +
+                "<p>Best regards,<br><strong>E-Commerce Store Team</strong></p>" +
+                "</div>" +
+                "</div>" +
+                "</body></html>";
+            
+            helper.setText(emailBody, true);
+            mailSender.send(message);
+            
+            System.out.println("✅ Return status update email (NO tracking) sent to: " + toEmail);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error sending return status email: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Helper method for tracking URL
+    private String getTrackingUrl(String trackingNumber, String carrier) {
+        if (carrier == null) carrier = "USPS";
+        
+        switch (carrier.toUpperCase()) {
+            case "UPS":
+                return "https://www.ups.com/track?tracknum=" + trackingNumber;
+            case "FEDEX":
+                return "https://www.fedex.com/fedextrack/?trknbr=" + trackingNumber;
+            case "DHL":
+                return "https://www.dhl.com/en/express/tracking.html?AWB=" + trackingNumber;
+            case "USPS":
+            default:
+                return "https://tools.usps.com/go/TrackConfirmAction?tLabels=" + trackingNumber;
+        }
+    }
+
+    // Helper method for status messages
+    private String getStatusMessage(String status) {
+        switch (status) {
+            case "RETURN_REQUESTED":
+                return "We have received your return request and will process it shortly.";
+            case "IN_TRANSIT":
+                return "Your return package is on its way to our facility.";
+            case "RECEIVED":
+                return "We have received your return package and are processing your refund.";
+            case "REFUND_ISSUED":
+                return "Your refund has been issued and should appear in your account within 5-7 business days.";
+            default:
+                return "Your return is being processed.";
+        }
+    }
+
+    // Helper method for status colors
+    private String getStatusColor(String status) {
+        switch (status) {
+            case "RETURN_REQUESTED":
+                return "#fef3c7";
+            case "IN_TRANSIT":
+                return "#dbeafe";
+            case "RECEIVED":
+                return "#d1fae5";
+            case "REFUND_ISSUED":
+                return "#d1fae5";
+            default:
+                return "#f3f4f6";
+        }
+    }
+    
+    public void sendRefundConfirmationEmail(String toEmail, String customerName, 
+            Long orderId, Double refundAmount) {
+try {
+MimeMessage message = mailSender.createMimeMessage();
+MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+helper.setFrom("noreply@ecommerce.com");
+helper.setTo(toEmail);
+helper.setSubject("Refund Issued - Order #" + orderId);
+
+String emailBody = "<!DOCTYPE html>" +
+"<html>" +
+"<head><style>" +
+"body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
+".container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
+".header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }" +
+".content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }" +
+".refund-box { background: #d1fae5; border-left: 4px solid #10b981; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }" +
+".refund-amount { font-size: 36px; font-weight: bold; color: #065f46; margin: 10px 0; }" +
+".info-row { padding: 10px 0; border-bottom: 1px solid #e5e7eb; }" +
+"</style></head>" +
+"<body>" +
+"<div class='container'>" +
+"<div class='header'>" +
+"<h1>💰 Refund Issued</h1>" +
+"</div>" +
+"<div class='content'>" +
+"<p>Dear <strong>" + customerName + "</strong>,</p>" +
+"<p>Great news! Your refund has been processed successfully.</p>" +
+"<div class='info-row'><strong>Order ID:</strong> #" + orderId + "</div>" +
+"<div class='refund-box'>" +
+"<h3 style='color: #065f46; margin-top: 0;'>Refund Amount</h3>" +
+"<p class='refund-amount'>$" + String.format("%.2f", refundAmount) + "</p>" +
+"<p style='color: #059669; font-weight: 600;'>✅ Refund Processed</p>" +
+"</div>" +
+"<p><strong>What happens next?</strong></p>" +
+"<ul style='color: #374151;'>" +
+"<li>The refund will appear in your original payment method within 5-7 business days</li>" +
+"<li>You will receive a separate notification from your bank/card issuer</li>" +
+"<li>If you don't see the refund after 7 business days, please contact us</li>" +
+"</ul>" +
+"<p>Thank you for shopping with us. We hope to serve you again soon!</p>" +
+"<p>Best regards,<br><strong>E-Commerce Store Team</strong></p>" +
+"</div>" +
+"</div>" +
+"</body></html>";
+
+helper.setText(emailBody, true);
+mailSender.send(message);
+
+System.out.println("✅ Refund confirmation email sent to: " + toEmail);
+
+} catch (Exception e) {
+System.err.println("❌ Error sending refund confirmation email: " + e.getMessage());
+e.printStackTrace();
+}
+}
 
 }

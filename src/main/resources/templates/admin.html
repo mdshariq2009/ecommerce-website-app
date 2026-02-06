@@ -9,6 +9,58 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
+    
+    /* Professional Tracking Input Styling */
+input[id^="tracking"] {
+    transition: all 0.3s ease !important;
+}
+
+input[id^="tracking"]:enabled {
+    background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%) !important;
+    border: 2px solid #3b82f6 !important;
+    color: #1e40af !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15) !important;
+}
+
+input[id^="tracking"]:enabled:hover {
+    border-color: #2563eb !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25) !important;
+}
+
+input[id^="tracking"]:enabled:focus {
+    outline: none !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2) !important;
+    transform: scale(1.02);
+}
+
+input[id^="tracking"]:disabled {
+    background: #f9fafb !important;
+    border: 2px solid #e5e7eb !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
+}
+
+/* Tracking field for RETURNED orders */
+input[id^="tracking"][disabled][value]:not([value=""]) {
+    background: linear-gradient(135deg, #fef3c7 0%, #fef9c3 100%) !important;
+    border: 2px solid #f59e0b !important;
+    color: #92400e !important;
+    font-weight: 600 !important;
+}
+
+/* Professional placeholder styling */
+input[id^="tracking"]::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+    font-weight: 500;
+}
+
+input[id^="tracking"]:enabled::placeholder {
+    color: #60a5fa;
+    font-weight: 600;
+}
         *, *::before, *::after {
             box-sizing: border-box;
         }
@@ -1763,19 +1815,26 @@
             
             if (response.ok) {
                 const returnedOrders = await response.json();
-                document.getElementById('returnedOrdersCount').textContent = returnedOrders.length;
                 
-                if (returnedOrders.length === 0) {
+                // Filter out REFUND_ISSUED orders
+                const activeReturns = returnedOrders.filter(order => {
+                    const returnStatus = order.returnStatus || 'RETURN_REQUESTED';
+                    return returnStatus !== 'REFUND_ISSUED';
+                });
+                
+                document.getElementById('returnedOrdersCount').textContent = activeReturns.length;
+                
+                if (activeReturns.length === 0) {
                     document.getElementById('returnedOrdersContainer').innerHTML = 
                         `<div class="empty-state">
                             <div style="font-size:4rem;opacity:0.5;margin-bottom:1rem;">🔄</div>
-                            <h3 style="color:#1f2937;margin-bottom:0.5rem;">No Returned Orders</h3>
-                            <p style="color:#6b7280;">No return requests at the moment</p>
+                            <h3 style="color:#1f2937;margin-bottom:0.5rem;">No Active Returns</h3>
+                            <p style="color:#6b7280;">No pending return requests at the moment</p>
                         </div>`;
                     return;
                 }
                 
-                displayReturnedOrders(returnedOrders);
+                displayReturnedOrders(activeReturns);
             }
         } catch (error) {
             console.error('Error loading returned orders:', error);
@@ -1799,15 +1858,19 @@
                             <th>Customer</th>
                             <th>Amount</th>
                             <th>Return Date</th>
-                            <th>Items</th>
+                            <th>Return Status</th>
+                            <th>Return Tracking</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${orders.map(order => {
                             const returnDate = order.returnRequestDate ? new Date(order.returnRequestDate).toLocaleDateString() : 'N/A';
-                            const itemCount = order.items ? order.items.length : 0;
                             const customerEmail = order.user ? order.user.email : 'N/A';
+                            const returnStatus = order.returnStatus || 'RETURN_REQUESTED';
+                            const returnTracking = order.returnTrackingNumber || '';
+                            const isRefundIssued = returnStatus === 'REFUND_ISSUED';
+                            const isLabelSent = returnStatus === 'LABEL_SENT';
                             
                             return `
                                 <tr>
@@ -1818,13 +1881,36 @@
                                     </td>
                                     <td data-label="Amount"><strong style="color:#f59e0b;">$${(order.totalAmount || 0).toFixed(2)}</strong></td>
                                     <td data-label="Return Date"><small style="color:#6b7280;">${returnDate}</small></td>
-                                    <td data-label="Items"><strong>${itemCount}</strong></td>
+                                    <td data-label="Return Status">
+                                        <select id="returnStatus_${order.id}" onchange="handleReturnStatusChange(${order.id})">
+                                            <option value="RETURN_REQUESTED" ${returnStatus === 'RETURN_REQUESTED' ? 'selected' : ''}>Return Requested</option>
+                                            <option value="LABEL_SENT" ${returnStatus === 'LABEL_SENT' ? 'selected' : ''}>Label Sent</option>
+                                            <option value="IN_TRANSIT" ${returnStatus === 'IN_TRANSIT' ? 'selected' : ''}>In Transit</option>
+                                            <option value="RECEIVED" ${returnStatus === 'RECEIVED' ? 'selected' : ''}>Received</option>
+                                            <option value="REFUND_ISSUED" ${returnStatus === 'REFUND_ISSUED' ? 'selected' : ''}>Refund Issued</option>
+                                        </select>
+                                    </td>
+                                    <td data-label="Return Tracking">
+                                        <input 
+                                            type="text" 
+                                            id="returnTracking_${order.id}" 
+                                            value="${returnTracking}" 
+                                            placeholder="${isLabelSent ? 'Enter tracking #' : 'Read-only'}"
+                                            ${!isLabelSent ? 'disabled' : ''}
+                                            style="width:100%;background:${isLabelSent ? '#dbeafe' : '#f3f4f6'};
+                                                   border-color:${isLabelSent ? '#3b82f6' : '#e5e7eb'};
+                                                   color:${isLabelSent ? '#1e40af' : '#9ca3af'};"
+                                        >
+                                    </td>
                                     <td data-label="Actions">
-                                        <button onclick="openLabelModal(${order.id})" class="action-btn" style="background:#94603a;color:white;margin-bottom:0.5rem;">
-                                            📄 View/Attach Label
+                                        <button onclick="updateReturnTracking(${order.id})" class="action-btn btn-update">
+                                            Update Status
                                         </button>
-                                        <button onclick="sendLabelQuick(${order.id})" class="action-btn" style="background:#10b981;color:white;">
-                                            📧 Send Generated
+                                        <button onclick="openLabelModal(${order.id})" class="action-btn" style="background:#8b5cf6;color:white;">
+                                            View/Attach Label
+                                        </button>
+                                        <button onclick="sendLabelQuick(${order.id})" class="action-btn" style="background:#06b6d4;color:white;">
+                                            Send Label
                                         </button>
                                     </td>
                                 </tr>
@@ -1836,6 +1922,199 @@
         `;
 
         document.getElementById('returnedOrdersContainer').innerHTML = html;
+    }
+    
+    function handleReturnStatusChange(orderId) {
+        const statusSelect = document.getElementById('returnStatus_' + orderId);
+        const trackingInput = document.getElementById('returnTracking_' + orderId);
+        
+        if (!statusSelect || !trackingInput) return;
+        
+        const status = statusSelect.value;
+        
+        console.log('Return status changed for order', orderId, 'to', status);
+        
+        // Only LABEL_SENT status allows editing tracking number
+        if (status === 'LABEL_SENT') {
+            trackingInput.disabled = false;
+            trackingInput.style.background = '#dbeafe';
+            trackingInput.style.borderColor = '#3b82f6';
+            trackingInput.style.color = '#1e40af';
+            trackingInput.placeholder = 'Enter tracking # (required)';
+            
+            if (!trackingInput.value) {
+                setTimeout(() => trackingInput.focus(), 100);
+            }
+        } else {
+            // All other statuses: tracking field is READ-ONLY
+            trackingInput.disabled = true;
+            
+            // Different styling based on status
+            if (status === 'REFUND_ISSUED') {
+                trackingInput.style.background = '#d1fae5';
+                trackingInput.style.borderColor = '#10b981';
+                trackingInput.style.color = '#065f46';
+            } else if (status === 'IN_TRANSIT') {
+                trackingInput.style.background = '#fef3c7';
+                trackingInput.style.borderColor = '#f59e0b';
+                trackingInput.style.color = '#92400e';
+            } else if (status === 'RECEIVED') {
+                trackingInput.style.background = '#d1fae5';
+                trackingInput.style.borderColor = '#10b981';
+                trackingInput.style.color = '#065f46';
+            } else {
+                trackingInput.style.background = '#f3f4f6';
+                trackingInput.style.borderColor = '#e5e7eb';
+                trackingInput.style.color = '#9ca3af';
+            }
+            
+            trackingInput.placeholder = 'Read-only';
+        }
+    }
+    
+    async function updateReturnTracking(orderId) {
+        console.log('updateReturnTracking called for order:', orderId);
+        
+        const returnTrackingInput = document.getElementById('returnTracking_' + orderId);
+        const returnStatusSelect = document.getElementById('returnStatus_' + orderId);
+        
+        if (!returnTrackingInput || !returnStatusSelect) {
+            console.error('Could not find elements for order:', orderId);
+            showCustomAlert('Error', 'Could not find return tracking elements', 'error');
+            return;
+        }
+        
+        const returnTrackingNumber = returnTrackingInput.value.trim();
+        const returnStatus = returnStatusSelect.value;
+        
+        console.log('Return Status:', returnStatus);
+        console.log('Return Tracking:', returnTrackingNumber);
+        
+        // Only require tracking number when status is LABEL_SENT
+        if (returnStatus === 'LABEL_SENT' && !returnTrackingNumber) {
+            showCustomAlert('Tracking Required ⚠️', 'Please enter a return tracking number for Label Sent status', 'error');
+            returnTrackingInput.focus();
+            return;
+        }
+        
+        // Confirmation for REFUND_ISSUED
+        if (returnStatus === 'REFUND_ISSUED') {
+            const order = allOrders.find(o => o.id === orderId);
+            const confirmRefund = confirm(
+                `Issue refund of $${order.totalAmount.toFixed(2)} for Order #${orderId}?\n\n` +
+                `This will:\n` +
+                `- Update order status to REFUND_ISSUED\n` +
+                `- Send confirmation email to customer\n` +
+                `- Remove order from Returns section\n\n` +
+                `This action cannot be undone!`
+            );
+            
+            if (!confirmRefund) {
+                // Reset the dropdown to previous value
+                const currentOrder = allOrders.find(o => o.id === orderId);
+                if (currentOrder && currentOrder.returnStatus) {
+                    returnStatusSelect.value = currentOrder.returnStatus;
+                }
+                return;
+            }
+        }
+        
+        try {
+            showCustomAlert('Updating...', 'Updating return status', 'success');
+            
+            // Determine if tracking details should be included in email
+            const includeTracking = (returnStatus === 'LABEL_SENT' && returnTrackingNumber);
+            
+            console.log('Include tracking in email:', includeTracking);
+            
+            const response = await fetch(`/api/admin/orders/${orderId}/return-tracking`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    returnTrackingNumber: returnTrackingNumber || null,
+                    returnStatus: returnStatus,
+                    includeTracking: includeTracking
+                })
+            });
+            
+            console.log('Response status:', response.status);
+            
+            if (response.ok) {
+                const result = await response.json();
+                console.log('Update result:', result);
+                closeCustomAlert();
+                
+                let message = `Return status updated to ${returnStatus}!`;
+                if (returnStatus === 'REFUND_ISSUED') {
+                    message = `Refund of $${result.refundAmount ? result.refundAmount.toFixed(2) : '0.00'} has been issued! Confirmation email sent to customer.`;
+                } else if (includeTracking) {
+                    message += ` Tracking email sent to customer. Carrier: ${result.carrier || 'USPS'}`;
+                } else {
+                    message += ` Status update email sent to customer.`;
+                }
+                
+                showCustomAlert('Updated! ✅', message, 'success');
+                
+                // Reload both returned orders and all orders
+                loadReturnedOrders();
+                loadOrders();
+                
+            } else {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                closeCustomAlert();
+                showCustomAlert('Error', 'Failed to update return tracking: ' + errorText, 'error');
+            }
+        } catch (error) {
+            console.error('Exception in updateReturnTracking:', error);
+            closeCustomAlert();
+            showCustomAlert('Error', 'Error updating tracking: ' + error.message, 'error');
+        }
+    }
+
+    async function issueRefund(orderId) {
+        const order = allOrders.find(o => o.id === orderId);
+        if (!order) {
+            showCustomAlert('Error', 'Order not found', 'error');
+            return;
+        }
+        
+        // Confirmation dialog
+        if (!confirm(`Issue refund of $${order.totalAmount.toFixed(2)} for Order #${orderId}?\n\nThis will send a confirmation email to the customer.`)) {
+            return;
+        }
+        
+        try {
+            showCustomAlert('Processing...', 'Issuing refund and sending confirmation email', 'success');
+            
+            const response = await fetch(`/api/admin/orders/${orderId}/issue-refund`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                closeCustomAlert();
+                showCustomAlert(
+                    'Refund Issued! ✅', 
+                    `Refund of $${result.refundAmount.toFixed(2)} has been issued. Customer notified via email.`, 
+                    'success'
+                );
+                loadReturnedOrders();
+                loadOrders();
+            } else {
+                closeCustomAlert();
+                showCustomAlert('Error', 'Failed to issue refund', 'error');
+            }
+        } catch (error) {
+            closeCustomAlert();
+            showCustomAlert('Error', 'Error issuing refund: ' + error.message, 'error');
+        }
     }
 
     async function openLabelModal(orderId) {
@@ -2366,13 +2645,47 @@
                             const orderStatus = order.orderStatus || order.status || 'PENDING';
                             const paymentStatus = order.paymentStatus || 'PENDING';
                             const isReturned = orderStatus === 'RETURNED';
+                            const returnStatus = order.returnStatus || null;
                             
-                            // Return notice for RETURNED orders
-                            const returnNotice = isReturned ? `
-                                <div class="return-notice">
-                                    🔄 Return requested by customer
-                                </div>
-                            ` : '';
+                            // Build return notice based on actual return status
+                            let returnNotice = '';
+                            if (isReturned && returnStatus) {
+                                let statusText = returnStatus.replace(/_/g, ' ');
+                                let statusColor = '#fef3c7';
+                                let textColor = '#92400e';
+                                
+                                if (returnStatus === 'REFUND_ISSUED') {
+                                    statusColor = '#d1fae5';
+                                    textColor = '#065f46';
+                                    statusText = '✅ REFUND ISSUED';
+                                } else if (returnStatus === 'LABEL_SENT') {
+                                    statusColor = '#dbeafe';
+                                    textColor = '#1e40af';
+                                    statusText = '📧 LABEL SENT';
+                                } else if (returnStatus === 'IN_TRANSIT') {
+                                    statusColor = '#fef3c7';
+                                    textColor = '#f59e0b';
+                                    statusText = '🚚 IN TRANSIT';
+                                } else if (returnStatus === 'RECEIVED') {
+                                    statusColor = '#d1fae5';
+                                    textColor = '#059669';
+                                    statusText = '📦 RECEIVED';
+                                } else if (returnStatus === 'RETURN_REQUESTED') {
+                                    statusText = '🔄 RETURN REQUESTED';
+                                }
+                                
+                                returnNotice = `
+                                    <div class="return-notice" style="background:${statusColor};color:${textColor};border-left-color:${textColor};">
+                                        ${statusText}
+                                    </div>
+                                `;
+                            } else if (isReturned) {
+                                returnNotice = `
+                                    <div class="return-notice">
+                                        🔄 Return requested by customer
+                                    </div>
+                                `;
+                            }
                             
                             return `
                                 <tr>
@@ -2395,15 +2708,36 @@
                                         ${returnNotice}
                                     </td>
                                     <td data-label="Tracking">
+                                    <div style="position:relative;width:100%;">
                                         <input 
                                             type="text" 
                                             id="tracking_${order.id}" 
                                             value="${order.trackingNumber || ''}" 
-                                            placeholder="Track #"
+                                            placeholder="${orderStatus === 'SHIPPED' ? 'Enter tracking #' : 'N/A'}"
+                                            ${orderStatus !== 'SHIPPED' && !isReturned ? 'disabled' : ''}
                                             ${isReturned ? 'disabled' : ''}
+                                            style="width:100%;
+                                                   padding:0.7rem 2.5rem 0.7rem 0.9rem;
+                                                   border:2px solid ${orderStatus === 'SHIPPED' ? '#3b82f6' : '#e5e7eb'};
+                                                   border-radius:8px;
+                                                   font-family:'Courier New', monospace;
+                                                   font-size:0.85rem;
+                                                   font-weight:600;
+                                                   background:${orderStatus === 'SHIPPED' ? '#dbeafe' : '#f9fafb'};
+                                                   color:${orderStatus === 'SHIPPED' ? '#1e40af' : '#9ca3af'};
+                                                   transition:all 0.3s ease;
+                                                   letter-spacing:0.5px;"
+                                            onfocus="this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.2)'; this.style.borderColor='#3b82f6';"
+                                            onblur="this.style.boxShadow='none'; this.style.borderColor='${orderStatus === 'SHIPPED' ? '#3b82f6' : '#e5e7eb'}';"
                                         >
-                                        <div id="trackingStatus_${order.id}"></div>
-                                    </td>
+                                        ${orderStatus === 'SHIPPED' && order.trackingNumber ? `
+                                            <div style="position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;">
+                                                <span style="color:#10b981;font-size:1.2rem;">✓</span>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    <div id="trackingStatus_${order.id}" style="margin-top:0.3rem;font-size:0.7rem;text-align:center;"></div>
+                                </td>
                                     <td data-label="Date"><small style="color:#6b7280;">${new Date(order.orderDate || order.createdAt).toLocaleDateString()}</small></td>
                                     <td data-label="Actions">
                                         <button onclick="viewOrderDetails(${order.id})" class="action-btn btn-view">View</button>
@@ -2501,22 +2835,41 @@
             return;
         }
         
+        // Only SHIPPED status allows editing tracking number
         if (status === 'SHIPPED') {
             trackingInput.disabled = false;
             trackingInput.style.background = '#dbeafe';
             trackingInput.style.borderColor = '#3b82f6';
             trackingInput.style.color = '#1e40af';
-            trackingInput.placeholder = 'Track #';
+            trackingInput.placeholder = 'Enter tracking # (required)';
             
             if (!trackingInput.value) {
                 setTimeout(() => trackingInput.focus(), 100);
             }
         } else {
+            // All other statuses: tracking field is READ-ONLY
             trackingInput.disabled = true;
-            trackingInput.style.background = '#f3f4f6';
-            trackingInput.style.borderColor = '#e5e7eb';
-            trackingInput.style.color = '#9ca3af';
-            trackingInput.placeholder = 'N/A';
+            
+            // Different styling based on status
+            if (status === 'DELIVERED') {
+                trackingInput.style.background = '#d1fae5';
+                trackingInput.style.borderColor = '#10b981';
+                trackingInput.style.color = '#065f46';
+            } else if (status === 'PROCESSING') {
+                trackingInput.style.background = '#fef3c7';
+                trackingInput.style.borderColor = '#f59e0b';
+                trackingInput.style.color = '#92400e';
+            } else if (status === 'CANCELLED') {
+                trackingInput.style.background = '#fee2e2';
+                trackingInput.style.borderColor = '#ef4444';
+                trackingInput.style.color = '#991b1b';
+            } else {
+                trackingInput.style.background = '#f3f4f6';
+                trackingInput.style.borderColor = '#e5e7eb';
+                trackingInput.style.color = '#9ca3af';
+            }
+            
+            trackingInput.placeholder = 'Read-only';
         }
     }
 
@@ -2546,17 +2899,23 @@
         const newStatus = statusSelect.value;
         const trackingNumber = trackingInput.value.trim();
         
+        // Only require tracking number when changing TO "SHIPPED" status
         if (newStatus === 'SHIPPED' && !trackingNumber) {
-            showCustomAlert('Tracking Required ⚠️', 'Please enter a tracking number for shipped orders', 'error');
+            showCustomAlert('Tracking Required ⚠️', 'Please enter a tracking number for Label Sent status', 'error');
             trackingInput.focus();
             return;
         }
         
         const paymentStatus = order.paymentStatus || 'PENDING';
-        updateOrderStatusAPI(orderId, newStatus, paymentStatus, trackingNumber);
+        
+        // Determine if tracking details should be included in email
+        // Only include tracking when status is SHIPPED
+        const includeTracking = (newStatus === 'SHIPPED' && trackingNumber);
+        
+        updateOrderStatusAPI(orderId, newStatus, paymentStatus, trackingNumber, includeTracking);
     }
 
-    async function updateOrderStatusAPI(orderId, orderStatus, paymentStatus, trackingNumber) {
+    async function updateOrderStatusAPI(orderId, orderStatus, paymentStatus, trackingNumber, includeTracking = false) {
         try {
             const statusDiv = document.getElementById('trackingStatus_' + orderId);
             if (statusDiv) {
@@ -2565,9 +2924,17 @@
             
             let url = `/api/admin/orders/${orderId}?orderStatus=${orderStatus}&paymentStatus=${paymentStatus}`;
             
+            // Always include tracking number if it exists (for database update)
             if (trackingNumber) {
                 url += `&trackingNumber=${encodeURIComponent(trackingNumber)}`;
             }
+            
+            // Control whether to include tracking in the email
+            // includeTracking will be true ONLY when status is SHIPPED
+            url += `&includeTracking=${includeTracking}`;
+            
+            // Always send status update email
+            url += `&sendEmail=true`;
             
             const response = await fetch(url, {
                 method: 'PATCH',
@@ -2590,7 +2957,15 @@
                     allOrders[index] = updatedOrder;
                 }
                 
-                showCustomAlert('Success! ✅', `Order #${orderId} updated successfully!`, 'success');
+                // Build success message
+                let message = `Order #${orderId} status updated to ${orderStatus}!`;
+                if (includeTracking) {
+                    message += ` Tracking email sent to customer.`;
+                } else {
+                    message += ` Status update email sent to customer.`;
+                }
+                
+                showCustomAlert('Success! ✅', message, 'success');
                 loadStats();
             } else {
                 if (statusDiv) {

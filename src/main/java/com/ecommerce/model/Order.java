@@ -75,6 +75,72 @@ public class Order {
     
     @Column(name = "return_request_date")
     private LocalDateTime returnRequestDate;
+    
+    @Column(name = "return_tracking_number")
+    private String returnTrackingNumber;
+
+    @Column(name = "return_carrier")
+    private String returnCarrier;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "return_status")
+    private ReturnStatus returnStatus;
+
+    @Column(name = "refund_issued_date")
+    private LocalDateTime refundIssuedDate;
+
+    @Column(name = "refund_amount")
+    private Double refundAmount;
+
+    // Add this enum inside Order class
+    public enum ReturnStatus {
+        RETURN_REQUESTED,
+        LABEL_SENT,
+        IN_TRANSIT,
+        RECEIVED,
+        REFUND_ISSUED
+    }
+
+    // Getters and Setters
+    public String getReturnTrackingNumber() {
+        return returnTrackingNumber;
+    }
+
+    public void setReturnTrackingNumber(String returnTrackingNumber) {
+        this.returnTrackingNumber = returnTrackingNumber;
+    }
+
+    public String getReturnCarrier() {
+        return returnCarrier;
+    }
+
+    public void setReturnCarrier(String returnCarrier) {
+        this.returnCarrier = returnCarrier;
+    }
+
+    public ReturnStatus getReturnStatus() {
+        return returnStatus;
+    }
+
+    public void setReturnStatus(ReturnStatus returnStatus) {
+        this.returnStatus = returnStatus;
+    }
+
+    public LocalDateTime getRefundIssuedDate() {
+        return refundIssuedDate;
+    }
+
+    public void setRefundIssuedDate(LocalDateTime refundIssuedDate) {
+        this.refundIssuedDate = refundIssuedDate;
+    }
+
+    public Double getRefundAmount() {
+        return refundAmount;
+    }
+
+    public void setRefundAmount(Double refundAmount) {
+        this.refundAmount = refundAmount;
+    }
 
     public LocalDateTime getReturnRequestDate() {
         return returnRequestDate;

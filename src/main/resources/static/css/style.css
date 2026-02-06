@@ -12,6 +12,26 @@ html, body {
     padding: 0;
     box-sizing: border-box;
 }
+.orders-grid {
+    display: grid;
+    grid-template-columns: 90px 150px 130px 110px 120px 200px 200px;
+    gap: 1.2rem;
+    align-items: center;
+}
+.orders-grid {
+    display: grid;
+    grid-template-columns: 80px 180px 120px 100px 110px 180px 220px;
+    gap: 1rem;
+    align-items: center;
+}
+
+.header-cell {
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
 
 :root {
     --primary: #667eea;

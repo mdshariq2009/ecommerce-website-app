@@ -1,5 +1,9 @@
 package com.ecommerce.util;
 
+import org.springframework.stereotype.Component;
+
+@Component  // ← ADD THIS ANNOTATION
+
 public class CarrierDetector {
 
     public static String detectCarrier(String trackingNumber) {

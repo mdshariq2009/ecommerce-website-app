@@ -11,6 +11,7 @@ import com.ecommerce.repository.UserRepository;
 import com.ecommerce.service.EmailService;
 import com.ecommerce.service.OrderService;
 import com.ecommerce.service.TaxService;
+import com.ecommerce.util.CarrierDetector;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -46,6 +47,9 @@ public class OrderController {
     
     @Autowired
     private EmailService emailService;
+    
+    @Autowired
+    private CarrierDetector carrierDetector;  // ← ADD THIS LINE
 
     // ========================================
     // CALCULATE ORDER TOTALS
@@ -266,6 +270,130 @@ public class OrderController {
             return ResponseEntity.status(500).body(error);
         }
     }
+    @PutMapping("/admin/orders/{orderId}/return-tracking")
+    public ResponseEntity<?> updateReturnTracking(
+            @PathVariable Long orderId,
+            @RequestBody Map<String, Object> request) {
+        
+        try {
+            System.out.println("========================================");
+            System.out.println("📦 UPDATE RETURN TRACKING REQUEST");
+            System.out.println("📦 Order ID: " + orderId);
+            System.out.println("📦 Request data: " + request);
+            
+            String returnTrackingNumber = (String) request.get("returnTrackingNumber");
+            String returnStatusString = (String) request.get("returnStatus");
+            Boolean includeTracking = (Boolean) request.get("includeTracking");
+            
+            System.out.println("📦 Return Status: " + returnStatusString);
+            System.out.println("📦 Return Tracking: " + returnTrackingNumber);
+            System.out.println("📦 Include Tracking in Email: " + includeTracking);
+            
+            // Update order in database
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new RuntimeException("Order not found"));
+            
+            // Convert String to ReturnStatus enum
+            Order.ReturnStatus returnStatus = Order.ReturnStatus.valueOf(returnStatusString);
+            order.setReturnStatus(returnStatus);
+            
+            // If REFUND_ISSUED, also update main order status
+            if (returnStatus == Order.ReturnStatus.REFUND_ISSUED) {
+                order.setOrderStatus(Order.OrderStatus.RETURNED);
+                System.out.println("✅ Order status set to RETURNED (Refund Issued)");
+            }
+            
+            if (returnTrackingNumber != null && !returnTrackingNumber.isEmpty()) {
+                order.setReturnTrackingNumber(returnTrackingNumber);
+                
+                // Detect carrier if tracking number is provided
+                String carrier = carrierDetector.detectCarrier(returnTrackingNumber);
+                order.setCarrier(carrier);
+                System.out.println("📦 Detected Carrier: " + carrier);
+            }
+            
+            orderRepository.save(order);
+            orderRepository.flush();
+            
+            System.out.println("✅ Order updated in database");
+            
+            // Send email based on status
+            if (returnStatus == Order.ReturnStatus.REFUND_ISSUED) {
+                System.out.println("========================================");
+                System.out.println("💰 SENDING REFUND CONFIRMATION EMAIL");
+                
+                // Send refund confirmation email
+                emailService.sendRefundConfirmationEmail(
+                    order.getUser().getEmail(),
+                    order.getUser().getName(),
+                    orderId,
+                    order.getTotalAmount()
+                );
+                
+                System.out.println("✅ Refund confirmation email sent successfully!");
+                
+            } else if (includeTracking != null && includeTracking) {
+                System.out.println("========================================");
+                System.out.println("📧 SENDING EMAIL WITH TRACKING DETAILS");
+                
+                // Send email WITH tracking details (only for LABEL_SENT status)
+                emailService.sendReturnLabelWithTracking(
+                    order.getUser().getEmail(),
+                    order.getUser().getName(),
+                    orderId,
+                    returnTrackingNumber,
+                    returnStatusString,
+                    order.getCarrier()
+                );
+                
+                System.out.println("✅ Email WITH tracking sent successfully!");
+            } else {
+                System.out.println("========================================");
+                System.out.println("📧 SENDING EMAIL WITHOUT TRACKING DETAILS");
+                
+                // Send email WITHOUT tracking details (for all other statuses)
+                emailService.sendReturnStatusUpdate(
+                    order.getUser().getEmail(),
+                    order.getUser().getName(),
+                    orderId,
+                    returnStatusString
+                );
+                
+                System.out.println("✅ Email WITHOUT tracking sent successfully!");
+            }
+            
+            System.out.println("========================================");
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Return tracking updated successfully");
+            response.put("returnStatus", returnStatusString);
+            response.put("returnTrackingNumber", returnTrackingNumber);
+            response.put("carrier", order.getCarrier());
+            response.put("refundAmount", order.getTotalAmount());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (IllegalArgumentException e) {
+            System.err.println("========================================");
+            System.err.println("❌ INVALID RETURN STATUS");
+            System.err.println("❌ Error: " + e.getMessage());
+            System.err.println("========================================");
+            
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Invalid return status: " + e.getMessage()));
+                    
+        } catch (Exception e) {
+            System.err.println("========================================");
+            System.err.println("❌ ERROR UPDATING RETURN TRACKING");
+            System.err.println("❌ Error: " + e.getMessage());
+            e.printStackTrace();
+            System.err.println("========================================");
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+    
 
     // ========================================
     // GET USER ORDERS

@@ -261,6 +261,103 @@ public class AdminController {
         return ResponseEntity.ok(order);
     }
     
+ // Update return tracking number
+    @PutMapping("/orders/{orderId}/return-tracking")
+    public ResponseEntity<?> updateReturnTracking(
+            @PathVariable Long orderId,
+            @RequestBody Map<String, String> request) {
+        try {
+            System.out.println("========================================");
+            System.out.println("📦 Updating return tracking for Order #" + orderId);
+            
+            String returnTrackingNumber = request.get("returnTrackingNumber");
+            String returnStatus = request.get("returnStatus");
+            
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new RuntimeException("Order not found"));
+            
+            if (order.getOrderStatus() != Order.OrderStatus.RETURNED) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Order is not in RETURNED status"));
+            }
+            
+            // Update return tracking
+            order.setReturnTrackingNumber(returnTrackingNumber);
+            
+            // Auto-detect carrier
+            String carrier = CarrierDetector.detectCarrier(returnTrackingNumber);
+            order.setReturnCarrier(carrier);
+            
+            // Update return status
+            if (returnStatus != null) {
+                order.setReturnStatus(Order.ReturnStatus.valueOf(returnStatus));
+            }
+            
+            orderRepository.save(order);
+            
+            System.out.println("✅ Return tracking updated");
+            System.out.println("   Tracking: " + returnTrackingNumber);
+            System.out.println("   Carrier: " + carrier);
+            System.out.println("   Status: " + returnStatus);
+            System.out.println("========================================");
+            
+            // Send email notification to customer
+            emailService.sendReturnTrackingUpdateEmail(order);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Return tracking updated successfully",
+                "carrier", carrier
+            ));
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error updating return tracking: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // Issue refund
+    @PostMapping("/orders/{orderId}/issue-refund")
+    public ResponseEntity<?> issueRefund(@PathVariable Long orderId) {
+        try {
+            System.out.println("========================================");
+            System.out.println("💰 Issuing refund for Order #" + orderId);
+            
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new RuntimeException("Order not found"));
+            
+            if (order.getOrderStatus() != Order.OrderStatus.RETURNED) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Order is not in RETURNED status"));
+            }
+            
+            // Set refund details
+            order.setReturnStatus(Order.ReturnStatus.REFUND_ISSUED);
+            order.setRefundIssuedDate(java.time.LocalDateTime.now());
+            order.setRefundAmount(order.getTotalAmount());
+            
+            orderRepository.save(order);
+            
+            System.out.println("✅ Refund issued");
+            System.out.println("   Amount: $" + order.getTotalAmount());
+            System.out.println("   Date: " + order.getRefundIssuedDate());
+            System.out.println("========================================");
+            
+            // Send refund confirmation email to customer
+            emailService.sendRefundIssuedEmail(order);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Refund issued successfully",
+                "refundAmount", order.getRefundAmount()
+            ));
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error issuing refund: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+    
  // Send custom uploaded label via email
     @PostMapping("/orders/{orderId}/send-custom-label")
     public ResponseEntity<?> sendCustomShippingLabel(
@@ -268,9 +365,12 @@ public class AdminController {
             @RequestParam("labelFile") MultipartFile labelFile) {
         try {
             System.out.println("========================================");
-            System.out.println("📧 Sending custom shipping label for Order #" + orderId);
+            System.out.println("📧 ADMIN CONTROLLER - SEND CUSTOM LABEL");
+            System.out.println("📧 Order ID: " + orderId);
             System.out.println("📎 File name: " + labelFile.getOriginalFilename());
             System.out.println("📎 File size: " + labelFile.getSize() + " bytes");
+            System.out.println("📎 Content type: " + labelFile.getContentType());
+            System.out.println("========================================");
             
             Order order = orderRepository.findById(orderId)
                     .orElseThrow(() -> new RuntimeException("Order not found"));
@@ -293,21 +393,34 @@ public class AdminController {
                 return ResponseEntity.badRequest().body(Map.of("error", "File too large. Maximum size is 5MB"));
             }
             
-            byte[] labelPdf = labelFile.getBytes();
-            emailService.sendShippingLabelEmail(order, labelPdf);
+            byte[] customLabelPdf = labelFile.getBytes();
             
-            System.out.println("✅ Custom shipping label email sent to: " + order.getUser().getEmail());
+            System.out.println("📎 Custom PDF loaded into memory: " + customLabelPdf.length + " bytes");
+            System.out.println("📎 Calling EmailService.sendCustomShippingLabelEmail()...");
+            
+            // Use the NEW custom label method
+            emailService.sendCustomShippingLabelEmail(order, customLabelPdf, labelFile.getOriginalFilename());
+            
+            System.out.println("✅ Custom shipping label email queued");
+            System.out.println("✅ Recipient: " + order.getUser().getEmail());
             System.out.println("========================================");
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "Custom shipping label sent to " + order.getUser().getEmail()
+                "message", "Custom shipping label sent to " + order.getUser().getEmail(),
+                "filename", labelFile.getOriginalFilename(),
+                "size", labelFile.getSize()
             ));
             
         } catch (Exception e) {
-            System.err.println("❌ Error sending custom shipping label: " + e.getMessage());
+            System.err.println("========================================");
+            System.err.println("❌ ERROR IN ADMIN CONTROLLER");
+            System.err.println("❌ Error: " + e.getMessage());
             e.printStackTrace();
+            System.err.println("========================================");
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
+    
+    
 }

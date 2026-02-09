@@ -584,18 +584,64 @@ public class EmailService {
     }
 
     private String buildReturnConfirmationEmail(Order order, Map<String, Object> returnData) {
+        System.out.println("========================================");
+        System.out.println("🔨 BUILDING RETURN CONFIRMATION EMAIL");
+        System.out.println("🔨 Order: " + order.getId());
+        System.out.println("🔨 Return Data: " + returnData);
+        
         StringBuilder itemsHtml = new StringBuilder();
         
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> items = (List<Map<String, Object>>) returnData.get("items");
+        // Safely extract items
+        int itemCount = 0;
+        if (returnData != null && returnData.get("items") != null) {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> items = (List<Map<String, Object>>) returnData.get("items");
+            
+            if (items != null) {
+                itemCount = items.size();
+                for (Map<String, Object> item : items) {
+                    String productName = item.get("productName") != null ? (String) item.get("productName") : "Product";
+                    
+                    Integer quantity = 1;
+                    if (item.get("quantity") != null) {
+                        if (item.get("quantity") instanceof Integer) {
+                            quantity = (Integer) item.get("quantity");
+                        } else {
+                            quantity = Integer.parseInt(item.get("quantity").toString());
+                        }
+                    }
+                    
+                    Double price = 0.0;
+                    if (item.get("price") != null) {
+                        if (item.get("price") instanceof Double) {
+                            price = (Double) item.get("price");
+                        } else if (item.get("price") instanceof Number) {
+                            price = ((Number) item.get("price")).doubleValue();
+                        } else {
+                            price = Double.parseDouble(item.get("price").toString());
+                        }
+                    }
+                    
+                    double itemTotal = price * quantity;
+                    
+                    itemsHtml.append(String.format(
+                        "<tr>" +
+                        "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;'>%s</td>" +
+                        "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:center;'>%d</td>" +
+                        "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:right;'>$%.2f</td>" +
+                        "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:right;font-weight:bold;'>$%.2f</td>" +
+                        "</tr>",
+                        productName, quantity, price, itemTotal
+                    ));
+                }
+            }
+        }
         
-        if (items != null) {
-            for (Map<String, Object> item : items) {
-                String productName = (String) item.get("productName");
-                Integer quantity = (Integer) item.get("quantity");
-                Double price = ((Number) item.get("price")).doubleValue();
-                double itemTotal = price * quantity;
-                
+        // If no items from returnData, use order items
+        if (itemCount == 0 && order.getItems() != null && !order.getItems().isEmpty()) {
+            itemCount = order.getItems().size();
+            for (OrderItem item : order.getItems()) {
+                double itemTotal = item.getPrice() * item.getQuantity();
                 itemsHtml.append(String.format(
                     "<tr>" +
                     "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;'>%s</td>" +
@@ -603,33 +649,58 @@ public class EmailService {
                     "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:right;'>$%.2f</td>" +
                     "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:right;font-weight:bold;'>$%.2f</td>" +
                     "</tr>",
-                    productName, quantity, price, itemTotal
+                    item.getProductName(), item.getQuantity(), item.getPrice(), itemTotal
                 ));
             }
         }
         
-        String customerName = (String) returnData.get("customerName");
-        Double orderAmount = ((Number) returnData.get("orderAmount")).doubleValue();
+        // FIX: Safely extract customer name
+        String customerName = "Customer";
+        if (returnData != null && returnData.get("customerName") != null) {
+            customerName = (String) returnData.get("customerName");
+        } else if (order.getUser() != null && order.getUser().getName() != null) {
+            customerName = order.getUser().getName();
+        }
+        
+        // FIX: Safely extract order amount - THIS IS THE LINE 612 ERROR
+        Double orderAmount = 0.0;
+        if (returnData != null && returnData.get("orderAmount") != null) {
+            Object amountObj = returnData.get("orderAmount");
+            System.out.println("🔨 orderAmount from returnData: " + amountObj + " (type: " + amountObj.getClass().getName() + ")");
+            
+            if (amountObj instanceof Double) {
+                orderAmount = (Double) amountObj;
+            } else if (amountObj instanceof Number) {
+                orderAmount = ((Number) amountObj).doubleValue();
+            } else {
+                orderAmount = Double.parseDouble(amountObj.toString());
+            }
+        } else if (order.getTotalAmount() != null) {
+            orderAmount = order.getTotalAmount();
+            System.out.println("🔨 Using order.getTotalAmount(): " + orderAmount);
+        } else {
+            System.out.println("⚠️ No order amount found, using 0.0");
+        }
+        
+        System.out.println("🔨 Final orderAmount: " + orderAmount);
+        
         String returnRequestDate = java.time.LocalDateTime.now()
             .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"));
         
-        return String.format(
+        String emailBody = String.format(
             "<!DOCTYPE html>" +
             "<html>" +
             "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;'>" +
             "  <div style='max-width:600px;margin:20px auto;background:white;'>" +
-            "    <!-- Header -->" +
             "    <div style='background:linear-gradient(135deg, #f59e0b 0%%, #d97706 100%%);color:white;padding:40px 20px;text-align:center;'>" +
-            "      <h1 style='margin:0;font-size:32px;'>🔄 Return Request Confirmed</h1>" +
+            "      <h1 style='margin:0;font-size:32px;'>Return Request Confirmed</h1>" +
             "      <p style='margin:10px 0 0 0;font-size:16px;'>We've received your return request</p>" +
             "    </div>" +
             "    " +
-            "    <!-- Content -->" +
             "    <div style='padding:30px;'>" +
             "      <h2 style='color:#2c3e50;margin-top:0;'>Hello %s,</h2>" +
             "      <p style='color:#555;font-size:16px;line-height:1.6;'>Your return request for Order #%d has been successfully submitted and confirmed.</p>" +
             "      " +
-            "      <!-- Return Info Box -->" +
             "      <div style='background:#fef3c7;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #f59e0b;'>" +
             "        <h3 style='margin:0 0 15px 0;color:#92400e;'>🔄 Return Information</h3>" +
             "        <table style='width:100%%;'>" +
@@ -640,7 +711,6 @@ public class EmailService {
             "        </table>" +
             "      </div>" +
             "      " +
-            "      <!-- What's Next -->" +
             "      <div style='background:#dbeafe;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #3b82f6;'>" +
             "        <h3 style='margin:0 0 15px 0;color:#1e40af;'>📞 What Happens Next?</h3>" +
             "        <div style='color:#1e40af;line-height:1.8;'>" +
@@ -651,160 +721,6 @@ public class EmailService {
             "        </div>" +
             "      </div>" +
             "      " +
-            "      <!-- Items Being Returned -->" +
-            "      <h3 style='color:#2c3e50;margin:30px 0 15px 0;'>📦 Items Being Returned</h3>" +
-            "      <table style='width:100%%;border-collapse:collapse;'>" +
-            "        <thead>" +
-            "          <tr style='background:#34495e;color:white;'>" +
-            "            <th style='padding:12px;text-align:left;'>Product</th>" +
-            "            <th style='padding:12px;text-align:center;'>Qty</th>" +
-            "            <th style='padding:12px;text-align:right;'>Price</th>" +
-            "            <th style='padding:12px;text-align:right;'>Total</th>" +
-            "          </tr>" +
-            "        </thead>" +
-            "        <tbody>" +
-            "          %s" +
-            "        </tbody>" +
-            "      </table>" +
-            "      " +
-            "      <!-- Important Notice -->" +
-            "      <div style='background:#fff3cd;border-left:4px solid #ffc107;padding:15px;border-radius:4px;margin-top:25px;'>" +
-            "        <p style='margin:0;color:#856404;'><strong>⚠️ Important:</strong></p>" +
-            "        <p style='margin:5px 0 0 0;color:#856404;font-size:14px;'>Please ensure all items are in their original condition with tags attached. Items must be unused and in resalable condition to qualify for a full refund.</p>" +
-            "      </div>" +
-            "      " +
-            "      <!-- Call to Action -->" +
-            "      <div style='text-align:center;margin:30px 0;'>" +
-            "        <a href='http://localhost:8080/web/orders' style='display:inline-block;background:#3498db;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;'>View Order Details</a>" +
-            "      </div>" +
-            "      " +
-            "      <p style='color:#7f8c8d;font-size:14px;margin-top:30px;'>If you have any questions about your return, please contact our customer support at <a href='mailto:support@ecommerce.com' style='color:#3498db;'>support@ecommerce.com</a></p>" +
-            "    </div>" +
-            "    " +
-            "    <!-- Footer -->" +
-            "    <div style='background:#2c3e50;color:white;padding:20px;text-align:center;'>" +
-            "      <p style='margin:0;font-size:16px;font-weight:bold;'>Thank you for shopping with us!</p>" +
-            "      <p style='margin:10px 0 0 0;color:#95a5a6;font-size:14px;'>© 2026 E-Commerce Store. All rights reserved.</p>" +
-            "    </div>" +
-            "  </div>" +
-            "</body>" +
-            "</html>",
-            customerName,
-            order.getId(),
-            order.getId(),
-            returnRequestDate,
-            orderAmount,
-            itemsHtml.toString()
-        );
-    }
-
-    @Async
-    public void sendAdminReturnNotification(Order order, Map<String, Object> returnData) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            
-            helper.setFrom(fromEmail, fromName);
-            helper.setTo("mdshariq2009@gmail.com");  // Admin email
-            helper.setSubject("🔄 New Return Request - Order #" + order.getId());
-            helper.setReplyTo((String) returnData.get("customerEmail"));
-            
-            String emailContent = buildAdminReturnNotificationEmail(order, returnData);
-            helper.setText(emailContent, true);
-            
-            mailSender.send(message);
-            System.out.println("✅ Admin return notification email sent for Order #" + order.getId());
-            
-        } catch (Exception e) {
-            System.err.println("❌ Failed to send admin return notification email: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    private String buildAdminReturnNotificationEmail(Order order, Map<String, Object> returnData) {
-        StringBuilder itemsHtml = new StringBuilder();
-        
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> items = (List<Map<String, Object>>) returnData.get("items");
-        
-        int itemCount = 0;
-        if (items != null) {
-            itemCount = items.size();
-            for (Map<String, Object> item : items) {
-                String productName = (String) item.get("productName");
-                Integer quantity = item.get("quantity") instanceof Integer ? 
-                    (Integer) item.get("quantity") : 
-                    Integer.parseInt(item.get("quantity").toString());
-                Double price = item.get("price") instanceof Double ? 
-                    (Double) item.get("price") : 
-                    Double.parseDouble(item.get("price").toString());
-                double itemTotal = price * quantity;
-                
-                itemsHtml.append(String.format(
-                    "<tr>" +
-                    "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;'>%s</td>" +
-                    "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:center;'>%d</td>" +
-                    "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:right;'>$%.2f</td>" +
-                    "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:right;font-weight:bold;'>$%.2f</td>" +
-                    "</tr>",
-                    productName, quantity, price, itemTotal
-                ));
-            }
-        }
-        
-        String customerName = (String) returnData.get("customerName");
-        String customerEmail = (String) returnData.get("customerEmail");
-        Double orderAmount = returnData.get("orderAmount") instanceof Double ? 
-            (Double) returnData.get("orderAmount") : 
-            Double.parseDouble(returnData.get("orderAmount").toString());
-        
-        String shippingStreet = (String) returnData.get("shippingStreet");
-        String shippingCity = (String) returnData.get("shippingCity");
-        String shippingState = (String) returnData.get("shippingState");
-        String shippingZipCode = (String) returnData.get("shippingZipCode");
-        String shippingCountry = (String) returnData.get("shippingCountry");
-        
-        String returnRequestDate = java.time.LocalDateTime.now()
-            .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"));
-        
-        return String.format(
-            "<!DOCTYPE html>" +
-            "<html>" +
-            "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;'>" +
-            "  <div style='max-width:600px;margin:20px auto;background:white;'>" +
-            "    <!-- Header -->" +
-            "    <div style='background:linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%);color:white;padding:40px 20px;text-align:center;'>" +
-            "      <h1 style='margin:0;font-size:32px;'>🔄 Return Request Alert!</h1>" +
-            "      <p style='margin:10px 0 0 0;font-size:16px;'>A customer has requested a return</p>" +
-            "    </div>" +
-            "    " +
-            "    <!-- Content -->" +
-            "    <div style='padding:30px;'>" +
-            "      <div style='background:#fee2e2;padding:20px;border-radius:8px;margin-bottom:25px;border-left:4px solid #ef4444;'>" +
-            "        <h3 style='margin:0 0 10px 0;color:#991b1b;'>⚡ Action Required - Contact Customer Within 24-48 Hours</h3>" +
-            "        <p style='margin:0;color:#991b1b;'>A return request has been submitted and requires your immediate attention.</p>" +
-            "      </div>" +
-            "      " +
-            "      <!-- Return Info -->" +
-            "      <div style='background:#fef3c7;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #f59e0b;'>" +
-            "        <h3 style='margin:0 0 15px 0;color:#92400e;'>🔄 Return Request Details</h3>" +
-            "        <table style='width:100%%;'>" +
-            "          <tr><td style='padding:5px 0;color:#92400e;'><strong>Order ID:</strong></td><td style='text-align:right;'>#%d</td></tr>" +
-            "          <tr><td style='padding:5px 0;color:#92400e;'><strong>Return Request Date:</strong></td><td style='text-align:right;'>%s</td></tr>" +
-            "          <tr><td style='padding:5px 0;color:#92400e;'><strong>Refund Amount:</strong></td><td style='text-align:right;font-weight:bold;font-size:18px;color:#ef4444;'>$%.2f</td></tr>" +
-            "        </table>" +
-            "      </div>" +
-            "      " +
-            "      <!-- Customer Info -->" +
-            "      <div style='background:#dbeafe;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #3b82f6;'>" +
-            "        <h3 style='margin:0 0 15px 0;color:#1e40af;'>👤 Customer Information</h3>" +
-            "        <table style='width:100%%;'>" +
-            "          <tr><td style='padding:5px 0;color:#1e40af;'><strong>Name:</strong></td><td style='text-align:right;color:#1f2937;'>%s</td></tr>" +
-            "          <tr><td style='padding:5px 0;color:#1e40af;'><strong>Email:</strong></td><td style='text-align:right;color:#1f2937;'><a href='mailto:%s' style='color:#3b82f6;text-decoration:none;'>%s</a></td></tr>" +
-            "        </table>" +
-            "      </div>" +
-            "      " +
-            "      <!-- Items Being Returned -->" +
             "      <h3 style='color:#2c3e50;margin:30px 0 15px 0;'>📦 Items Being Returned (%d items)</h3>" +
             "      <table style='width:100%%;border-collapse:collapse;'>" +
             "        <thead>" +
@@ -820,7 +736,250 @@ public class EmailService {
             "        </tbody>" +
             "      </table>" +
             "      " +
-            "      <!-- Pickup Address -->" +
+            "      <div style='background:#fff3cd;border-left:4px solid #ffc107;padding:15px;border-radius:4px;margin-top:25px;'>" +
+            "        <p style='margin:0;color:#856404;'><strong>⚠️ Important:</strong></p>" +
+            "        <p style='margin:5px 0 0 0;color:#856404;font-size:14px;'>Please ensure all items are in their original condition with tags attached. Items must be unused and in resalable condition to qualify for a full refund.</p>" +
+            "      </div>" +
+            "      " +
+            "      <div style='text-align:center;margin:30px 0;'>" +
+            "        <a href='http://localhost:8080/web/orders' style='display:inline-block;background:#3498db;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;'>View Order Details</a>" +
+            "      </div>" +
+            "      " +
+            "      <p style='color:#7f8c8d;font-size:14px;margin-top:30px;'>If you have any questions about your return, please contact our customer support at <a href='mailto:support@ecommerce.com' style='color:#3498db;'>support@ecommerce.com</a></p>" +
+            "    </div>" +
+            "    " +
+            "    <div style='background:#2c3e50;color:white;padding:20px;text-align:center;'>" +
+            "      <p style='margin:0;font-size:16px;font-weight:bold;'>Thank you for shopping with us!</p>" +
+            "      <p style='margin:10px 0 0 0;color:#95a5a6;font-size:14px;'>© 2026 E-Commerce Store. All rights reserved.</p>" +
+            "    </div>" +
+            "  </div>" +
+            "</body>" +
+            "</html>",
+            customerName,
+            order.getId(),
+            order.getId(),
+            returnRequestDate,
+            orderAmount,
+            itemCount,
+            itemsHtml.toString()
+        );
+        
+        System.out.println("✅ Email body built successfully");
+        System.out.println("========================================");
+        
+        return emailBody;
+    }
+
+    @Async
+    public void sendAdminReturnNotification(Order order, Map<String, Object> returnData) {
+        try {
+            System.out.println("========================================");
+            System.out.println("📧 SENDING ADMIN RETURN NOTIFICATION");
+            System.out.println("📧 Order ID: " + order.getId());
+            System.out.println("📧 Return Data: " + returnData);
+            
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo("mdshariq2009@gmail.com");  // Admin email
+            helper.setSubject("New Return Request - Order #" + order.getId());
+            
+            // FIX: Safely get customer email and only set reply-to if it exists
+            String customerEmail = null;
+            if (returnData != null && returnData.get("customerEmail") != null) {
+                customerEmail = (String) returnData.get("customerEmail");
+            } else if (order.getUser() != null && order.getUser().getEmail() != null) {
+                customerEmail = order.getUser().getEmail();
+            }
+            
+            if (customerEmail != null && !customerEmail.isEmpty()) {
+                System.out.println("📧 Setting reply-to: " + customerEmail);
+                helper.setReplyTo(customerEmail);
+            } else {
+                System.out.println("⚠️ No customer email found, skipping reply-to");
+            }
+            
+            String emailContent = buildAdminReturnNotificationEmail(order, returnData);
+            helper.setText(emailContent, true);
+            
+            mailSender.send(message);
+            System.out.println("✅ Admin return notification email sent for Order #" + order.getId());
+            System.out.println("========================================");
+            
+        } catch (Exception e) {
+            System.err.println("========================================");
+            System.err.println("❌ Failed to send admin return notification email");
+            System.err.println("❌ Error: " + e.getMessage());
+            e.printStackTrace();
+            System.err.println("========================================");
+        }
+    }
+
+    private String buildAdminReturnNotificationEmail(Order order, Map<String, Object> returnData) {
+        StringBuilder itemsHtml = new StringBuilder();
+        
+        // Safely extract items
+        int itemCount = 0;
+        if (returnData != null && returnData.get("items") != null) {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> items = (List<Map<String, Object>>) returnData.get("items");
+            
+            if (items != null) {
+                itemCount = items.size();
+                for (Map<String, Object> item : items) {
+                    String productName = item.get("productName") != null ? (String) item.get("productName") : "Product";
+                    
+                    Integer quantity = 1;
+                    if (item.get("quantity") != null) {
+                        if (item.get("quantity") instanceof Integer) {
+                            quantity = (Integer) item.get("quantity");
+                        } else {
+                            quantity = Integer.parseInt(item.get("quantity").toString());
+                        }
+                    }
+                    
+                    Double price = 0.0;
+                    if (item.get("price") != null) {
+                        if (item.get("price") instanceof Double) {
+                            price = (Double) item.get("price");
+                        } else if (item.get("price") instanceof Number) {
+                            price = ((Number) item.get("price")).doubleValue();
+                        } else {
+                            price = Double.parseDouble(item.get("price").toString());
+                        }
+                    }
+                    
+                    double itemTotal = price * quantity;
+                    
+                    itemsHtml.append(String.format(
+                        "<tr>" +
+                        "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;'>%s</td>" +
+                        "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:center;'>%d</td>" +
+                        "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:right;'>$%.2f</td>" +
+                        "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:right;font-weight:bold;'>$%.2f</td>" +
+                        "</tr>",
+                        productName, quantity, price, itemTotal
+                    ));
+                }
+            }
+        }
+        
+        // If no items from returnData, use order items
+        if (itemCount == 0 && order.getItems() != null && !order.getItems().isEmpty()) {
+            itemCount = order.getItems().size();
+            for (OrderItem item : order.getItems()) {
+                double itemTotal = item.getPrice() * item.getQuantity();
+                itemsHtml.append(String.format(
+                    "<tr>" +
+                    "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;'>%s</td>" +
+                    "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:center;'>%d</td>" +
+                    "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:right;'>$%.2f</td>" +
+                    "  <td style='padding:12px;border-bottom:1px solid #ecf0f1;text-align:right;font-weight:bold;'>$%.2f</td>" +
+                    "</tr>",
+                    item.getProductName(), item.getQuantity(), item.getPrice(), itemTotal
+                ));
+            }
+        }
+        
+        // Safely extract customer info
+        String customerName = "Unknown Customer";
+        if (returnData != null && returnData.get("customerName") != null) {
+            customerName = (String) returnData.get("customerName");
+        } else if (order.getUser() != null && order.getUser().getName() != null) {
+            customerName = order.getUser().getName();
+        }
+        
+        String customerEmail = "N/A";
+        if (returnData != null && returnData.get("customerEmail") != null) {
+            customerEmail = (String) returnData.get("customerEmail");
+        } else if (order.getUser() != null && order.getUser().getEmail() != null) {
+            customerEmail = order.getUser().getEmail();
+        }
+        
+        // Safely extract order amount
+        Double orderAmount = 0.0;
+        if (returnData != null && returnData.get("orderAmount") != null) {
+            Object amountObj = returnData.get("orderAmount");
+            if (amountObj instanceof Double) {
+                orderAmount = (Double) amountObj;
+            } else if (amountObj instanceof Number) {
+                orderAmount = ((Number) amountObj).doubleValue();
+            } else {
+                orderAmount = Double.parseDouble(amountObj.toString());
+            }
+        } else if (order.getTotalAmount() != null) {
+            orderAmount = order.getTotalAmount();
+        }
+        
+        // Safely extract shipping address
+        String shippingStreet = order.getShippingStreet() != null ? order.getShippingStreet() : "N/A";
+        String shippingCity = order.getShippingCity() != null ? order.getShippingCity() : "N/A";
+        String shippingState = order.getShippingState() != null ? order.getShippingState() : "N/A";
+        String shippingZipCode = order.getShippingZipCode() != null ? order.getShippingZipCode() : "";
+        String shippingCountry = order.getShippingCountry() != null ? order.getShippingCountry() : "USA";
+        
+        if (returnData != null && returnData.get("shippingAddress") != null) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> address = (Map<String, Object>) returnData.get("shippingAddress");
+            if (address.get("street") != null) shippingStreet = (String) address.get("street");
+            if (address.get("city") != null) shippingCity = (String) address.get("city");
+            if (address.get("state") != null) shippingState = (String) address.get("state");
+            if (address.get("zipCode") != null) shippingZipCode = (String) address.get("zipCode");
+            if (address.get("country") != null) shippingCountry = (String) address.get("country");
+        }
+        
+        String returnRequestDate = java.time.LocalDateTime.now()
+            .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"));
+        
+        return String.format(
+            "<!DOCTYPE html>" +
+            "<html>" +
+            "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;'>" +
+            "  <div style='max-width:600px;margin:20px auto;background:white;'>" +
+            "    <div style='background:linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%);color:white;padding:40px 20px;text-align:center;'>" +
+            "      <h1 style='margin:0;font-size:32px;'>🔄 Return Request Alert!</h1>" +
+            "      <p style='margin:10px 0 0 0;font-size:16px;'>A customer has requested a return</p>" +
+            "    </div>" +
+            "    " +
+            "    <div style='padding:30px;'>" +
+            "      <div style='background:#fee2e2;padding:20px;border-radius:8px;margin-bottom:25px;border-left:4px solid #ef4444;'>" +
+            "        <h3 style='margin:0 0 10px 0;color:#991b1b;'>⚡ Action Required - Contact Customer Within 24-48 Hours</h3>" +
+            "        <p style='margin:0;color:#991b1b;'>A return request has been submitted and requires your immediate attention.</p>" +
+            "      </div>" +
+            "      " +
+            "      <div style='background:#fef3c7;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #f59e0b;'>" +
+            "        <h3 style='margin:0 0 15px 0;color:#92400e;'>🔄 Return Request Details</h3>" +
+            "        <table style='width:100%%;'>" +
+            "          <tr><td style='padding:5px 0;color:#92400e;'><strong>Order ID:</strong></td><td style='text-align:right;'>#%d</td></tr>" +
+            "          <tr><td style='padding:5px 0;color:#92400e;'><strong>Return Request Date:</strong></td><td style='text-align:right;'>%s</td></tr>" +
+            "          <tr><td style='padding:5px 0;color:#92400e;'><strong>Refund Amount:</strong></td><td style='text-align:right;font-weight:bold;font-size:18px;color:#ef4444;'>$%.2f</td></tr>" +
+            "        </table>" +
+            "      </div>" +
+            "      " +
+            "      <div style='background:#dbeafe;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #3b82f6;'>" +
+            "        <h3 style='margin:0 0 15px 0;color:#1e40af;'>👤 Customer Information</h3>" +
+            "        <table style='width:100%%;'>" +
+            "          <tr><td style='padding:5px 0;color:#1e40af;'><strong>Name:</strong></td><td style='text-align:right;color:#1f2937;'>%s</td></tr>" +
+            "          <tr><td style='padding:5px 0;color:#1e40af;'><strong>Email:</strong></td><td style='text-align:right;color:#1f2937;'><a href='mailto:%s' style='color:#3b82f6;text-decoration:none;'>%s</a></td></tr>" +
+            "        </table>" +
+            "      </div>" +
+            "      " +
+            "      <h3 style='color:#2c3e50;margin:30px 0 15px 0;'>📦 Items Being Returned (%d items)</h3>" +
+            "      <table style='width:100%%;border-collapse:collapse;'>" +
+            "        <thead>" +
+            "          <tr style='background:#34495e;color:white;'>" +
+            "            <th style='padding:12px;text-align:left;'>Product</th>" +
+            "            <th style='padding:12px;text-align:center;'>Qty</th>" +
+            "            <th style='padding:12px;text-align:right;'>Price</th>" +
+            "            <th style='padding:12px;text-align:right;'>Total</th>" +
+            "          </tr>" +
+            "        </thead>" +
+            "        <tbody>" +
+            "          %s" +
+            "        </tbody>" +
+            "      </table>" +
+            "      " +
             "      <h3 style='color:#2c3e50;margin:30px 0 15px 0;'>📍 Pickup Address</h3>" +
             "      <div style='background:#f8f9fa;padding:20px;border-radius:8px;'>" +
             "        <p style='margin:5px 0;color:#555;'><strong>%s</strong></p>" +
@@ -828,7 +987,6 @@ public class EmailService {
             "        <p style='margin:5px 0;color:#555;'>%s</p>" +
             "      </div>" +
             "      " +
-            "      <!-- Action Items -->" +
             "      <div style='background:#e0e7ff;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #667eea;'>" +
             "        <h3 style='margin:0 0 15px 0;color:#4338ca;'>✅ Required Actions</h3>" +
             "        <div style='color:#4338ca;line-height:1.8;'>" +
@@ -840,10 +998,9 @@ public class EmailService {
             "        </div>" +
             "      </div>" +
             "      " +
-            "      <!-- Admin Actions -->" +
             "      <div style='text-align:center;margin:30px 0;'>" +
             "        <a href='http://localhost:8080/web/admin' style='display:inline-block;background:#3498db;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;margin-right:10px;'>View in Admin Dashboard</a>" +
-            "        <a href='mailto:%s' style='display:inline-block;background:#f59e0b;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;'>Contact Customer</a>" +
+            "        %s" +
             "      </div>" +
             "      " +
             "      <div style='background:#fee2e2;border-left:4px solid #ef4444;padding:15px;border-radius:4px;margin-top:20px;'>" +
@@ -852,7 +1009,6 @@ public class EmailService {
             "      </div>" +
             "    </div>" +
             "    " +
-            "    <!-- Footer -->" +
             "    <div style='background:#2c3e50;color:white;padding:20px;text-align:center;'>" +
             "      <p style='margin:0;font-size:16px;font-weight:bold;'>Admin Notification - E-Commerce Store</p>" +
             "      <p style='margin:10px 0 0 0;color:#95a5a6;font-size:14px;'>© 2026 E-Commerce Store. All rights reserved.</p>" +
@@ -860,22 +1016,26 @@ public class EmailService {
             "  </div>" +
             "</body>" +
             "</html>",
-            order.getId(),           // Order ID
-            returnRequestDate,       // Return request date
-            orderAmount,             // Refund amount
-            customerName,            // Customer name
-            customerEmail,           // Customer email (first)
-            customerEmail,           // Customer email (second)
-            itemCount,               // Number of items
-            itemsHtml.toString(),    // Items HTML
-            shippingStreet,          // Street
-            shippingCity,            // City
-            shippingState,           // State
-            shippingZipCode,         // Zip
-            shippingCountry,         // Country
-            customerEmail            // Customer email for mailto
+            order.getId(),
+            returnRequestDate,
+            orderAmount,
+            customerName,
+            customerEmail,
+            customerEmail,
+            itemCount,
+            itemsHtml.toString(),
+            shippingStreet,
+            shippingCity,
+            shippingState,
+            shippingZipCode,
+            shippingCountry,
+            customerEmail != null && !customerEmail.isEmpty() ? 
+                "<a href='mailto:" + customerEmail + "' style='display:inline-block;background:#f59e0b;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;'>Contact Customer</a>" : 
+                ""
         );
     }
+
+    
     
  // ========== CANCEL RETURN EMAIL NOTIFICATIONS ==========
 
@@ -1309,7 +1469,8 @@ public class EmailService {
     }
 
     private String buildShippingLabelEmail(Order order) {
-        String currentDate = java.time.LocalDateTime.now()
+        @SuppressWarnings("unused")
+		String currentDate = java.time.LocalDateTime.now()
             .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"));
         
         return String.format(

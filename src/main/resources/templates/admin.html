@@ -1882,7 +1882,7 @@ input[id^="tracking"]:enabled::placeholder {
                                     <td data-label="Amount"><strong style="color:#f59e0b;">$${(order.totalAmount || 0).toFixed(2)}</strong></td>
                                     <td data-label="Return Date"><small style="color:#6b7280;">${returnDate}</small></td>
                                     <td data-label="Return Status">
-                                        <select id="returnStatus_${order.id}" onchange="handleReturnStatusChange(${order.id})">
+                                        <select id="returnStatus_${order.id}" onchange="handleReturnStatusChange(${order.id})" style="padding:0.6rem 1rem;border:2px solid #e5e7eb;border-radius:8px;font-weight:600;font-size:0.85rem;">
                                             <option value="RETURN_REQUESTED" ${returnStatus === 'RETURN_REQUESTED' ? 'selected' : ''}>Return Requested</option>
                                             <option value="LABEL_SENT" ${returnStatus === 'LABEL_SENT' ? 'selected' : ''}>Label Sent</option>
                                             <option value="IN_TRANSIT" ${returnStatus === 'IN_TRANSIT' ? 'selected' : ''}>In Transit</option>
@@ -1891,16 +1891,41 @@ input[id^="tracking"]:enabled::placeholder {
                                         </select>
                                     </td>
                                     <td data-label="Return Tracking">
-                                        <input 
-                                            type="text" 
-                                            id="returnTracking_${order.id}" 
-                                            value="${returnTracking}" 
-                                            placeholder="${isLabelSent ? 'Enter tracking #' : 'Read-only'}"
-                                            ${!isLabelSent ? 'disabled' : ''}
-                                            style="width:100%;background:${isLabelSent ? '#dbeafe' : '#f3f4f6'};
-                                                   border-color:${isLabelSent ? '#3b82f6' : '#e5e7eb'};
-                                                   color:${isLabelSent ? '#1e40af' : '#9ca3af'};"
-                                        >
+                                        <div style="display:flex;flex-direction:column;gap:0.0rem;width:100%;">
+                                            <div style="position:relative;">
+                                                <div >
+                                                    ${isLabelSent && !isRefundIssued ? '' : ''}
+                                                </div>
+                                                <input 
+                                                    type="text" 
+                                                    id="returnTracking_${order.id}" 
+                                                    value="${returnTracking}" 
+                                                    placeholder="${isLabelSent ? 'Enter return tracking #' : 'Not available'}"
+                                                    ${!isLabelSent || isRefundIssued ? 'disabled' : ''}
+                                                    style="width:100%;
+                                                           padding:0.7rem 2.5rem 0.7rem 2.2rem;
+                                                           border:2px solid ${isLabelSent && !isRefundIssued ? '#3b82f6' : '#e5e7eb'};
+                                                           border-radius:10px;
+                                                           font-family:'Courier New', monospace;
+                                                           font-size:0.85rem;
+                                                           font-weight:600;
+                                                           background:${isLabelSent && !isRefundIssued ? 'linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%)' : '#f9fafb'};
+                                                           color:${isLabelSent && !isRefundIssued ? '#1e40af' : '#9ca3af'};
+                                                           transition:all 0.3s ease;
+                                                           letter-spacing:0.8px;
+                                                           text-align:left;
+                                                           box-shadow:${isLabelSent && !isRefundIssued ? '0 2px 8px rgba(59, 130, 246, 0.15)' : 'none'};"
+                                                    onfocus="if(!this.disabled) { this.style.boxShadow='0 0 0 4px rgba(59, 130, 246, 0.2)'; this.style.transform='scale(1.02)'; }"
+                                                    onblur="this.style.boxShadow='${isLabelSent && !isRefundIssued ? '0 2px 8px rgba(59, 130, 246, 0.15)' : 'none'}'; this.style.transform='scale(1)';"
+                                                >
+                                                ${isLabelSent && returnTracking && !isRefundIssued ? `
+                                                    <div style="position:absolute;right:0.7rem;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1;">
+                                                        <span style="color:#10b981;font-size:1.1rem;font-weight:800;">✓</span>
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                           
+                                        </div>
                                     </td>
                                     <td data-label="Actions">
                                         <button onclick="updateReturnTracking(${order.id})" class="action-btn btn-update">

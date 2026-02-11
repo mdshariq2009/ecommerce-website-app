@@ -35,7 +35,7 @@
         }
 
         .page-subtitle {
-            color: #6b7280;
+            color: #667eea;
             font-size: 1.1rem;
         }
 
@@ -101,6 +101,15 @@
             letter-spacing: 0.5px;
             text-align: center;
         }
+        
+          /* Add data-label content for each cell */
+            .order-cell:nth-child(1)::before { content: "ORDER ID"; }
+            .order-cell:nth-child(2)::before { content: "CUSTOMER"; }
+            .order-cell:nth-child(3)::before { content: "DATE"; }
+            .order-cell:nth-child(4)::before { content: "AMOUNT"; }
+            .order-cell:nth-child(5)::before { content: "PAYMENT"; }
+            .order-cell:nth-child(6)::before { content: "STATUS"; }
+            .order-cell:nth-child(7)::before { content: "ACTIONS"; }
 
         .order-card {
             background: white;
@@ -312,7 +321,7 @@
         }
 
         .modal-subtitle {
-            color: #6b7280;
+            color: #667eea;
             font-size: 1rem;
         }
 
@@ -346,7 +355,7 @@
         }
 
         .detail-label {
-            color: #6b7280;
+            color: #667eea;
             font-weight: 600;
         }
 
@@ -415,7 +424,7 @@
         }
 
         .stat-label {
-            color: #6b7280;
+            color: #667eea;
             font-size: 0.9rem;
             font-weight: 600;
             text-transform: uppercase;
@@ -539,7 +548,7 @@
             .order-cell::before {
                 display: block;
                 font-weight: 600;
-                color: #6b7280;
+                color: #667eea;
                 font-size: 0.75rem;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
@@ -599,7 +608,7 @@
         </div>
         <div id="returnContent"></div>
         <div style="display:flex;gap:1rem;margin-top:1.5rem;">
-            <button onclick="closeReturnModal()" class="btn" style="flex:1;background:#6b7280;">Cancel</button>
+            <button onclick="closeReturnModal()" class="btn" style="flex:1;background:#667eea;">Cancel</button>
             <button onclick="confirmReturn()" class="btn" id="confirmReturnBtn" style="flex:1;background:#f59e0b;color:white;">Confirm Return</button>
         </div>
     </div>
@@ -612,7 +621,7 @@
         </div>
         <div id="cancelReturnContent"></div>
         <div style="display:flex;gap:1rem;margin-top:1.5rem;">
-            <button onclick="closeCancelReturnModal()" class="btn" style="flex:1;background:#6b7280;">Go Back</button>
+            <button onclick="closeCancelReturnModal()" class="btn" style="flex:1;background:#667eea;">Go Back</button>
             <button onclick="confirmCancelReturn()" class="btn" style="flex:1;background:#ef4444;color:white;">Yes, Cancel Return</button>
         </div>
     </div>
@@ -723,7 +732,7 @@
 
         <div id="loadingState" style="text-align:center;padding:3rem;">
             <div class="loading-spinner"></div>
-            <p style="color:#6b7280;margin-top:1rem;">Loading your orders...</p>
+            <p style="color:#667eea;margin-top:1rem;">Loading your orders...</p>
         </div>
 
         <div id="ordersList"></div>
@@ -731,7 +740,7 @@
         <div id="emptyState" class="empty-state" style="display:none;">
             <div style="font-size:5rem;opacity:0.5;">📦</div>
             <h2 style="font-size:1.8rem;color:#1f2937;margin:1rem 0;">No Orders Yet</h2>
-            <p style="color:#6b7280;margin-bottom:2rem;">Start shopping to see your orders here!</p>
+            <p style="color:#667eea;margin-bottom:2rem;">Start shopping to see your orders here!</p>
             <button onclick="window.location.href='/web/products'" class="btn" style="padding:1rem 2.5rem;background:#10b981;color:white;">🛍️ Start Shopping</button>
         </div>
     </div>
@@ -806,10 +815,10 @@
 
     function getStatusIcon(status) {
         const map = {
-            'PENDING': '⏳', 'PROCESSING': '⚙️', 'SHIPPED': '🚚',
-            'DELIVERED': '✅', 'CANCELLED': '❌', 'RETURNED': '🔄'
+            'PENDING': '', 'PROCESSING': '', 'SHIPPED': '',
+            'DELIVERED': '', 'CANCELLED': '', 'RETURNED': ''
         };
-        return map[status] || '📦';
+        return map[status] || '';
     }
 
     function formatDate(dateString) {
@@ -910,7 +919,7 @@
         const ordersList = document.getElementById('ordersList');
 
         if (orders.length === 0) {
-            ordersList.innerHTML = '<div style="text-align:center;padding:3rem;background:white;border-radius:16px;"><p style="color:#6b7280;">No orders found</p></div>';
+            ordersList.innerHTML = '<div style="text-align:center;padding:3rem;background:white;border-radius:16px;"><p style="color:#667eea;">No orders found</p></div>';
             return;
         }
 
@@ -926,11 +935,11 @@
             const showCancelReturn = isReturned && returnStatus === 'RETURN_REQUESTED';
             
             const statusInfo = {
-                'RETURN_REQUESTED': { t: '🔄 Return requested', c: '#f59e0b', b: '#fef3c7' },
-                'LABEL_SENT': { t: '📧 Label sent', c: '#3b82f6', b: '#dbeafe' },
-                'IN_TRANSIT': { t: '🚚 In transit', c: '#8b5cf6', b: '#ede9fe' },
-                'RECEIVED': { t: '📦 Received', c: '#10b981', b: '#d1fae5' },
-                'REFUND_ISSUED': { t: '✅ Refund issued', c: '#10b981', b: '#d1fae5' }
+                'RETURN_REQUESTED': { t: 'Return requested', c: '#f59e0b', b: '#fef3c7' },
+                'LABEL_SENT': { t: 'Label sent', c: '#3b82f6', b: '#dbeafe' },
+                'IN_TRANSIT': { t: 'In transit', c: '#8b5cf6', b: '#ede9fe' },
+                'RECEIVED': { t: 'Received', c: '#10b981', b: '#d1fae5' },
+                'REFUND_ISSUED': { t: 'Refund issued', c: '#10b981', b: '#d1fae5' }
             };
             
             let returnInfo = '';
@@ -944,15 +953,15 @@
             const paymentClass = paymentStatus === 'PENDING' ? 'status-pending' : paymentStatus === 'FAILED' ? 'status-cancelled' : 'status-delivered';
             
             let buttons = `
-                <button class="btn-action btn-details" onclick="viewOrderDetails(${orderId})">📋 View Details</button>
-                <button class="btn-action btn-track" onclick="trackOrder(${orderId})">🚚 Track Order</button>
+                <button class="btn-action btn-details" onclick="viewOrderDetails(${orderId})">View Details</button>
+                <button class="btn-action btn-track" onclick="trackOrder(${orderId})">Track Order</button>
             `;
             
             if (isReturned && hasReturnTracking) {
-                buttons += `<button class="btn-action" style="background:#3b82f6;color:white;" onclick="trackReturnPackage(${orderId})">🔄 Track Return</button>`;
+                buttons += `<button class="btn-action" style="background:#3b82f6;color:white;" onclick="trackReturnPackage(${orderId})">Track Return</button>`;
             }
             if (canReturn && !isReturned) {
-                buttons += `<button class="btn-action btn-return" onclick="initiateReturn(${orderId})">🔄 Return Item</button>`;
+                buttons += `<button class="btn-action btn-return" onclick="initiateReturn(${orderId})">Return Item</button>`;
             }
             if (showCancelReturn) {
                 buttons += `<button class="btn-action btn-cancel-return" onclick="initiateCancelReturn(${orderId})">❌ Cancel Return</button>`;
@@ -965,7 +974,7 @@
                             <div class="order-cell"><span class="order-id">#${orderId}</span></div>
                             <div class="order-cell">
                                 <div style="font-weight:700;color:#1f2937;font-size:0.85rem;">${user.name}</div>
-                                <div style="color:#6b7280;font-size:0.7rem;">${user.email}</div>
+                                <div style="color:#667eea;font-size:0.7rem;">${user.email}</div>
                             </div>
                             <div class="order-cell"><span class="order-value">${formatDate(order.createdAt)}</span></div>
                             <div class="order-cell"><span class="order-total">$${(order.totalAmount || 0).toFixed(2)}</span></div>
@@ -1060,7 +1069,7 @@
             <div class="item-card">
                 <div>
                     <div style="font-weight:700;color:#1f2937;margin-bottom:0.3rem;">${item.productName || 'Product'}</div>
-                    <div style="color:#6b7280;font-size:0.9rem;">Qty: ${item.quantity || 1} × $${(item.price || 0).toFixed(2)}</div>
+                    <div style="color:#667eea;font-size:0.9rem;">Qty: ${item.quantity || 1} × $${(item.price || 0).toFixed(2)}</div>
                 </div>
                 <div style="font-weight:800;color:#10b981;font-size:1.2rem;">
                     $${((item.price || 0) * (item.quantity || 1)).toFixed(2)}
@@ -1211,19 +1220,19 @@
                 <div class="tracking-timeline">
                     <div class="timeline-item ${['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
                         <strong style="color:#1f2937;">Order Placed</strong>
-                        <div style="color:#6b7280;font-size:0.9rem;">${formatDateTime(order.createdAt)}</div>
+                        <div style="color:#667eea;font-size:0.9rem;">${formatDateTime(order.createdAt)}</div>
                     </div>
                     <div class="timeline-item ${['PROCESSING', 'SHIPPED', 'DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
                         <strong style="color:#1f2937;">Processing</strong>
-                        <div style="color:#6b7280;font-size:0.9rem;">Order is being prepared</div>
+                        <div style="color:#667eea;font-size:0.9rem;">Order is being prepared</div>
                     </div>
                     <div class="timeline-item ${['SHIPPED', 'DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
                         <strong style="color:#1f2937;">Shipped</strong>
-                        <div style="color:#6b7280;font-size:0.9rem;">Package is in transit</div>
+                        <div style="color:#667eea;font-size:0.9rem;">Package is in transit</div>
                     </div>
                     <div class="timeline-item ${['DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
                         <strong style="color:#1f2937;">Delivered</strong>
-                        <div style="color:#6b7280;font-size:0.9rem;">Package delivered successfully</div>
+                        <div style="color:#667eea;font-size:0.9rem;">Package delivered successfully</div>
                     </div>
                     ${status === 'RETURNED' ? `
                     <div class="timeline-item active">
@@ -1272,19 +1281,19 @@
                 <div class="tracking-timeline">
                     <div class="timeline-item ${['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
                         <strong style="color:#1f2937;">Order Placed</strong>
-                        <div style="color:#6b7280;font-size:0.9rem;">${formatDateTime(order.createdAt)}</div>
+                        <div style="color:#667eea;font-size:0.9rem;">${formatDateTime(order.createdAt)}</div>
                     </div>
                     <div class="timeline-item ${['PROCESSING', 'SHIPPED', 'DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
                         <strong style="color:#1f2937;">Processing</strong>
-                        <div style="color:#6b7280;font-size:0.9rem;">Order is being prepared</div>
+                        <div style="color:#667eea;font-size:0.9rem;">Order is being prepared</div>
                     </div>
                     <div class="timeline-item ${['SHIPPED', 'DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
                         <strong style="color:#1f2937;">Shipped</strong>
-                        <div style="color:#6b7280;font-size:0.9rem;">Package will be shipped soon</div>
+                        <div style="color:#667eea;font-size:0.9rem;">Package will be shipped soon</div>
                     </div>
                     <div class="timeline-item ${['DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
                         <strong style="color:#1f2937;">Delivered</strong>
-                        <div style="color:#6b7280;font-size:0.9rem;">Package will be delivered</div>
+                        <div style="color:#667eea;font-size:0.9rem;">Package will be delivered</div>
                     </div>
                 </div>
             `;
@@ -1348,23 +1357,23 @@
             <div class="tracking-timeline">
                 <div class="timeline-item ${currentIndex >= 0 ? 'active' : ''}">
                     <strong>Return Requested</strong>
-                    <div style="color:#6b7280;font-size:0.9rem;">${formatDateTime(order.returnRequestDate || order.createdAt)}</div>
+                    <div style="color:#667eea;font-size:0.9rem;">${formatDateTime(order.returnRequestDate || order.createdAt)}</div>
                 </div>
                 <div class="timeline-item ${currentIndex >= 1 ? 'active' : ''}">
                     <strong>Label Sent</strong>
-                    <div style="color:#6b7280;font-size:0.9rem;">Shipping label provided</div>
+                    <div style="color:#667eea;font-size:0.9rem;">Shipping label provided</div>
                 </div>
                 <div class="timeline-item ${currentIndex >= 2 ? 'active' : ''}">
                     <strong>In Transit</strong>
-                    <div style="color:#6b7280;font-size:0.9rem;">Package on the way</div>
+                    <div style="color:#667eea;font-size:0.9rem;">Package on the way</div>
                 </div>
                 <div class="timeline-item ${currentIndex >= 3 ? 'active' : ''}">
                     <strong>Received</strong>
-                    <div style="color:#6b7280;font-size:0.9rem;">Return received</div>
+                    <div style="color:#667eea;font-size:0.9rem;">Return received</div>
                 </div>
                 <div class="timeline-item ${currentIndex >= 4 ? 'active' : ''}">
                     <strong>Refund Issued</strong>
-                    <div style="color:#6b7280;font-size:0.9rem;">${refundDate ? formatDateTime(refundDate) : 'Pending'}</div>
+                    <div style="color:#667eea;font-size:0.9rem;">${refundDate ? formatDateTime(refundDate) : 'Pending'}</div>
                 </div>
             </div>
         `;
@@ -1411,7 +1420,7 @@
             </div>
         `;
 
-        document.getElementById('returnTrackingTitle').textContent = '🔄 Return Tracking - Order #' + order.id;
+        document.getElementById('returnTrackingTitle').textContent = 'Return Tracking - Order #' + order.id;
         document.getElementById('returnTrackingSubtitle').textContent = 'Status: ' + returnStatus.replace(/_/g, ' ');
         document.getElementById('returnTrackingContent').innerHTML = content;
         document.getElementById('returnTrackingOverlay').classList.add('show');

@@ -3,7 +3,6 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Commerce Store - Home</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,7 +46,7 @@
 
         @keyframes marquee {
             0% {
-                transform: translateX(100%);
+                transform: translateX(0);
             }
             100% {
                 transform: translateX(-100%);
@@ -422,9 +421,42 @@
                 font-size: 2rem;
             }
 
+            /* FASTER MARQUEE ON MOBILE */
             .marquee-content {
                 font-size: 1.2rem;
                 letter-spacing: 2px;
+                animation: marquee 6s linear infinite; /* Much faster - 6 seconds */
+            }
+
+            @keyframes marquee {
+                0% {
+                    transform: translateX(50%); /* Start closer to visible area */
+                }
+                100% {
+                    transform: translateX(-100%);
+                }
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* EVEN FASTER ON SMALL MOBILE */
+            .marquee-content {
+                font-size: 1rem;
+                letter-spacing: 1.5px;
+                animation: marquee 4s linear infinite; /* Very fast - 4 seconds */
+            }
+
+            @keyframes marquee {
+                0% {
+                    transform: translateX(30%); /* Start even closer */
+                }
+                100% {
+                    transform: translateX(-100%);
+                }
+            }
+
+            .marquee-container {
+                padding: 1rem 0;
             }
         }
     </style>

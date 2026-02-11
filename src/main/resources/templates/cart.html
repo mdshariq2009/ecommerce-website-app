@@ -90,6 +90,7 @@
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             flex-shrink: 0;
+            background: #f3f4f6;
         }
 
         .cart-item-info {
@@ -426,6 +427,8 @@
     </div>
 
     <script>
+        let allProducts = []; // Store all products for image lookup
+
         function updateCartCount() {
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
             const count = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -487,6 +490,31 @@
             }
         }
 
+        // Load all products to get image URLs
+        async function loadProducts() {
+            try {
+                console.log('🔍 Loading products for image lookup...');
+                const response = await fetch('/api/products');
+                
+                if (response.ok) {
+                    allProducts = await response.json();
+                    console.log('✅ Products loaded:', allProducts.length);
+                } else {
+                    console.log('⚠️ Failed to load products');
+                }
+            } catch (error) {
+                console.error('❌ Error loading products:', error);
+            }
+        }
+
+        function getProductImage(productId) {
+            const product = allProducts.find(p => p.id === productId);
+            if (product && product.imageUrl) {
+                return product.imageUrl;
+            }
+            return 'https://via.placeholder.com/300?text=No+Image';
+        }
+
         function calculateTotals(cart) {
             const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             const shipping = subtotal >= shippingConfig.freeShippingThreshold ? 0 : shippingConfig.shippingCost;
@@ -523,6 +551,8 @@
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
             updateCartCount();
 
+            console.log('🛒 Loading cart:', cart);
+
             if (cart.length === 0) {
                 document.getElementById('cartItems').innerHTML = 
                     '<div class="empty-cart">' +
@@ -539,9 +569,17 @@
                 const itemTotal = item.price * item.quantity;
                 const safeName = item.name.replace(/'/g, "\\'");
                 
+                // Get image URL from loaded products
+                const imageUrl = getProductImage(item.id);
+                
+                console.log('📦 Item:', item.name, '| Product ID:', item.id, '| Image URL:', imageUrl);
+                
                 return `
                     <div class="cart-item" id="cartItem${item.id}" style="animation-delay: ${index * 0.1}s;">
-                        <img src="${item.image}" alt="${item.name}" class="cart-item-image">
+                        <img src="${imageUrl}" 
+                             alt="${item.name}" 
+                             class="cart-item-image"
+                             onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
                         <div class="cart-item-info">
                             <h4 class="cart-item-name">${item.name}</h4>
                             <p class="cart-item-price">$${item.price.toFixed(2)} each</p>
@@ -615,9 +653,11 @@
 
         // Initialize on page load
         initNavbar();
-        loadShippingConfig().then(() => {
-            loadCart();
-        });
+        
+        // Load products first, then shipping config, then cart
+        loadProducts()
+            .then(() => loadShippingConfig())
+            .then(() => loadCart());
         
         function toggleMobileMenu() {
             const navLinks = document.getElementById('navLinks');

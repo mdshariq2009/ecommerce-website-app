@@ -1,0 +1,25 @@
+<div class="nav-overlay" id="navOverlay" onclick="toggleMobileMenu()"></div>
+  <nav class="navbar">
+    <h1 onclick="window.location.href='/'">🛒 E-Commerce Store</h1>
+    
+    <button class="menu-toggle" id="menuToggle" onclick="toggleMobileMenu()">☰</button>
+    
+    <div class="nav-links" id="navLinks">
+        <button class="menu-close" onclick="toggleMobileMenu()">×</button>
+        
+        <span id="userName"></span>
+        
+        <a href="/">Home</a>
+        <a href="/web/products">Products</a>
+        <a href="/web/cart">Cart (<span id="cartCount">0</span>)</a>
+        <a href="/web/orders" id="ordersLink" style="display:none;">My Orders</a>
+        <a href="/web/profile" id="profileLink" style="display:none;">Profile</a>
+        <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
+        
+        <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
+        <a href="/web/login" id="loginLink">Login</a>
+        <a href="/web/register" id="registerLink">Register</a>
+    </div>
+</nav>
+
+

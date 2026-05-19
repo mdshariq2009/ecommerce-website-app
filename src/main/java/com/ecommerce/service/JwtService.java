@@ -23,6 +23,10 @@ public class JwtService {
     
     @Value("${jwt.expiration}")
     private Long expiration;
+
+    // Refresh token lifespan (typically longer, e.g., 7 days)
+    @Value("${jwt.refresh-expiration:604800000}") 
+    private Long refreshExpiration;
     
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -54,17 +58,28 @@ public class JwtService {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
     
-    public String generateToken(String username) {
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, username);
+    // OVERLOAD: Allows passing Spring Security UserDetails directly
+    public String generateToken(UserDetails userDetails) {
+        return createToken(new HashMap<>(), userDetails.getUsername(), expiration);
     }
     
-    private String createToken(Map<String, Object> claims, String username) {
+    public String generateToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, username, expiration);
+    }
+
+    // NEW: Generates a long-lived Refresh Token to prevent sudden user logouts
+    public String generateRefreshToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, username, refreshExpiration);
+    }
+    
+    private String createToken(Map<String, Object> claims, String username, Long msLifespan) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setExpiration(new Date(System.currentTimeMillis() + msLifespan))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

@@ -1330,103 +1330,183 @@
     }
 
     // TRACK RETURN PACKAGE
-    function trackReturnPackage(orderId) {
-        const order = allOrders.find(o => o.id === orderId);
-        if (!order) return;
-        
-        const returnTracking = order.returnTrackingNumber;
-        let returnCarrier = order.carrier || order.returnCarrier || 'USPS';
-        const returnStatus = order.returnStatus || 'RETURN_REQUESTED';
-        const refundAmount = order.refundAmount || order.totalAmount;
-        const refundDate = order.refundIssuedDate;
-        
-        if (returnTracking && (!returnCarrier || returnCarrier === 'USPS')) {
-            returnCarrier = detectCarrier(returnTracking);
+   function trackOrder(orderId) {
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order) return;
+    
+    const status = order.orderStatus || order.status || 'PENDING';
+    const trackingNumber = order.trackingNumber ? String(order.trackingNumber).trim() : null;
+    
+    // Scrub blank spaces out of raw property contexts
+    let rawCarrier = order.carrier || order.carrierName || null;
+    if (rawCarrier) {
+        rawCarrier = String(rawCarrier).trim().toUpperCase();
+        if (rawCarrier === 'NULL' || rawCarrier === 'UNDEFINED' || rawCarrier === '') {
+            rawCarrier = null;
         }
+    }
+    
+    let carrier = null;
+
+ // ─── CENTRAL AUTO-DETECTION ENGINE (WITH DHL) ───────────────────────────
+    if (trackingNumber) {
+        const cleanTrack = trackingNumber.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
         
-        if (!returnTracking) {
-            showSuccessModal('No Tracking Available', '<p>Return tracking not added yet. Please check back later.</p>', '⚠️', '#f59e0b');
-            return;
+        // 1. UPS Check: If it starts with 1Z, it is ALWAYS UPS
+        if (/^1Z/.test(cleanTrack)) {
+            carrier = 'UPS';
+        } 
+        // 2. DHL Check: 10 digits (Express), 16 digits, or starting with GM/JD/JV
+        else if (/^[0-9]{10}$|^[0-9]{16}$|^(GM|JD|JV)[0-9]+/.test(cleanTrack)) {
+            carrier = 'DHL';
         }
-        
-        const trackingUrl = getTrackingUrl(returnTracking, returnCarrier);
-        const statuses = ['RETURN_REQUESTED', 'LABEL_SENT', 'IN_TRANSIT', 'RECEIVED', 'REFUND_ISSUED'];
-        const currentIndex = statuses.indexOf(returnStatus);
+        // 3. FedEx Check: 12 or 15 numeric digits (ignoring any trailing barcode data)
+        else if (/^[0-9]{12}$|^[0-9]{15}$/.test(cleanTrack)) {
+            carrier = 'FedEx';
+        } 
+        // 4. USPS Check: Common domestic postal sequences
+        else if (/^94[0-9]{20}$|^92[0-9]{20}$|^940[0-9]{20}$/.test(cleanTrack) || /^[A-Z]{2}[0-9]{9}[A-Z]{2}$/.test(cleanTrack)) {
+            carrier = 'USPS';
+        }
+    }
+
+    // Fallback normalization logic
+    if (!carrier && rawCarrier) {
+        if (rawCarrier === 'FEDEX') carrier = 'FedEx';
+        else if (rawCarrier === 'UPS') carrier = 'UPS';
+        else if (rawCarrier === 'USPS') carrier = 'USPS';
+        else if (rawCarrier === 'DHL') carrier = 'DHL';
+        else carrier = rawCarrier;
+    }
+
+    if (!carrier) {
+        carrier = 'USPS';
+    }
+
+    // Ensure clean casing for the getTrackingUrl() utility parameter
+    const upperCarrier = carrier.toUpperCase();
+    if (upperCarrier === 'FEDEX') carrier = 'FedEx';
+    if (upperCarrier === 'UPS') carrier = 'UPS';
+    if (upperCarrier === 'USPS') carrier = 'USPS';
+    if (upperCarrier === 'DHL') carrier = 'DHL';
+    // ────────────────────────────────────────────────────────────────────────
+    
+    let content = '';
+    
+    if (trackingNumber) {
+        const trackingUrl = getTrackingUrl(trackingNumber, carrier);
         
         const timeline = `
             <div class="tracking-timeline">
-                <div class="timeline-item ${currentIndex >= 0 ? 'active' : ''}">
-                    <strong>Return Requested</strong>
-                    <div style="color:#667eea;font-size:0.9rem;">${formatDateTime(order.returnRequestDate || order.createdAt)}</div>
+                <div class="timeline-item ${['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
+                    <strong style="color:#1f2937;">Order Placed</strong>
+                    <div style="color:#667eea;font-size:0.9rem;">${formatDateTime(order.createdAt)}</div>
                 </div>
-                <div class="timeline-item ${currentIndex >= 1 ? 'active' : ''}">
-                    <strong>Label Sent</strong>
-                    <div style="color:#667eea;font-size:0.9rem;">Shipping label provided</div>
+                <div class="timeline-item ${['PROCESSING', 'SHIPPED', 'DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
+                    <strong style="color:#1f2937;">Processing</strong>
+                    <div style="color:#667eea;font-size:0.9rem;">Order is being prepared</div>
                 </div>
-                <div class="timeline-item ${currentIndex >= 2 ? 'active' : ''}">
-                    <strong>In Transit</strong>
-                    <div style="color:#667eea;font-size:0.9rem;">Package on the way</div>
+                <div class="timeline-item ${['SHIPPED', 'DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
+                    <strong style="color:#1f2937;">Shipped</strong>
+                    <div style="color:#667eea;font-size:0.9rem;">Package is in transit</div>
                 </div>
-                <div class="timeline-item ${currentIndex >= 3 ? 'active' : ''}">
-                    <strong>Received</strong>
-                    <div style="color:#667eea;font-size:0.9rem;">Return received</div>
+                <div class="timeline-item ${['DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
+                    <strong style="color:#1f2937;">Delivered</strong>
+                    <div style="color:#667eea;font-size:0.9rem;">Package delivered successfully</div>
                 </div>
-                <div class="timeline-item ${currentIndex >= 4 ? 'active' : ''}">
-                    <strong>Refund Issued</strong>
-                    <div style="color:#667eea;font-size:0.9rem;">${refundDate ? formatDateTime(refundDate) : 'Pending'}</div>
+                ${status === 'RETURNED' ? `
+                <div class="timeline-item active">
+                    <strong style="color:#f59e0b;">Return Requested</strong>
+                    <div style="color:#92400e;font-size:0.9rem;">${formatDateTime(order.returnRequestDate || order.updatedAt)}</div>
                 </div>
+                ` : ''}
             </div>
         `;
         
-        const content = `
-            <div class="detail-section" style="background:#3b82f6;color:white;border:none;">
-                <div class="detail-title" style="color:white;">📦 Return Package Tracking</div>
-                <div class="detail-row" style="border-bottom-color:rgba(255,255,255,0.3);">
-                    <span>Carrier:</span>
-                    <span style="font-size:1.2rem;font-weight:800;">${returnCarrier}</span>
+        content = `
+            <div class="detail-section" style="background:#d1fae5;border-left:4px solid #10b981;">
+                <div class="detail-title">📦 Tracking Information</div>
+                <div class="detail-row">
+                    <span class="detail-label">Carrier:</span>
+                    <span class="detail-value" style="color:#10b981;font-size:1.2rem;font-weight:800;">📦 ${carrier}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Tracking Number:</span>
+                    <span class="detail-value" style="font-family:monospace;color:#10b981;font-size:1.1rem;font-weight:800;">${trackingNumber}</span>
                 </div>
                 <div class="detail-row" style="border-bottom:none;">
-                    <span>Tracking Number:</span>
-                    <span style="font-family:monospace;font-weight:800;">${returnTracking}</span>
+                    <span class="detail-label">Current Status:</span>
+                    <span class="status-badge ${getStatusBadgeClass(status)}">${getStatusIcon(status)} ${status}</span>
                 </div>
             </div>
 
             <div class="detail-section">
-                <div class="detail-title">📍 Return Timeline</div>
+                <div class="detail-title">📍 Order Timeline</div>
                 ${timeline}
             </div>
 
-            ${returnStatus === 'REFUND_ISSUED' ? `
-                <div class="detail-section" style="background:#d1fae5;border-left:4px solid #10b981;">
-                    <div class="detail-title" style="color:#065f46;">💰 Refund Information</div>
-                    <div class="detail-row">
-                        <span class="detail-label">Amount:</span>
-                        <span class="detail-value" style="color:#10b981;font-size:1.5rem;">$${refundAmount.toFixed(2)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Date:</span>
-                        <span class="detail-value">${refundDate ? formatDateTime(refundDate) : 'Processing'}</span>
-                    </div>
-                </div>
-            ` : ''}
-
             <div class="detail-section" style="background:#dbeafe;border-left:4px solid #3b82f6;">
                 <div style="text-align:center;padding:1rem;">
+                    <p style="margin:0 0 1rem 0;font-weight:600;color:#1e40af;font-size:1.1rem;">📱 Track your package online</p>
                     <a href="${trackingUrl}" target="_blank" 
-                       style="display:inline-block;padding:1rem 2rem;background:#3b82f6;color:white;text-decoration:none;border-radius:10px;font-weight:700;">
-                        Track on ${returnCarrier} →
+                       style="display:inline-block;padding:1rem 2.5rem;background:#3b82f6;color:white;text-decoration:none;border-radius:10px;font-weight:700;font-size:1.05rem;">
+                        Track on ${carrier} Website →
                     </a>
                 </div>
             </div>
         `;
+    } else {
+        const timeline = `
+            <div class="tracking-timeline">
+                <div class="timeline-item ${['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
+                    <strong style="color:#1f2937;">Order Placed</strong>
+                    <div style="color:#667eea;font-size:0.9rem;">${formatDateTime(order.createdAt)}</div>
+                </div>
+                <div class="timeline-item ${['PROCESSING', 'SHIPPED', 'DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
+                    <strong style="color:#1f2937;">Processing</strong>
+                    <div style="color:#667eea;font-size:0.9rem;">Order is being prepared</div>
+                </div>
+                <div class="timeline-item ${['SHIPPED', 'DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
+                    <strong style="color:#1f2937;">Shipped</strong>
+                    <div style="color:#667eea;font-size:0.9rem;">Package will be shipped soon</div>
+                </div>
+                <div class="timeline-item ${['DELIVERED', 'RETURNED'].includes(status) ? 'active' : ''}">
+                    <strong style="color:#1f2937;">Delivered</strong>
+                    <div style="color:#667eea;font-size:0.9rem;">Package will be delivered</div>
+                </div>
+            </div>
+        `;
+        
+        content = `
+            <div class="detail-section" style="background:#fef3c7;border-left:4px solid #f59e0b;">
+                <div style="text-align:center;padding:2rem;">
+                    <div style="font-size:4rem;margin-bottom:1rem;">📦</div>
+                    <h4 style="margin:0 0 1rem 0;font-size:1.3rem;font-weight:700;color:#92400e;">Tracking Information Not Available Yet</h4>
+                    <p style="margin:0;color:#92400e;font-size:1.05rem;line-height:1.6;">
+                        Your order is being processed. Tracking information will be available soon.
+                    </p>
+                </div>
+            </div>
 
-        document.getElementById('returnTrackingTitle').textContent = 'Return Tracking - Order #' + order.id;
-        document.getElementById('returnTrackingSubtitle').textContent = 'Status: ' + returnStatus.replace(/_/g, ' ');
-        document.getElementById('returnTrackingContent').innerHTML = content;
-        document.getElementById('returnTrackingOverlay').classList.add('show');
-        document.getElementById('returnTrackingModal').classList.add('show');
+            <div class="detail-section">
+                <div class="detail-title">📍 Order Timeline</div>
+                ${timeline}
+            </div>
+
+            <div class="detail-section" style="background:#dbeafe;border-left:4px solid #3b82f6;">
+                <div style="text-align:center;padding:1rem;color:#1e40af;">
+                    <p style="margin:0;font-weight:600;">Current Status: <strong>${status}</strong></p>
+                </div>
+            </div>
+        `;
     }
 
+    document.getElementById('trackingTitle').textContent = '🚚 Track Order #' + order.id;
+    document.getElementById('trackingSubtitle').textContent = 'Current Status: ' + status;
+    document.getElementById('trackingContent').innerHTML = content;
+    document.getElementById('trackingOverlay').classList.add('show');
+    document.getElementById('trackingModal').classList.add('show');
+}
     // INITIATE RETURN
     function initiateReturn(orderId) {
         const order = allOrders.find(o => o.id === orderId);

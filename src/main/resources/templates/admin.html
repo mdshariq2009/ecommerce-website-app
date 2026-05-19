@@ -3075,12 +3075,62 @@ input[id^="tracking"]:enabled::placeholder {
         const total = order.totalAmount || 0;
         const orderStatus = order.orderStatus || order.status || 'PENDING';
         
-        const trackingNumber = order.trackingNumber || '';
-        let carrier = order.carrier || 'USPS';
+        const trackingNumber = order.trackingNumber ? String(order.trackingNumber).trim() : '';
         
-        if (trackingNumber && (!order.carrier || order.carrier === 'USPS')) {
-            carrier = detectCarrier(trackingNumber);
+        // Clean out empty spaces, backend null objects, or blank text strings
+        let rawCarrier = order.carrier || order.carrierName || null;
+        if (rawCarrier) {
+            rawCarrier = String(rawCarrier).trim().toUpperCase();
+            if (rawCarrier === 'NULL' || rawCarrier === 'UNDEFINED' || rawCarrier === '') {
+                rawCarrier = null;
+            }
         }
+        
+        let carrier = null;
+
+     // ─── CENTRAL AUTO-DETECTION ENGINE (WITH DHL) ───────────────────────────
+        if (trackingNumber) {
+            const cleanTrack = trackingNumber.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            
+            // 1. UPS Check: If it starts with 1Z, it is ALWAYS UPS
+            if (/^1Z/.test(cleanTrack)) {
+                carrier = 'UPS';
+            } 
+            // 2. DHL Check: 10 digits (Express), 16 digits, or starting with GM/JD/JV
+            else if (/^[0-9]{10}$|^[0-9]{16}$|^(GM|JD|JV)[0-9]+/.test(cleanTrack)) {
+                carrier = 'DHL';
+            }
+            // 3. FedEx Check: 12 or 15 numeric digits (ignoring any trailing barcode data)
+            else if (/^[0-9]{12}$|^[0-9]{15}$/.test(cleanTrack)) {
+                carrier = 'FedEx';
+            } 
+            // 4. USPS Check: Common domestic postal sequences
+            else if (/^94[0-9]{20}$|^92[0-9]{20}$|^940[0-9]{20}$/.test(cleanTrack) || /^[A-Z]{2}[0-9]{9}[A-Z]{2}$/.test(cleanTrack)) {
+                carrier = 'USPS';
+            }
+        }
+
+        // Fallback normalization logic
+        if (!carrier && rawCarrier) {
+            if (rawCarrier === 'FEDEX') carrier = 'FedEx';
+            else if (rawCarrier === 'UPS') carrier = 'UPS';
+            else if (rawCarrier === 'USPS') carrier = 'USPS';
+            else if (rawCarrier === 'DHL') carrier = 'DHL';
+            else carrier = rawCarrier;
+        }
+
+        if (!carrier) {
+            carrier = 'USPS';
+        }
+
+        // Ensure clean casing for the getTrackingUrl() utility parameter
+        const upperCarrier = carrier.toUpperCase();
+        if (upperCarrier === 'FEDEX') carrier = 'FedEx';
+        if (upperCarrier === 'UPS') carrier = 'UPS';
+        if (upperCarrier === 'USPS') carrier = 'USPS';
+        if (upperCarrier === 'DHL') carrier = 'DHL';
+        
+        // ────────────────────────────────────────────────────────────────────────
         
         const trackingUrl = trackingNumber ? getTrackingUrl(trackingNumber, carrier) : '#';
         const carrierEmoji = {
@@ -3091,7 +3141,6 @@ input[id^="tracking"]:enabled::placeholder {
             'AMAZON LOGISTICS': '📦'
         }[carrier.toUpperCase()] || '📦';
         
-        // Return information section
         let returnSection = '';
         if (orderStatus === 'RETURNED') {
             const returnDate = order.returnRequestDate ? new Date(order.returnRequestDate).toLocaleString() : 'N/A';
@@ -3177,7 +3226,7 @@ input[id^="tracking"]:enabled::placeholder {
                         <div style="text-align:center;margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(59,130,246,0.2);">
                             <a href="${trackingUrl}" target="_blank" 
                                style="display:inline-block;padding:0.8rem 1.5rem;background:#3b82f6;color:white;text-decoration:none;border-radius:8px;font-weight:600;">
-                                ${carrierEmoji} Track Package →
+                                 ${carrierEmoji} Track Package →
                             </a>
                         </div>
                     </div>

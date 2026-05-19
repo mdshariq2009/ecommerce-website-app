@@ -1048,13 +1048,32 @@
 
     function getTrackingUrl(trackingNumber, carrier) {
         if (!trackingNumber) return '#';
-        const urls = {
-            'UPS': `https://www.ups.com/track?tracknum=${trackingNumber}`,
-            'FEDEX': `https://www.fedex.com/fedextrack/?trknbr=${trackingNumber}`,
-            'DHL': `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNumber}`,
-            'USPS': `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`
-        };
-        return urls[carrier.toUpperCase()] || urls['USPS'];
+        
+        // Normalize carrier name to uppercase for matching safely
+        const cleanCarrier = String(carrier).trim().toUpperCase();
+        const cleanTrack = String(trackingNumber).trim();
+
+        switch (cleanCarrier) {
+            case 'UPS':
+                return `https://www.ups.com/track?tracknum=${cleanTrack}`;
+                
+            case 'FEDEX':
+                return `https://www.fedex.com/fedextrack/?trknbr=${cleanTrack}`;
+                
+            case 'DHL':
+                // Direct link to DHL Express tracking portal
+                return `https://www.dhl.com/en/express/tracking.html?AWB=${cleanTrack}`;
+                
+            case 'AMAZON':
+            case 'AMAZON LOGISTICS':
+                // Swiship is Amazon's official universal tracking portal for external e-commerce sites
+                return `https://track.amazon.com/track?id=${cleanTrack}`;
+                
+            case 'USPS':
+            default:
+                // The catch-all default that was hijacking your Amazon links
+                return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${cleanTrack}`;
+        }
     }
 
     // VIEW ORDER DETAILS
@@ -1348,47 +1367,52 @@
     
     let carrier = null;
 
- // ─── CENTRAL AUTO-DETECTION ENGINE (WITH DHL) ───────────────────────────
+ // ─── CENTRAL AUTO-DETECTION ENGINE (WITH AMAZON) ───────────────────────
     if (trackingNumber) {
         const cleanTrack = trackingNumber.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
         
-        // 1. UPS Check: If it starts with 1Z, it is ALWAYS UPS
+        // 1. UPS Check
         if (/^1Z/.test(cleanTrack)) {
             carrier = 'UPS';
         } 
-        // 2. DHL Check: 10 digits (Express), 16 digits, or starting with GM/JD/JV
+        // 2. Amazon Check: If it starts with TBA, it is ALWAYS Amazon Logistics
+        else if (/^TBA/.test(cleanTrack)) {
+            carrier = 'Amazon';
+        }
+        // 3. DHL Check
         else if (/^[0-9]{10}$|^[0-9]{16}$|^(GM|JD|JV)[0-9]+/.test(cleanTrack)) {
             carrier = 'DHL';
         }
-        // 3. FedEx Check: 12 or 15 numeric digits (ignoring any trailing barcode data)
+        // 4. FedEx Check
         else if (/^[0-9]{12}$|^[0-9]{15}$/.test(cleanTrack)) {
             carrier = 'FedEx';
         } 
-        // 4. USPS Check: Common domestic postal sequences
-        else if (/^94[0-9]{20}$|^92[0-9]{20}$|^940[0-9]{20}$/.test(cleanTrack) || /^[A-Z]{2}[0-9]{9}[A-Z]{2}$/.test(cleanTrack)) {
+        // 5. USPS Check
+        else if (/^94[0-9]{20}$|^^92[0-9]{20}$|^940[0-9]{20}$/.test(cleanTrack) || /^[A-Z]{2}[0-9]{9}[A-Z]{2}$/.test(cleanTrack)) {
             carrier = 'USPS';
         }
     }
 
     // Fallback normalization logic
     if (!carrier && rawCarrier) {
-        if (rawCarrier === 'FEDEX') carrier = 'FedEx';
-        else if (rawCarrier === 'UPS') carrier = 'UPS';
-        else if (rawCarrier === 'USPS') carrier = 'USPS';
-        else if (rawCarrier === 'DHL') carrier = 'DHL';
+        const upperRaw = rawCarrier.toUpperCase();
+        if (upperRaw === 'FEDEX') carrier = 'FedEx';
+        else if (upperRaw === 'UPS') carrier = 'UPS';
+        else if (upperRaw === 'USPS') carrier = 'USPS';
+        else if (upperRaw === 'DHL') carrier = 'DHL';
+        else if (upperRaw === 'AMAZON' || upperRaw === 'AMAZON LOGISTICS') carrier = 'Amazon';
         else carrier = rawCarrier;
     }
 
-    if (!carrier) {
-        carrier = 'USPS';
-    }
+    if (!carrier) carrier = 'USPS';
 
-    // Ensure clean casing for the getTrackingUrl() utility parameter
+    // Enforce uniform casing strings for URLs and display logic
     const upperCarrier = carrier.toUpperCase();
     if (upperCarrier === 'FEDEX') carrier = 'FedEx';
     if (upperCarrier === 'UPS') carrier = 'UPS';
     if (upperCarrier === 'USPS') carrier = 'USPS';
     if (upperCarrier === 'DHL') carrier = 'DHL';
+    if (upperCarrier === 'AMAZON') carrier = 'Amazon';
     // ────────────────────────────────────────────────────────────────────────
     
     let content = '';

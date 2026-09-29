@@ -398,6 +398,282 @@
             opacity: 0.95;
         }
 
+        /* ========================================
+           LIVE CHAT STYLES
+           ======================================== */
+        .chat-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 9998;
+        }
+
+        .chat-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .chat-icon.hidden {
+            display: none;
+        }
+
+        .chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 400px;
+            height: 600px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 40px rgba(0, 0, 0, 0.16);
+            display: flex;
+            flex-direction: column;
+            z-index: 9999;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        .chat-container.hidden {
+            display: none;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .chat-header-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .chat-close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .chat-close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .chat-end-btn {
+            background: #ff3b30 !important;
+            color: white !important;
+            border: none !important;
+            padding: 6px 12px !important;
+            border-radius: 4px !important;
+            cursor: pointer !important;
+            font-size: 12px !important;
+            font-weight: bold !important;
+            transition: background 0.3s !important;
+            margin-right: 8px !important;
+        }
+
+        .chat-end-btn:hover {
+            background: #ff1f0f !important;
+        }
+
+        .chat-end-btn:disabled {
+            background: #ccc !important;
+            cursor: not-allowed !important;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.admin {
+            justify-content: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+            font-size: 14px;
+            line-height: 1.4;
+            overflow-wrap: break-word;
+        }
+
+        .message.admin .message-content {
+            background: white;
+            border: 1px solid #e0e0e0;
+            color: #333;
+        }
+
+        .message.user .message-content {
+            background: #667eea;
+            color: white;
+            border-radius: 12px 0 12px 12px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+            padding: 0 5px;
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            padding: 10px 16px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .chat-send-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: background 0.3s;
+        }
+
+        .chat-send-btn:hover {
+            background: #764ba2;
+        }
+
+        .chat-send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .hero-slider {
@@ -425,16 +701,24 @@
             .marquee-content {
                 font-size: 1.2rem;
                 letter-spacing: 2px;
-                animation: marquee 6s linear infinite; /* Much faster - 6 seconds */
+                animation: marquee 6s linear infinite;
             }
 
             @keyframes marquee {
                 0% {
-                    transform: translateX(50%); /* Start closer to visible area */
+                    transform: translateX(50%);
                 }
                 100% {
                     transform: translateX(-100%);
                 }
+            }
+
+            /* Chat responsive */
+            .chat-container {
+                width: 90vw;
+                height: 70vh;
+                max-width: 400px;
+                max-height: 600px;
             }
         }
 
@@ -443,12 +727,12 @@
             .marquee-content {
                 font-size: 1rem;
                 letter-spacing: 1.5px;
-                animation: marquee 4s linear infinite; /* Very fast - 4 seconds */
+                animation: marquee 4s linear infinite;
             }
 
             @keyframes marquee {
                 0% {
-                    transform: translateX(30%); /* Start even closer */
+                    transform: translateX(30%);
                 }
                 100% {
                     transform: translateX(-100%);
@@ -457,6 +741,22 @@
 
             .marquee-container {
                 padding: 1rem 0;
+            }
+
+            /* Chat responsive for small screens */
+            .chat-container {
+                width: 95vw;
+                height: 80vh;
+                bottom: 10px;
+                right: 10px;
+            }
+
+            .chat-icon {
+                bottom: 10px;
+                right: 10px;
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
             }
         }
     </style>
@@ -470,9 +770,6 @@
     <button class="menu-toggle" id="menuToggle" onclick="toggleMobileMenu()">☰</button>
     
     <div class="nav-links" id="navLinks">
-        <!-- Close Button -->
-       
-        
         <a href="/">Home</a>
         <a href="/web/admin" id="adminLink" style="display:none;">Dashboard</a>
         <a href="/web/products">Products</a>
@@ -535,7 +832,6 @@
         <div class="section-wrapper">
             <div class="main-container">
                 <div class="section-header">
-                
                     <h2 class="section-title">Shop by Category</h2>
                     <p class="section-subtitle">Explore our wide range of products</p>
                 </div>
@@ -656,247 +952,679 @@
     </div>
 </footer>
 
+<!-- ========================================
+     GLOBAL LIVE CHAT WIDGET (SINGLE INSTANCE)
+     ======================================== -->
+<!-- Chat Icon -->
+<div class="chat-icon" id="chatIcon">💬</div>
+
+<!-- Chat Container -->
+<div class="chat-container hidden" id="chatContainer">
+    <div class="chat-header">
+        <div>
+            <h3>Live Chat Support</h3>
+            <div class="chat-header-subtitle">We typically reply in minutes</div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="chat-end-btn" id="chatEndBtn">END</button>
+            <button class="chat-close-btn" id="chatCloseBtn">×</button>
+        </div>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Connecting...</p>
+        </div>
+    </div>
+    <div class="chat-input-area" id="chatInputArea">
+        <div class="input-group">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="chatInput" 
+                placeholder="Type your message..."
+                disabled
+            >
+            <button class="chat-send-btn" id="chatSendBtn" disabled>➤</button>
+        </div>
+    </div>
+</div>
+
 <script>
     // Set current year automatically
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 </script>
-    
 
-    <script>
-        const user = JSON.parse(localStorage.getItem('user'));
-        const token = localStorage.getItem('token');
-        let currentSlide = 0;
-        let slideInterval;
+<script>
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = localStorage.getItem('token');
+    let currentSlide = 0;
+    let slideInterval;
 
-        function updateCartCount() {
-            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-            document.getElementById('cartCount').textContent = count;
-        }
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cartCount').textContent = count;
+    }
 
-        function logout() {
-            localStorage.clear();
-            window.location.href = '/';
-        }
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/';
+    }
 
-        function initNavbar() {
-            updateCartCount();
+    function initNavbar() {
+        updateCartCount();
+        
+        if (user && token) {
+            document.getElementById('userName').textContent = 'Hi, ' + user.name;
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+            document.getElementById('ordersLink').style.display = 'inline-block';
+            document.getElementById('profileLink').style.display = 'inline-block';
+            document.getElementById('loginLink').style.display = 'none';
+            document.getElementById('registerLink').style.display = 'none';
             
-            if (user && token) {
-                document.getElementById('userName').textContent = 'Hi, ' + user.name;
-                document.getElementById('logoutBtn').style.display = 'inline-block';
-                document.getElementById('ordersLink').style.display = 'inline-block';
-                document.getElementById('profileLink').style.display = 'inline-block';
-                document.getElementById('loginLink').style.display = 'none';
-                document.getElementById('registerLink').style.display = 'none';
-                
-                if (user.role === 'ADMIN') {
-                    document.getElementById('adminLink').style.display = 'inline-block';
-                }
+            if (user.role === 'ADMIN') {
+                document.getElementById('adminLink').style.display = 'inline-block';
             }
         }
+    }
 
-        // Slider Functions
-        function showSlide(n) {
-            const slides = document.querySelectorAll('.slide');
-            const dots = document.querySelectorAll('.slider-dot');
-            
-            if (n >= slides.length) currentSlide = 0;
-            if (n < 0) currentSlide = slides.length - 1;
-            
-            slides.forEach(slide => slide.classList.remove('active'));
-            dots.forEach(dot => dot.classList.remove('active'));
-            
-            slides[currentSlide].classList.add('active');
-            dots[currentSlide].classList.add('active');
+    // Slider Functions
+    function showSlide(n) {
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.slider-dot');
+        
+        if (n >= slides.length) currentSlide = 0;
+        if (n < 0) currentSlide = slides.length - 1;
+        
+        slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+        
+        slides[currentSlide].classList.add('active');
+        dots[currentSlide].classList.add('active');
+    }
+    
+    function toggleMobileMenu() {
+        const navLinks = document.getElementById('navLinks');
+        const overlay = document.getElementById('navOverlay');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        if (!navLinks || !overlay || !menuToggle) return;
+        
+        const isActive = navLinks.classList.contains('active');
+        
+        if (isActive) {
+            navLinks.classList.remove('active');
+            overlay.classList.remove('active');
+            menuToggle.textContent = '☰';
+            menuToggle.style.fontSize = '1.8rem';
+            document.body.style.overflow = 'auto';
+        } else {
+            navLinks.classList.add('active');
+            overlay.classList.add('active');
+            menuToggle.textContent = '×';
+            menuToggle.style.fontSize = '2.5rem';
+            document.body.style.overflow = 'hidden';
         }
-        function toggleMobileMenu() {
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.nav-links a, .nav-links button');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    const menu = document.getElementById('navLinks');
+                    const overlay = document.getElementById('navOverlay');
+                    if (menu && menu.classList.contains('active')) {
+                        toggleMobileMenu();
+                    }
+                }
+            });
+        });
+    });
+    
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
             const navLinks = document.getElementById('navLinks');
             const overlay = document.getElementById('navOverlay');
             const menuToggle = document.getElementById('menuToggle');
             
-            if (!navLinks || !overlay || !menuToggle) return;
-            
-            const isActive = navLinks.classList.contains('active');
-            
-            if (isActive) {
-                // Close menu
-                navLinks.classList.remove('active');
-                overlay.classList.remove('active');
+            if (navLinks) navLinks.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+            if (menuToggle) {
                 menuToggle.textContent = '☰';
                 menuToggle.style.fontSize = '1.8rem';
-                document.body.style.overflow = 'auto';
-            } else {
-                // Open menu
-                navLinks.classList.add('active');
-                overlay.classList.add('active');
-                menuToggle.textContent = '×';
-                menuToggle.style.fontSize = '2.5rem';
-                document.body.style.overflow = 'hidden';
             }
+            document.body.style.overflow = 'auto';
         }
-        
-        // Close menu when clicking a link
-        document.addEventListener('DOMContentLoaded', function() {
-            const navLinks = document.querySelectorAll('.nav-links a, .nav-links button');
-            navLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    if (window.innerWidth <= 768) {
-                        const menu = document.getElementById('navLinks');
-                        const overlay = document.getElementById('navOverlay');
-                        if (menu && menu.classList.contains('active')) {
-                            toggleMobileMenu();
-                        }
+    });
+
+    function changeSlide(direction) {
+        currentSlide += direction;
+        showSlide(currentSlide);
+        resetSlideInterval();
+    }
+
+    function goToSlide(n) {
+        currentSlide = n;
+        showSlide(currentSlide);
+        resetSlideInterval();
+    }
+
+    function autoSlide() {
+        currentSlide++;
+        showSlide(currentSlide);
+    }
+
+    function resetSlideInterval() {
+        clearInterval(slideInterval);
+        slideInterval = setInterval(autoSlide, 5000);
+    }
+
+    // Load Categories
+    async function loadCategories() {
+        try {
+            const response = await fetch('/api/products');
+            
+            if (response.ok) {
+                const products = await response.json();
+                
+                const categoryMap = {};
+                products.forEach(p => {
+                    if (p.category) {
+                        categoryMap[p.category] = (categoryMap[p.category] || 0) + 1;
                     }
                 });
-            });
-        });
-        
-        // Close menu on window resize
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 768) {
-                const navLinks = document.getElementById('navLinks');
-                const overlay = document.getElementById('navOverlay');
-                const menuToggle = document.getElementById('menuToggle');
                 
-                if (navLinks) navLinks.classList.remove('active');
-                if (overlay) overlay.classList.remove('active');
-                if (menuToggle) {
-                    menuToggle.textContent = '☰';
-                    menuToggle.style.fontSize = '1.8rem';
+                const categoryIcons = {
+                    'Electronics': '📱',
+                    'Clothing': '👕',
+                    'Books': '📚',
+                    'Home': '🏠',
+                    'Home & Office': '🏢',
+                    'Office': '💼',
+                    'Accessories': '👜',
+                    'Sports': '⚽',
+                    'Toys': '🧸',
+                    'Beauty': '💄',
+                    'Food': '🍔',
+                    'Garden': '🌱',
+                    'Automotive': '🚗',
+                    'Jewelry': '💍',
+                    'Watches': '⌚',
+                    'Shoes': '👟',
+                    'Bags': '🎒',
+                    'Furniture': '🛋️',
+                    'Kitchen': '🍳',
+                    'Tools': '🔧',
+                    'Pet Supplies': '🐾',
+                    'Health': '🏥',
+                    'Music': '🎵',
+                    'Gaming': '🎮',
+                    'Cameras': '📷',
+                    'Computers': '💻'
+                };
+                
+                const categoriesHtml = Object.entries(categoryMap)
+                    .map(([category, count]) => `
+                        <a href="/web/products?category=${encodeURIComponent(category)}" class="category-card">
+                            <div class="category-icon">${categoryIcons[category] || '📦'}</div>
+                            <div class="category-name">${category}</div>
+                            <div class="category-count">${count} ${count === 1 ? 'product' : 'products'}</div>
+                        </a>
+                    `).join('');
+                
+                if (categoriesHtml) {
+                    document.getElementById('categoriesGrid').innerHTML = categoriesHtml;
                 }
-                document.body.style.overflow = 'auto';
             }
-        });
-
-        function changeSlide(direction) {
-            currentSlide += direction;
-            showSlide(currentSlide);
-            resetSlideInterval();
+        } catch (error) {
+            console.error('Failed to load categories');
         }
+    }
 
-        function goToSlide(n) {
-            currentSlide = n;
-            showSlide(currentSlide);
-            resetSlideInterval();
+    // Load Featured Products
+    async function loadFeaturedProducts() {
+        try {
+            const response = await fetch('/api/products');
+            
+            if (response.ok) {
+                const products = await response.json();
+                const featured = products.slice(0, 8);
+                
+                const productsHtml = featured.map(product => `
+                    <div class="product-card">
+                        <img src="${product.imageUrl || '/images/placeholder.png'}" 
+                             alt="${product.name}" 
+                             class="product-image"
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22250%22 height=%22220%22%3E%3Crect fill=%22%23e5e7eb%22 width=%22250%22 height=%22220%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2240%22 fill=%22%236b7280%22%3E🛍️%3C/text%3E%3C/svg%3E'">
+                        <div class="product-info">
+                            <div class="product-name">${product.name}</div>
+                            <div class="product-price">$${product.price.toFixed(2)}</div>
+                            <div class="product-rating">⭐⭐⭐⭐⭐ (${Math.floor(Math.random() * 500) + 100})</div>
+                            <a href="/web/product-details?id=${product.id}" style="display:block;background:#667eea;color:white;padding:0.8rem;border-radius:8px;text-decoration:none;font-weight:600;text-align:center;transition:all 0.3s ease;" 
+                               onmouseover="this.style.background='#5568d3'" 
+                               onmouseout="this.style.background='#667eea'">
+                                View Product
+                            </a>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('featuredProducts').innerHTML = productsHtml;
+                document.getElementById('dealsProducts').innerHTML = productsHtml;
+            }
+        } catch (error) {
+            console.error('Failed to load products');
         }
+    }
 
-        function autoSlide() {
-            currentSlide++;
-            showSlide(currentSlide);
+    // Initialize
+    initNavbar();
+    loadCategories();
+    loadFeaturedProducts();
+    
+    // Start auto-slide
+    slideInterval = setInterval(autoSlide, 5000);
+</script>
+
+<!-- ========================================
+     LIVE CHAT JAVASCRIPT - GLOBAL INSTANCE
+     ======================================== -->
+<script>
+    class LiveChat {
+        constructor() {
+            this.chatIcon = document.getElementById('chatIcon');
+            this.chatContainer = document.getElementById('chatContainer');
+            this.chatMessages = document.getElementById('chatMessages');
+            this.chatInput = document.getElementById('chatInput');
+            this.chatSendBtn = document.getElementById('chatSendBtn');
+            this.chatCloseBtn = document.getElementById('chatCloseBtn');
+            this.chatEndBtn = document.getElementById('chatEndBtn');
+            this.chatInputArea = document.getElementById('chatInputArea');
+            
+            this.conversationId = null;
+            this.userName = null;
+            this.userEmail = null;
+            this.isConnected = false;
+            this.messageRefreshInterval = null;
+            
+            // Make this instance globally accessible
+            window.liveChatInstance = this;
+            
+            console.log('✅ LiveChat instance created and available as window.liveChatInstance');
+            
+            this.initEventListeners();
+            this.checkUserLogin();
         }
-
-        function resetSlideInterval() {
-            clearInterval(slideInterval);
-            slideInterval = setInterval(autoSlide, 5000);
-        }
-
-        // Load Categories
-        async function loadCategories() {
-    try {
-        const response = await fetch('/api/products');
         
-        if (response.ok) {
-            const products = await response.json();
-            
-            const categoryMap = {};
-            products.forEach(p => {
-                if (p.category) {
-                    categoryMap[p.category] = (categoryMap[p.category] || 0) + 1;
-                }
-            });
-            
-            const categoryIcons = {
-                'Electronics': '📱',
-                'Clothing': '👕',
-                'Books': '📚',
-                'Home': '🏠',
-                'Home & Office': '🏢',
-                'Office': '💼',
-                'Accessories': '👜',
-                'Sports': '⚽',
-                'Toys': '🧸',
-                'Beauty': '💄',
-                'Food': '🍔',
-                'Garden': '🌱',
-                'Automotive': '🚗',
-                'Jewelry': '💍',
-                'Watches': '⌚',
-                'Shoes': '👟',
-                'Bags': '🎒',
-                'Furniture': '🛋️',
-                'Kitchen': '🍳',
-                'Tools': '🔧',
-                'Pet Supplies': '🐾',
-                'Health': '🏥',
-                'Music': '🎵',
-                'Gaming': '🎮',
-                'Cameras': '📷',
-                'Computers': '💻'
+        initEventListeners() {
+            if (this.chatIcon) {
+                this.chatIcon.addEventListener('click', () => {
+                    console.log('Chat icon clicked');
+                    this.openChat();
+                });
+            }
+            if (this.chatCloseBtn) {
+                this.chatCloseBtn.addEventListener('click', () => this.closeChat());
+            }
+            if (this.chatSendBtn) {
+                this.chatSendBtn.addEventListener('click', () => this.sendMessage());
+            }
+            if (this.chatEndBtn) {
+                this.chatEndBtn.addEventListener('click', () => this.endChat());
+            }
+            if (this.chatInput) {
+                this.chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+            }
+        }
+        
+        getAuthHeaders() {
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json'
             };
             
-            const categoriesHtml = Object.entries(categoryMap)
-                .map(([category, count]) => `
-                    <a href="/web/products?category=${encodeURIComponent(category)}" class="category-card">
-                        <div class="category-icon">${categoryIcons[category] || '📦'}</div>
-                        <div class="category-name">${category}</div>
-                        <div class="category-count">${count} ${count === 1 ? 'product' : 'products'}</div>
-                    </a>
-                `).join('');
+            if (token) {
+                headers['Authorization'] = 'Bearer ' + token;
+            }
             
-            if (categoriesHtml) {
-                document.getElementById('categoriesGrid').innerHTML = categoriesHtml;
-            }
+            return headers;
         }
-    } catch (error) {
-        console.error('Failed to load categories');
-    }
-}
-
-
-        // Load Featured Products
-        async function loadFeaturedProducts() {
-            try {
-                const response = await fetch('/api/products');
-                
-                if (response.ok) {
-                    const products = await response.json();
-                    const featured = products.slice(0, 8);
-                    
-                    const productsHtml = featured.map(product => `
-                        <div class="product-card">
-                            <img src="${product.imageUrl || '/images/placeholder.png'}" 
-                                 alt="${product.name}" 
-                                 class="product-image"
-                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22250%22 height=%22220%22%3E%3Crect fill=%22%23e5e7eb%22 width=%22250%22 height=%22220%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2240%22 fill=%22%236b7280%22%3E🛍️%3C/text%3E%3C/svg%3E'">
-                            <div class="product-info">
-                                <div class="product-name">${product.name}</div>
-                                <div class="product-price">$${product.price.toFixed(2)}</div>
-                                <div class="product-rating">⭐⭐⭐⭐⭐ (${Math.floor(Math.random() * 500) + 100})</div>
-                                <a href="/web/product-details?id=${product.id}" style="display:block;background:#667eea;color:white;padding:0.8rem;border-radius:8px;text-decoration:none;font-weight:600;text-align:center;transition:all 0.3s ease;" 
-                                   onmouseover="this.style.background='#5568d3'" 
-                                   onmouseout="this.style.background='#667eea'">
-                                    View Product
-                                </a>
-                            </div>
-                        </div>
-                    `).join('');
-                    
-                    document.getElementById('featuredProducts').innerHTML = productsHtml;
-                    document.getElementById('dealsProducts').innerHTML = productsHtml;
-                }
-            } catch (error) {
-                console.error('Failed to load products');
-            }
-        }
-
-        // Initialize
-        initNavbar();
-        loadCategories();
-        loadFeaturedProducts();
         
-        // Start auto-slide
-        slideInterval = setInterval(autoSlide, 5000);
-    </script>
+        checkUserLogin() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const token = localStorage.getItem('token');
+            
+            if (user && token) {
+                this.userName = user.name;
+                this.userEmail = user.email;
+                this.isConnected = true;
+                console.log('✅ User logged in:', this.userName);
+            } else {
+                console.log('⚠️ User not logged in');
+                this.isConnected = false;
+            }
+        }
+        
+        openChat() {
+            this.checkUserLogin();
+            
+            if (!this.isConnected) {
+                this.showLoginMessage();
+                this.chatIcon.classList.add('hidden');
+                this.chatContainer.classList.remove('hidden');
+                return;
+            }
+            
+            this.chatIcon.classList.add('hidden');
+            this.chatContainer.classList.remove('hidden');
+            
+            if (!this.conversationId) {
+                this.autoStartChat();
+            } else {
+                this.loadMessages();
+            }
+        }
+        
+        closeChat() {
+            this.chatIcon.classList.remove('hidden');
+            this.chatContainer.classList.add('hidden');
+            
+            if (this.messageRefreshInterval) {
+                clearInterval(this.messageRefreshInterval);
+            }
+        }
+
+        endChat() {
+            if (!this.conversationId) {
+                this.showCustomConfirm('No Active Chat', 'There is no active chat to end.', null);
+                return;
+            }
+            
+            this.showCustomConfirm('End Chat?', 'Are you sure you want to end this chat session?', () => {
+                fetch(`/api/live-chat/end/${this.conversationId}`, {
+                    method: 'PUT',
+                    headers: this.getAuthHeaders()
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    this.conversationId = null;
+                    this.displayEndChatSuccess();
+                    this.chatInput.disabled = true;
+                    this.chatSendBtn.disabled = true;
+                    this.chatEndBtn.disabled = true;
+                    
+                    setTimeout(() => {
+                        this.closeChat();
+                    }, 4000);
+                })
+                .catch(error => {
+                    console.error('Error ending chat:', error);
+                    this.displayEndChatError(error.message);
+                });
+            });
+        }
+
+        displayEndChatSuccess() {
+            this.chatMessages.innerHTML = `
+                <div style="padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
+                    <div style="font-size: 70px; margin-bottom: 20px; animation: bounceIn 0.6s ease-out;">✓</div>
+                    <h2 style="font-size: 26px; font-weight: 800; color: #10b981; margin: 0 0 12px 0;">Chat Ended!</h2>
+                    <p style="font-size: 15px; color: #047857; margin: 0 0 25px 0; line-height: 1.6; max-width: 300px;">Thank you for chatting with us. We appreciate your time and look forward to helping you again!</p>
+                    <div style="background: white; border-left: 4px solid #10b981; padding: 16px; border-radius: 8px; margin-bottom: 25px; width: 100%; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);">
+                        <p style="font-size: 13px; color: #047857; margin: 0; font-weight: 500;">💡 A new conversation will start when you click the chat button again.</p>
+                    </div>
+                    <button onclick="window.location.reload()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 32px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                        Start New Chat
+                    </button>
+                </div>
+            `;
+        }
+
+        displayEndChatError(errorMessage) {
+            this.chatMessages.innerHTML = `
+                <div style="padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);">
+                    <div style="font-size: 70px; margin-bottom: 20px;">⚠️</div>
+                    <h2 style="font-size: 26px; font-weight: 800; color: #ef4444; margin: 0 0 12px 0;">Failed to End Chat</h2>
+                    <p style="font-size: 14px; color: #991b1b; margin: 0 0 25px 0; line-height: 1.6; max-width: 300px;">${errorMessage}</p>
+                    <div style="background: white; border-left: 4px solid #ef4444; padding: 16px; border-radius: 8px; margin-bottom: 25px; width: 100%; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);">
+                        <p style="font-size: 13px; color: #991b1b; margin: 0; font-weight: 500;">Please try again or refresh the page.</p>
+                    </div>
+                    <button onclick="window.location.reload()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; padding: 12px 32px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        showCustomConfirm(title, message, onConfirm) {
+            const confirmHTML = `
+                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;">
+                    <div style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); animation: slideUp 0.3s ease-out;">
+                        <h3 style="font-size: 20px; font-weight: 700; color: #1f2937; margin: 0 0 10px 0;">${title}</h3>
+                        <p style="font-size: 14px; color: #6b7280; margin: 0 0 25px 0; line-height: 1.6;">${message}</p>
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button onclick="this.closest('[data-confirm-modal]').remove()" style="background: #e5e7eb; color: #1f2937; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s ease;">
+                                Cancel
+                            </button>
+                            ${onConfirm ? `<button onclick="this.closest('[data-confirm-modal]').remove(); window.liveChatConfirmCallback();" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s ease;">
+                                End Chat
+                            </button>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const modal = document.createElement('div');
+            modal.setAttribute('data-confirm-modal', 'true');
+            modal.innerHTML = confirmHTML;
+            document.body.appendChild(modal);
+            
+            if (onConfirm) {
+                window.liveChatConfirmCallback = onConfirm;
+            }
+        }
+
+        showLoginMessage() {
+            this.chatMessages.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: #e74c3c;">
+                    <p style="font-size: 16px; margin-bottom: 10px;">🔐 Login Required</p>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Please log in to use live chat support</p>
+                    <a href="/web/login" style="display: inline-block; background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                        Go to Login
+                    </a>
+                </div>
+            `;
+        }
+        
+        autoStartChat() {
+            this.chatMessages.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Connecting to support...</p>
+                </div>
+            `;
+            
+            const startRequest = {
+                userId: null,
+                userEmail: this.userEmail,
+                userName: this.userName
+            };
+            
+            fetch('/api/live-chat/auto-start', {
+                method: 'POST',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(startRequest)
+            })
+            .then(response => {
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error('Unauthorized - Please log in again');
+                }
+                
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    });
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                if (!data || !data.id) {
+                    throw new Error('Invalid response data');
+                }
+                
+                this.conversationId = data.id;
+                this.userEmail = data.userEmail;
+                this.userName = data.userName;
+                
+                this.chatMessages.innerHTML = '';
+                this.addBotMessage('Hi ' + this.userName + '! 👋 How can I help you today?');
+                
+                this.chatInput.disabled = false;
+                this.chatSendBtn.disabled = false;
+                
+                this.loadMessages();
+                this.startMessageRefresh();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.chatMessages.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #e74c3c;">
+                        <p style="font-size: 14px; margin-bottom: 10px;">⚠️ ${error.message}</p>
+                        <p style="font-size: 12px; color: #999; margin-top: 10px;">Please refresh and try again</p>
+                    </div>
+                `;
+            });
+        }
+        
+        loadMessages() {
+            if (!this.conversationId) return;
+            
+            fetch(`/api/live-chat/messages/${this.conversationId}`, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(messages => {
+                if (messages && messages.length > 0) {
+                    this.displayMessages(messages);
+                }
+            })
+            .catch(error => console.error('Error loading messages:', error));
+        }
+        
+        displayMessages(messages) {
+            this.chatMessages.innerHTML = '';
+            
+            messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.isAdmin ? 'admin' : 'user'}`;
+                
+                const time = new Date(msg.createdAt).toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                messageDiv.innerHTML = `
+                    <div>
+                        <div class="message-content">${this.escapeHtml(msg.message)}</div>
+                        <div class="message-time">${time}</div>
+                    </div>
+                `;
+                
+                this.chatMessages.appendChild(messageDiv);
+            });
+            
+            this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+        }
+        
+        sendMessage() {
+            const message = this.chatInput.value.trim();
+            
+            if (!message || !this.conversationId) return;
+            
+            const messageRequest = {
+                conversationId: this.conversationId,
+                message: message,
+                isAdmin: false
+            };
+            
+            fetch('/api/live-chat/send-message', {
+                method: 'POST',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(messageRequest)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                this.chatInput.value = '';
+                this.loadMessages();
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+                alert('Failed to send message: ' + error.message);
+            });
+        }
+        
+        addBotMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message admin';
+            
+            const time = new Date().toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            messageDiv.innerHTML = `
+                <div>
+                    <div class="message-content">${this.escapeHtml(message)}</div>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+            
+            this.chatMessages.appendChild(messageDiv);
+            this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+        }
+        
+        startMessageRefresh() {
+            this.messageRefreshInterval = setInterval(() => {
+                this.loadMessages();
+            }, 3000);
+        }
+        
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    }
+    
+    // Initialize chat when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        new LiveChat();
+    });
+</script>
+
 </body>
 </html>

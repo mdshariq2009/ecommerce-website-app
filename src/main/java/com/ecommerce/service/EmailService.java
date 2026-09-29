@@ -33,6 +33,8 @@ public class EmailService {
     @Value("${app.email.name}")
     private String fromName;
     
+    // ========== EXISTING EMAIL METHODS (UNCHANGED) ==========
+    
     @Async
     public void sendOrderConfirmationEmail(Order order) {
         try {
@@ -56,8 +58,6 @@ public class EmailService {
         }
     }
     
-    
-    
     private String buildOrderConfirmationEmail(Order order) {
         StringBuilder itemsHtml = new StringBuilder();
         double subtotal = 0;
@@ -80,13 +80,11 @@ public class EmailService {
             ));
         }
         
-        // Get values from order or calculate
         double orderSubtotal = order.getSubtotal() != null ? order.getSubtotal() : subtotal;
         double orderTax = order.getTax() != null ? order.getTax() : 0.0;
         double orderShipping = order.getShipping() != null ? order.getShipping() : 0.0;
         double orderTotal = order.getTotalAmount();
         
-        // Add subtotal, shipping, tax rows
         itemsHtml.append(String.format(
             "<tr style='background:#f8f9fa;'>" +
             "  <td colspan='3' style='padding:12px;text-align:right;'>Subtotal:</td>" +
@@ -132,18 +130,15 @@ public class EmailService {
             "</head>" +
             "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;'>" +
             "  <div style='max-width:600px;margin:20px auto;background:white;'>" +
-            "    <!-- Header -->" +
             "    <div style='background:linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);color:white;padding:40px 20px;text-align:center;'>" +
             "      <h1 style='margin:0;font-size:32px;'>🛒 Order Confirmed!</h1>" +
             "      <p style='margin:10px 0 0 0;font-size:16px;'>Thank you for your purchase</p>" +
             "    </div>" +
             "    " +
-            "    <!-- Content -->" +
             "    <div style='padding:30px;'>" +
             "      <h2 style='color:#2c3e50;margin-top:0;'>Hello %s,</h2>" +
             "      <p style='color:#555;font-size:16px;line-height:1.6;'>Your order has been successfully placed and is being processed. We'll send you another email when your order ships.</p>" +
             "      " +
-            "      <!-- Order Info Box -->" +
             "      <div style='background:#f8f9fa;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #667eea;'>" +
             "        <h3 style='margin:0 0 15px 0;color:#2c3e50;'>Order Information</h3>" +
             "        <table style='width:100%%;'>" +
@@ -155,7 +150,6 @@ public class EmailService {
             "        </table>" +
             "      </div>" +
             "      " +
-            "      <!-- Order Items -->" +
             "      <h3 style='color:#2c3e50;margin:30px 0 15px 0;'>Order Details</h3>" +
             "      <table style='width:100%%;border-collapse:collapse;'>" +
             "        <thead>" +
@@ -171,7 +165,6 @@ public class EmailService {
             "        </tbody>" +
             "      </table>" +
             "      " +
-            "      <!-- Shipping Address -->" +
             "      <h3 style='color:#2c3e50;margin:30px 0 15px 0;'>Shipping Address</h3>" +
             "      <div style='background:#f8f9fa;padding:20px;border-radius:8px;'>" +
             "        <p style='margin:5px 0;color:#555;'>%s</p>" +
@@ -179,7 +172,6 @@ public class EmailService {
             "        <p style='margin:5px 0;color:#555;'>%s</p>" +
             "      </div>" +
             "      " +
-            "      <!-- Call to Action -->" +
             "      <div style='text-align:center;margin:30px 0;'>" +
             "        <a href='http://localhost:8080/web/orders' style='display:inline-block;background:#3498db;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;'>Track Your Order</a>" +
             "      </div>" +
@@ -187,7 +179,6 @@ public class EmailService {
             "      <p style='color:#7f8c8d;font-size:14px;margin-top:30px;'>If you have any questions about your order, please contact our customer support.</p>" +
             "    </div>" +
             "    " +
-            "    <!-- Footer -->" +
             "    <div style='background:#2c3e50;color:white;padding:20px;text-align:center;'>" +
             "      <p style='margin:0;font-size:16px;font-weight:bold;'>Thank you for shopping with us!</p>" +
             "      <p style='margin:10px 0 0 0;color:#95a5a6;font-size:14px;'>© 2025 E-Commerce Store. All rights reserved.</p>" +
@@ -216,11 +207,10 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             
-            // Send to admin email
             helper.setFrom(fromEmail, fromName);
-            helper.setTo("mdshariq2009@gmail.com");  // Admin email
+            helper.setTo("mdshariq2009@gmail.com");
             helper.setSubject("New Order Received - Order #" + order.getId());
-            helper.setReplyTo(order.getUser().getEmail());  // Reply goes to customer
+            helper.setReplyTo(order.getUser().getEmail());
             
             String emailContent = buildAdminOrderNotificationEmail(order);
             helper.setText(emailContent, true);
@@ -261,7 +251,6 @@ public class EmailService {
         double orderShipping = order.getShipping() != null ? order.getShipping() : 0.0;
         double orderTotal = order.getTotalAmount();
         
-        // Add totals rows
         itemsHtml.append(String.format(
             "<tr style='background:#f8f9fa;'>" +
             "  <td colspan='3' style='padding:12px;text-align:right;font-weight:600;'>Subtotal:</td>" +
@@ -307,20 +296,17 @@ public class EmailService {
             "</head>" +
             "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;'>" +
             "  <div style='max-width:600px;margin:20px auto;background:white;'>" +
-            "    <!-- Header -->" +
             "    <div style='background:linear-gradient(135deg, #ef4444 0%%, #dc2626 100%%);color:white;padding:40px 20px;text-align:center;'>" +
             "      <h1 style='margin:0;font-size:32px;'>🔔 New Order Alert!</h1>" +
             "      <p style='margin:10px 0 0 0;font-size:16px;'>A customer just placed an order</p>" +
             "    </div>" +
             "    " +
-            "    <!-- Content -->" +
             "    <div style='padding:30px;'>" +
             "      <div style='background:#fee2e2;padding:20px;border-radius:8px;margin-bottom:25px;border-left:4px solid #ef4444;'>" +
             "        <h3 style='margin:0 0 10px 0;color:#991b1b;'>⚡ Action Required</h3>" +
             "        <p style='margin:0;color:#991b1b;'>A new order has been placed and requires your attention.</p>" +
             "      </div>" +
             "      " +
-            "      <!-- Order Info -->" +
             "      <div style='background:#f8f9fa;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #667eea;'>" +
             "        <h3 style='margin:0 0 15px 0;color:#2c3e50;'>📦 Order Information</h3>" +
             "        <table style='width:100%%;'>" +
@@ -332,7 +318,6 @@ public class EmailService {
             "        </table>" +
             "      </div>" +
             "      " +
-            "      <!-- Customer Info -->" +
             "      <div style='background:#dbeafe;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #3b82f6;'>" +
             "        <h3 style='margin:0 0 15px 0;color:#1e40af;'>👤 Customer Information</h3>" +
             "        <table style='width:100%%;'>" +
@@ -342,7 +327,6 @@ public class EmailService {
             "        </table>" +
             "      </div>" +
             "      " +
-            "      <!-- Order Items -->" +
             "      <h3 style='color:#2c3e50;margin:30px 0 15px 0;'>📋 Order Details</h3>" +
             "      <table style='width:100%%;border-collapse:collapse;'>" +
             "        <thead>" +
@@ -358,7 +342,6 @@ public class EmailService {
             "        </tbody>" +
             "      </table>" +
             "      " +
-            "      <!-- Shipping Address -->" +
             "      <h3 style='color:#2c3e50;margin:30px 0 15px 0;'>📍 Shipping Address</h3>" +
             "      <div style='background:#f8f9fa;padding:20px;border-radius:8px;'>" +
             "        <p style='margin:5px 0;color:#555;'>%s</p>" +
@@ -366,7 +349,6 @@ public class EmailService {
             "        <p style='margin:5px 0;color:#555;'>%s</p>" +
             "      </div>" +
             "      " +
-            "      <!-- Admin Actions -->" +
             "      <div style='text-align:center;margin:30px 0;'>" +
             "        <a href='http://localhost:8080/web/admin' style='display:inline-block;background:#3498db;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;margin-right:10px;'>View in Admin Dashboard</a>" +
             "        <a href='mailto:%s' style='display:inline-block;background:#27ae60;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;'>Contact Customer</a>" +
@@ -378,7 +360,6 @@ public class EmailService {
             "      </div>" +
             "    </div>" +
             "    " +
-            "    <!-- Footer -->" +
             "    <div style='background:#2c3e50;color:white;padding:20px;text-align:center;'>" +
             "      <p style='margin:0;font-size:16px;font-weight:bold;'>Admin Notification - E-Commerce Store</p>" +
             "      <p style='margin:10px 0 0 0;color:#95a5a6;font-size:14px;'>© 2026 E-Commerce Store. All rights reserved.</p>" +
@@ -405,7 +386,6 @@ public class EmailService {
         );
     }
 
-    
     @Async
     public void sendWelcomeEmail(String toEmail, String userName) {
         try {
@@ -482,12 +462,10 @@ public class EmailService {
                     statusIcon = "📦";
             }
             
-            // Tracking section
             String trackingSection = "";
             if (order.getTrackingNumber() != null && !order.getTrackingNumber().isEmpty() && 
                 (order.getOrderStatus() == Order.OrderStatus.SHIPPED || order.getOrderStatus() == Order.OrderStatus.DELIVERED)) {
                 
-                // Get carrier (auto-detected or default)
                 String carrier = order.getCarrier() != null ? order.getCarrier() : 
                                  CarrierDetector.detectCarrier(order.getTrackingNumber());
                 
@@ -559,9 +537,9 @@ public class EmailService {
         }
     }
 
-    // ========== NEW: RETURN REQUEST EMAILS ==========
+    // ========== RETURN REQUEST EMAILS (EXISTING) ==========
     
-   
+    @Async
     public void sendReturnConfirmationEmail(Order order, Map<String, Object> returnData) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -591,7 +569,6 @@ public class EmailService {
         
         StringBuilder itemsHtml = new StringBuilder();
         
-        // Safely extract items
         int itemCount = 0;
         if (returnData != null && returnData.get("items") != null) {
             @SuppressWarnings("unchecked")
@@ -637,7 +614,6 @@ public class EmailService {
             }
         }
         
-        // If no items from returnData, use order items
         if (itemCount == 0 && order.getItems() != null && !order.getItems().isEmpty()) {
             itemCount = order.getItems().size();
             for (OrderItem item : order.getItems()) {
@@ -654,7 +630,6 @@ public class EmailService {
             }
         }
         
-        // FIX: Safely extract customer name
         String customerName = "Customer";
         if (returnData != null && returnData.get("customerName") != null) {
             customerName = (String) returnData.get("customerName");
@@ -662,7 +637,6 @@ public class EmailService {
             customerName = order.getUser().getName();
         }
         
-        // FIX: Safely extract order amount - THIS IS THE LINE 612 ERROR
         Double orderAmount = 0.0;
         if (returnData != null && returnData.get("orderAmount") != null) {
             Object amountObj = returnData.get("orderAmount");
@@ -782,10 +756,9 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             
             helper.setFrom(fromEmail, fromName);
-            helper.setTo("mdshariq2009@gmail.com");  // Admin email
+            helper.setTo("mdshariq2009@gmail.com");
             helper.setSubject("New Return Request - Order #" + order.getId());
             
-            // FIX: Safely get customer email and only set reply-to if it exists
             String customerEmail = null;
             if (returnData != null && returnData.get("customerEmail") != null) {
                 customerEmail = (String) returnData.get("customerEmail");
@@ -819,7 +792,6 @@ public class EmailService {
     private String buildAdminReturnNotificationEmail(Order order, Map<String, Object> returnData) {
         StringBuilder itemsHtml = new StringBuilder();
         
-        // Safely extract items
         int itemCount = 0;
         if (returnData != null && returnData.get("items") != null) {
             @SuppressWarnings("unchecked")
@@ -865,7 +837,6 @@ public class EmailService {
             }
         }
         
-        // If no items from returnData, use order items
         if (itemCount == 0 && order.getItems() != null && !order.getItems().isEmpty()) {
             itemCount = order.getItems().size();
             for (OrderItem item : order.getItems()) {
@@ -882,7 +853,6 @@ public class EmailService {
             }
         }
         
-        // Safely extract customer info
         String customerName = "Unknown Customer";
         if (returnData != null && returnData.get("customerName") != null) {
             customerName = (String) returnData.get("customerName");
@@ -897,7 +867,6 @@ public class EmailService {
             customerEmail = order.getUser().getEmail();
         }
         
-        // Safely extract order amount
         Double orderAmount = 0.0;
         if (returnData != null && returnData.get("orderAmount") != null) {
             Object amountObj = returnData.get("orderAmount");
@@ -912,7 +881,6 @@ public class EmailService {
             orderAmount = order.getTotalAmount();
         }
         
-        // Safely extract shipping address
         String shippingStreet = order.getShippingStreet() != null ? order.getShippingStreet() : "N/A";
         String shippingCity = order.getShippingCity() != null ? order.getShippingCity() : "N/A";
         String shippingState = order.getShippingState() != null ? order.getShippingState() : "N/A";
@@ -1035,9 +1003,7 @@ public class EmailService {
         );
     }
 
-    
-    
- // ========== CANCEL RETURN EMAIL NOTIFICATIONS ==========
+    // ========== CANCEL RETURN EMAILS (EXISTING) ==========
 
     @Async
     public void sendCancelReturnConfirmationEmail(Order order) {
@@ -1086,18 +1052,15 @@ public class EmailService {
             "<html>" +
             "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;'>" +
             "  <div style='max-width:600px;margin:20px auto;background:white;'>" +
-            "    <!-- Header -->" +
             "    <div style='background:linear-gradient(135deg, #10b981 0%%, #059669 100%%);color:white;padding:40px 20px;text-align:center;'>" +
             "      <h1 style='margin:0;font-size:32px;'>✅ Return Cancelled</h1>" +
             "      <p style='margin:10px 0 0 0;font-size:16px;'>Your return request has been cancelled</p>" +
             "    </div>" +
             "    " +
-            "    <!-- Content -->" +
             "    <div style='padding:30px;'>" +
             "      <h2 style='color:#2c3e50;margin-top:0;'>Hello %s,</h2>" +
             "      <p style='color:#555;font-size:16px;line-height:1.6;'>Your return request for Order #%d has been successfully cancelled.</p>" +
             "      " +
-            "      <!-- Status Update Box -->" +
             "      <div style='background:#d1fae5;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #10b981;'>" +
             "        <h3 style='margin:0 0 15px 0;color:#065f46;'>📦 Order Status Updated</h3>" +
             "        <table style='width:100%%;'>" +
@@ -1108,7 +1071,6 @@ public class EmailService {
             "        </table>" +
             "      </div>" +
             "      " +
-            "      <!-- What This Means -->" +
             "      <div style='background:#dbeafe;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #3b82f6;'>" +
             "        <h3 style='margin:0 0 15px 0;color:#1e40af;'>ℹ️ What This Means</h3>" +
             "        <div style='color:#1e40af;line-height:1.8;'>" +
@@ -1120,7 +1082,6 @@ public class EmailService {
             "        </div>" +
             "      </div>" +
             "      " +
-            "      <!-- Order Items -->" +
             "      <h3 style='color:#2c3e50;margin:30px 0 15px 0;'>📦 Order Items</h3>" +
             "      <table style='width:100%%;border-collapse:collapse;'>" +
             "        <thead>" +
@@ -1136,7 +1097,6 @@ public class EmailService {
             "        </tbody>" +
             "      </table>" +
             "      " +
-            "      <!-- Call to Action -->" +
             "      <div style='text-align:center;margin:30px 0;'>" +
             "        <a href='http://localhost:8080/web/orders' style='display:inline-block;background:#3498db;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;'>View Order Details</a>" +
             "      </div>" +
@@ -1144,7 +1104,6 @@ public class EmailService {
             "      <p style='color:#7f8c8d;font-size:14px;margin-top:30px;'>If you have any questions, please contact our customer support at <a href='mailto:support@ecommerce.com' style='color:#3498db;'>support@ecommerce.com</a></p>" +
             "    </div>" +
             "    " +
-            "    <!-- Footer -->" +
             "    <div style='background:#2c3e50;color:white;padding:20px;text-align:center;'>" +
             "      <p style='margin:0;font-size:16px;font-weight:bold;'>Thank you for shopping with us!</p>" +
             "      <p style='margin:10px 0 0 0;color:#95a5a6;font-size:14px;'>© 2026 E-Commerce Store. All rights reserved.</p>" +
@@ -1209,20 +1168,17 @@ public class EmailService {
             "<html>" +
             "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;'>" +
             "  <div style='max-width:600px;margin:20px auto;background:white;'>" +
-            "    <!-- Header -->" +
             "    <div style='background:linear-gradient(135deg, #6b7280 0%%, #4b5563 100%%);color:white;padding:40px 20px;text-align:center;'>" +
             "      <h1 style='margin:0;font-size:32px;'>ℹ️ Return Cancelled</h1>" +
             "      <p style='margin:10px 0 0 0;font-size:16px;'>Customer cancelled their return request</p>" +
             "    </div>" +
             "    " +
-            "    <!-- Content -->" +
             "    <div style='padding:30px;'>" +
             "      <div style='background:#e0e7ff;padding:20px;border-radius:8px;margin-bottom:25px;border-left:4px solid #667eea;'>" +
             "        <h3 style='margin:0 0 10px 0;color:#4338ca;'>ℹ️ Return Request Cancelled</h3>" +
             "        <p style='margin:0;color:#4338ca;'>The customer has cancelled their return request. No further action is required.</p>" +
             "      </div>" +
             "      " +
-            "      <!-- Order Info -->" +
             "      <div style='background:#f8f9fa;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #667eea;'>" +
             "        <h3 style='margin:0 0 15px 0;color:#2c3e50;'>📦 Order Information</h3>" +
             "        <table style='width:100%%;'>" +
@@ -1233,7 +1189,6 @@ public class EmailService {
             "        </table>" +
             "      </div>" +
             "      " +
-            "      <!-- Customer Info -->" +
             "      <div style='background:#dbeafe;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #3b82f6;'>" +
             "        <h3 style='margin:0 0 15px 0;color:#1e40af;'>👤 Customer Information</h3>" +
             "        <table style='width:100%%;'>" +
@@ -1242,7 +1197,6 @@ public class EmailService {
             "        </table>" +
             "      </div>" +
             "      " +
-            "      <!-- Order Items -->" +
             "      <h3 style='color:#2c3e50;margin:30px 0 15px 0;'>📦 Order Items</h3>" +
             "      <table style='width:100%%;border-collapse:collapse;'>" +
             "        <thead>" +
@@ -1258,19 +1212,16 @@ public class EmailService {
             "        </tbody>" +
             "      </table>" +
             "      " +
-            "      <!-- Info Notice -->" +
             "      <div style='background:#fef3c7;border-left:4px solid #f59e0b;padding:15px;border-radius:4px;margin-top:25px;'>" +
             "        <p style='margin:0;color:#92400e;'><strong>ℹ️ Note:</strong></p>" +
             "        <p style='margin:5px 0 0 0;color:#92400e;font-size:14px;'>No pickup will be scheduled. The order remains in DELIVERED status. The customer can submit a new return request if needed within 30 days of delivery.</p>" +
             "      </div>" +
             "      " +
-            "      <!-- Call to Action -->" +
             "      <div style='text-align:center;margin:30px 0;'>" +
             "        <a href='http://localhost:8080/web/admin' style='display:inline-block;background:#3498db;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;'>View in Admin Dashboard</a>" +
             "      </div>" +
             "    </div>" +
             "    " +
-            "    <!-- Footer -->" +
             "    <div style='background:#2c3e50;color:white;padding:20px;text-align:center;'>" +
             "      <p style='margin:0;font-size:16px;font-weight:bold;'>Admin Notification - E-Commerce Store</p>" +
             "      <p style='margin:10px 0 0 0;color:#95a5a6;font-size:14px;'>© 2026 E-Commerce Store. All rights reserved.</p>" +
@@ -1294,7 +1245,6 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             
-            // Send to your email (mdshariq2009@gmail.com)
             helper.setFrom(fromEmail, fromName);
             helper.setTo("mdshariq2009@gmail.com");
             helper.setSubject("New Contact Form Submission - " + contactForm.getSubject());
@@ -1330,16 +1280,13 @@ public class EmailService {
             "</head>" +
             "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f9fafb;'>" +
             "  <div style='max-width:600px;margin:20px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1);'>" +
-            "    <!-- Header -->" +
             "    <div style='background:linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);color:white;padding:30px;text-align:center;'>" +
             "      <h1 style='margin:0;font-size:24px;font-weight:800;'>🛒 E-Commerce Store</h1>" +
             "      <p style='margin:10px 0 0 0;opacity:0.9;font-size:14px;'>New Contact Form Submission</p>" +
             "      <span style='display:inline-block;background:#10b981;color:white;padding:4px 12px;border-radius:12px;font-size:11px;font-weight:bold;text-transform:uppercase;margin-top:10px;'>New Message</span>" +
             "    </div>" +
             "    " +
-            "    <!-- Content -->" +
             "    <div style='padding:30px;'>" +
-            "      <!-- Customer Info -->" +
             "      <div style='margin-bottom:20px;padding:15px;background:#f9fafb;border-radius:8px;border-left:4px solid #667eea;'>" +
             "        <div style='font-weight:bold;color:#667eea;font-size:12px;text-transform:uppercase;margin-bottom:5px;letter-spacing:0.5px;'>👤 Full Name</div>" +
             "        <div style='color:#1f2937;font-size:16px;'>%s</div>" +
@@ -1360,24 +1307,20 @@ public class EmailService {
             "        <div style='color:#1f2937;font-size:16px;'>%s</div>" +
             "      </div>" +
             "      " +
-            "      <!-- Message -->" +
             "      <div style='background:#f9fafb;padding:20px;border-radius:8px;border:1px solid #e5e7eb;margin-top:20px;'>" +
             "        <div style='font-weight:bold;color:#667eea;font-size:12px;text-transform:uppercase;margin-bottom:10px;letter-spacing:0.5px;'>💬 Message</div>" +
             "        <div style='color:#1f2937;font-size:16px;line-height:1.8;white-space:pre-wrap;'>%s</div>" +
             "      </div>" +
             "      " +
-            "      <!-- Timestamp -->" +
             "      <div style='color:#6b7280;font-size:12px;text-align:right;margin-top:20px;padding-top:15px;border-top:1px solid #e5e7eb;'>" +
             "        ⏰ Submitted on: %s" +
             "      </div>" +
             "      " +
-            "      <!-- Quick Reply Button -->" +
             "      <div style='text-align:center;margin:30px 0 10px 0;'>" +
             "        <a href='mailto:%s?subject=Re: %s' style='display:inline-block;background:#3b82f6;color:white;padding:12px 30px;text-decoration:none;border-radius:8px;font-weight:bold;'>Reply to Customer →</a>" +
             "      </div>" +
             "    </div>" +
             "    " +
-            "    <!-- Footer -->" +
             "    <div style='background:#1f2937;color:white;padding:20px;text-align:center;font-size:12px;'>" +
             "      <p style='margin:0;'><strong>E-Commerce Store</strong></p>" +
             "      <p style='margin:5px 0;color:#9ca3af;'>This email was sent from your contact form.</p>" +
@@ -1430,14 +1373,11 @@ public class EmailService {
             helper.setTo(order.getUser().getEmail());
             helper.setSubject("Return Shipping Label - Order #" + order.getId());
             
-            // Email body
             String emailContent = buildShippingLabelEmail(order);
             helper.setText(emailContent, true);
             
-            // CRITICAL: Attach the EXACT PDF that was passed in
             String filename = "Return_Shipping_Label_Order_" + order.getId() + ".pdf";
             
-            // Create ByteArrayResource from the provided PDF bytes
             ByteArrayResource pdfResource = new ByteArrayResource(labelPdf) {
                 @Override
                 public String getFilename() {
@@ -1470,7 +1410,7 @@ public class EmailService {
 
     private String buildShippingLabelEmail(Order order) {
         @SuppressWarnings("unused")
-		String currentDate = java.time.LocalDateTime.now()
+        String currentDate = java.time.LocalDateTime.now()
             .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"));
         
         return String.format(
@@ -1540,7 +1480,6 @@ public class EmailService {
             helper.setTo(order.getUser().getEmail());
             helper.setSubject("Return Shipping Label - Order #" + order.getId());
             
-            // Email body
             String emailContent = String.format(
                 "<!DOCTYPE html>" +
                 "<html>" +
@@ -1597,7 +1536,6 @@ public class EmailService {
             
             helper.setText(emailContent, true);
             
-            // CRITICAL: Use the EXACT bytes provided - DO NOT regenerate
             ByteArrayResource pdfResource = new ByteArrayResource(customLabelPdf) {
                 @Override
                 public String getFilename() {
@@ -1785,7 +1723,135 @@ public class EmailService {
             e.printStackTrace();
         }
     }
- // Method 1: Send email WITH tracking details (for LABEL_SENT status)
+
+    // ========== NEW: LIVE CHAT EMAIL METHODS ==========
+    
+    /**
+     * Send notification email to admin when customer initiates live chat
+     */
+    @Async
+    public void sendAdminLiveChatNotification(String customerName, String customerEmail) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo("mdshariq2009@gmail.com");
+            helper.setSubject("New Live Chat Request from " + customerName);
+            helper.setReplyTo(customerEmail);
+            
+            String emailContent = String.format(
+                "<!DOCTYPE html>" +
+                "<html>" +
+                "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;'>" +
+                "  <div style='max-width:600px;margin:20px auto;background:white;'>" +
+                "    <div style='background:linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);color:white;padding:40px 20px;text-align:center;'>" +
+                "      <h1 style='margin:0;font-size:32px;'>💬 New Live Chat Request</h1>" +
+                "      <p style='margin:10px 0 0 0;font-size:16px;'>A customer wants to chat with you</p>" +
+                "    </div>" +
+                "    " +
+                "    <div style='padding:30px;'>" +
+                "      <div style='background:#dbeafe;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #3b82f6;'>" +
+                "        <h3 style='margin:0 0 15px 0;color:#1e40af;'>👤 Customer Information</h3>" +
+                "        <table style='width:100%%;'>" +
+                "          <tr><td style='padding:5px 0;color:#1e40af;'><strong>Name:</strong></td><td style='text-align:right;color:#1f2937;'>%s</td></tr>" +
+                "          <tr><td style='padding:5px 0;color:#1e40af;'><strong>Email:</strong></td><td style='text-align:right;color:#1f2937;'><a href='mailto:%s' style='color:#3b82f6;text-decoration:none;'>%s</a></td></tr>" +
+                "        </table>" +
+                "      </div>" +
+                "      " +
+                "      <div style='background:#fee2e2;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #ef4444;'>" +
+                "        <h3 style='margin:0 0 10px 0;color:#991b1b;'>⚡ Action Required</h3>" +
+                "        <p style='margin:0;color:#991b1b;'>A customer has initiated a live chat session. Please respond to assist them.</p>" +
+                "      </div>" +
+                "      " +
+                "      <div style='text-align:center;margin:30px 0;'>" +
+                "        <a href='http://localhost:8080/admin/live-chat' style='display:inline-block;background:#3498db;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;'>Go to Live Chat</a>" +
+                "      </div>" +
+                "    </div>" +
+                "    " +
+                "    <div style='background:#2c3e50;color:white;padding:20px;text-align:center;'>" +
+                "      <p style='margin:0;font-size:16px;font-weight:bold;'>Admin Notification - E-Commerce Store</p>" +
+                "      <p style='margin:10px 0 0 0;color:#95a5a6;font-size:14px;'>© 2026 E-Commerce Store. All rights reserved.</p>" +
+                "    </div>" +
+                "  </div>" +
+                "</body>" +
+                "</html>",
+                customerName,
+                customerEmail,
+                customerEmail
+            );
+            
+            helper.setText(emailContent, true);
+            mailSender.send(message);
+            
+            System.out.println("✅ Admin live chat notification sent for: " + customerEmail);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send admin live chat notification: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Send notification email to customer when admin replies in live chat
+     */
+    @Async
+    public void sendCustomerLiveChatReply(String customerEmail, String customerName, String adminMessage) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(customerEmail);
+            helper.setSubject("Response from Our Support Team");
+            
+            String emailContent = String.format(
+                "<!DOCTYPE html>" +
+                "<html>" +
+                "<body style='margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f5f5f5;'>" +
+                "  <div style='max-width:600px;margin:20px auto;background:white;'>" +
+                "    <div style='background:linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);color:white;padding:40px 20px;text-align:center;'>" +
+                "      <h1 style='margin:0;font-size:32px;'>💬 Support Response</h1>" +
+                "      <p style='margin:10px 0 0 0;font-size:16px;'>We've replied to your message</p>" +
+                "    </div>" +
+                "    " +
+                "    <div style='padding:30px;'>" +
+                "      <h2 style='color:#2c3e50;margin-top:0;'>Hello %s,</h2>" +
+                "      <p style='color:#555;font-size:16px;line-height:1.6;'>Our support team has replied to your message:</p>" +
+                "      " +
+                "      <div style='background:#f9fafb;padding:20px;border-radius:8px;margin:25px 0;border-left:4px solid #667eea;'>" +
+                "        <p style='margin:0;color:#1f2937;font-size:16px;line-height:1.6;'>%s</p>" +
+                "      </div>" +
+                "      " +
+                "      <div style='text-align:center;margin:30px 0;'>" +
+                "        <a href='http://localhost:8080' style='display:inline-block;background:#3498db;color:white;padding:12px 30px;text-decoration:none;border-radius:4px;font-weight:bold;'>Continue Chat</a>" +
+                "      </div>" +
+                "    </div>" +
+                "    " +
+                "    <div style='background:#2c3e50;color:white;padding:20px;text-align:center;'>" +
+                "      <p style='margin:0;font-size:16px;font-weight:bold;'>E-Commerce Store</p>" +
+                "      <p style='margin:10px 0 0 0;color:#95a5a6;font-size:14px;'>© 2026 E-Commerce Store. All rights reserved.</p>" +
+                "    </div>" +
+                "  </div>" +
+                "</body>" +
+                "</html>",
+                customerName,
+                adminMessage
+            );
+            
+            helper.setText(emailContent, true);
+            mailSender.send(message);
+            
+            System.out.println("✅ Customer live chat reply notification sent to: " + customerEmail);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send customer live chat reply: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // ========== EXISTING HELPER METHODS ==========
+    
     public void sendReturnLabelWithTracking(String toEmail, String customerName, 
                                             Long orderId, String trackingNumber, 
                                             String returnStatus, String carrier) {
@@ -1852,7 +1918,6 @@ public class EmailService {
         }
     }
 
-    // Method 2: Send email WITHOUT tracking details (for other statuses)
     public void sendReturnStatusUpdate(String toEmail, String customerName, 
                                        Long orderId, String returnStatus) {
         try {
@@ -1908,7 +1973,6 @@ public class EmailService {
         }
     }
 
-    // Helper method for tracking URL
     private String getTrackingUrl(String trackingNumber, String carrier) {
         if (carrier == null) carrier = "USPS";
         
@@ -1925,7 +1989,6 @@ public class EmailService {
         }
     }
 
-    // Helper method for status messages
     private String getStatusMessage(String status) {
         switch (status) {
             case "RETURN_REQUESTED":
@@ -1941,7 +2004,6 @@ public class EmailService {
         }
     }
 
-    // Helper method for status colors
     private String getStatusColor(String status) {
         switch (status) {
             case "RETURN_REQUESTED":
@@ -1959,60 +2021,60 @@ public class EmailService {
     
     public void sendRefundConfirmationEmail(String toEmail, String customerName, 
             Long orderId, Double refundAmount) {
-try {
-MimeMessage message = mailSender.createMimeMessage();
-MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-helper.setFrom("noreply@ecommerce.com");
-helper.setTo(toEmail);
-helper.setSubject("Refund Issued - Order #" + orderId);
-
-String emailBody = "<!DOCTYPE html>" +
-"<html>" +
-"<head><style>" +
-"body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
-".container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
-".header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }" +
-".content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }" +
-".refund-box { background: #d1fae5; border-left: 4px solid #10b981; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }" +
-".refund-amount { font-size: 36px; font-weight: bold; color: #065f46; margin: 10px 0; }" +
-".info-row { padding: 10px 0; border-bottom: 1px solid #e5e7eb; }" +
-"</style></head>" +
-"<body>" +
-"<div class='container'>" +
-"<div class='header'>" +
-"<h1>💰 Refund Issued</h1>" +
-"</div>" +
-"<div class='content'>" +
-"<p>Dear <strong>" + customerName + "</strong>,</p>" +
-"<p>Great news! Your refund has been processed successfully.</p>" +
-"<div class='info-row'><strong>Order ID:</strong> #" + orderId + "</div>" +
-"<div class='refund-box'>" +
-"<h3 style='color: #065f46; margin-top: 0;'>Refund Amount</h3>" +
-"<p class='refund-amount'>$" + String.format("%.2f", refundAmount) + "</p>" +
-"<p style='color: #059669; font-weight: 600;'>✅ Refund Processed</p>" +
-"</div>" +
-"<p><strong>What happens next?</strong></p>" +
-"<ul style='color: #374151;'>" +
-"<li>The refund will appear in your original payment method within 5-7 business days</li>" +
-"<li>You will receive a separate notification from your bank/card issuer</li>" +
-"<li>If you don't see the refund after 7 business days, please contact us</li>" +
-"</ul>" +
-"<p>Thank you for shopping with us. We hope to serve you again soon!</p>" +
-"<p>Best regards,<br><strong>E-Commerce Store Team</strong></p>" +
-"</div>" +
-"</div>" +
-"</body></html>";
-
-helper.setText(emailBody, true);
-mailSender.send(message);
-
-System.out.println("✅ Refund confirmation email sent to: " + toEmail);
-
-} catch (Exception e) {
-System.err.println("❌ Error sending refund confirmation email: " + e.getMessage());
-e.printStackTrace();
-}
-}
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom("noreply@ecommerce.com");
+            helper.setTo(toEmail);
+            helper.setSubject("Refund Issued - Order #" + orderId);
+            
+            String emailBody = "<!DOCTYPE html>" +
+                "<html>" +
+                "<head><style>" +
+                "body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }" +
+                ".container { max-width: 600px; margin: 0 auto; padding: 20px; }" +
+                ".header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }" +
+                ".content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }" +
+                ".refund-box { background: #d1fae5; border-left: 4px solid #10b981; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }" +
+                ".refund-amount { font-size: 36px; font-weight: bold; color: #065f46; margin: 10px 0; }" +
+                ".info-row { padding: 10px 0; border-bottom: 1px solid #e5e7eb; }" +
+                "</style></head>" +
+                "<body>" +
+                "<div class='container'>" +
+                "<div class='header'>" +
+                "<h1>💰 Refund Issued</h1>" +
+                "</div>" +
+                "<div class='content'>" +
+                "<p>Dear <strong>" + customerName + "</strong>,</p>" +
+                "<p>Great news! Your refund has been processed successfully.</p>" +
+                "<div class='info-row'><strong>Order ID:</strong> #" + orderId + "</div>" +
+                "<div class='refund-box'>" +
+                "<h3 style='color: #065f46; margin-top: 0;'>Refund Amount</h3>" +
+                "<p class='refund-amount'>$" + String.format("%.2f", refundAmount) + "</p>" +
+                "<p style='color: #059669; font-weight: 600;'>✅ Refund Processed</p>" +
+                "</div>" +
+                "<p><strong>What happens next?</strong></p>" +
+                "<ul style='color: #374151;'>" +
+                "<li>The refund will appear in your original payment method within 5-7 business days</li>" +
+                "<li>You will receive a separate notification from your bank/card issuer</li>" +
+                "<li>If you don't see the refund after 7 business days, please contact us</li>" +
+                "</ul>" +
+                "<p>Thank you for shopping with us. We hope to serve you again soon!</p>" +
+                "<p>Best regards,<br><strong>E-Commerce Store Team</strong></p>" +
+                "</div>" +
+                "</div>" +
+                "</body></html>";
+            
+            helper.setText(emailBody, true);
+            mailSender.send(message);
+            
+            System.out.println("✅ Refund confirmation email sent to: " + toEmail);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error sending refund confirmation email: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
 }

@@ -21,7 +21,7 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
     
     @Autowired(required = false)
     private EmailService emailService;
@@ -29,11 +29,16 @@ public class UserService implements UserDetailsService {
     @Autowired
     public UserService(UserRepository userRepository, 
                       PasswordEncoder passwordEncoder,
-                      JwtService jwtService,
-                      AuthenticationManager authenticationManager) {
+                      JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+    }
+    
+    /**
+     * Set AuthenticationManager - called by SecurityConfig after initialization
+     */
+    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
     }
     
@@ -80,6 +85,10 @@ public class UserService implements UserDetailsService {
 
     
     public AuthResponse login(LoginRequest request) {
+        if (authenticationManager == null) {
+            throw new RuntimeException("AuthenticationManager not initialized");
+        }
+        
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),

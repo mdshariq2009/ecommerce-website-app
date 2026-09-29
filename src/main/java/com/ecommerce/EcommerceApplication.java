@@ -10,6 +10,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 public class EcommerceApplication {
     public static void main(String[] args) {
         SpringApplication.run(EcommerceApplication.class, args);
-        //Test App
+        System.out.println("🚀 Web Backend Successfully Active! Access the UI at: http://localhost:8080");
     }
 }

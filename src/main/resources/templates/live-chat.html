@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Chat</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; }
+        
+        .chat-toggle { 
+            position: fixed; bottom: 20px; right: 20px; 
+            width: 60px; height: 60px; 
+            background: #667eea; color: white; 
+            border: none; border-radius: 50%; 
+            font-size: 28px; cursor: pointer; z-index: 9998;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .chat-toggle.hidden { display: none !important; }
+        .chat-toggle:hover { transform: scale(1.1); }
+        
+        .chat-window { 
+            position: fixed; bottom: 20px; right: 20px; 
+            width: 420px; height: 600px; 
+            background: white; border-radius: 10px; 
+            box-shadow: 0 5px 40px rgba(0,0,0,0.16); 
+            display: flex; flex-direction: column; z-index: 9999;
+        }
+        .chat-window.hidden { display: none !important; }
+        
+        .chat-header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            padding: 16px; 
+            border-radius: 10px 10px 0 0;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            gap: 10px;
+        }
+        .chat-header h2 { font-size: 16px; margin: 0; flex: 1; }
+        .chat-header-buttons { display: flex; gap: 8px; }
+        
+        .btn-end { 
+            background: #ff3b30; color: white; 
+            border: none; padding: 6px 14px; 
+            border-radius: 4px; cursor: pointer; 
+            font-size: 12px; font-weight: bold;
+        }
+        .btn-end:hover { background: #ff1f0f; }
+        
+        .btn-close { 
+            background: rgba(255,255,255,0.3); color: white; 
+            border: none; padding: 4px 8px; 
+            border-radius: 4px; cursor: pointer; 
+            font-size: 16px;
+        }
+        .btn-close:hover { background: rgba(255,255,255,0.5); }
+        
+        .chat-body { 
+            flex: 1; overflow-y: auto; 
+            padding: 16px; background: #f9f9f9;
+        }
+        
+        .empty-msg { 
+            display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; 
+            height: 100%; color: #999; text-align: center;
+        }
+        .empty-msg-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+        
+        .message { margin-bottom: 12px; display: flex; }
+        .message.user { justify-content: flex-end; }
+        .message.admin { justify-content: flex-start; }
+        
+        .msg-bubble { 
+            max-width: 75%; padding: 10px 14px; 
+            border-radius: 12px; word-wrap: break-word; 
+            overflow-wrap: break-word; white-space: normal;
+            line-height: 1.4; font-size: 13px;
+        }
+        .message.user .msg-bubble { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; border-bottom-right-radius: 4px;
+        }
+        .message.admin .msg-bubble { 
+            background: #e0e0e0; color: #333; 
+            border-bottom-left-radius: 4px;
+        }
+        
+        .chat-footer { 
+            padding: 12px; border-top: 1px solid #e0e0e0; 
+            display: flex; gap: 8px;
+        }
+        .chat-footer input { 
+            flex: 1; border: 1px solid #ddd; 
+            border-radius: 20px; padding: 8px 14px; 
+            font-size: 13px; outline: none;
+        }
+        .chat-footer input:focus { border-color: #667eea; }
+        .chat-footer button { 
+            background: #667eea; color: white; 
+            border: none; border-radius: 50%; 
+            width: 36px; height: 36px; cursor: pointer; 
+            font-size: 16px;
+        }
+        .chat-footer button:hover { background: #5568d3; }
+        
+        @media (max-width: 480px) {
+            .chat-window { width: 100%; height: 100%; bottom: 0; right: 0; border-radius: 0; }
+            .msg-bubble { max-width: 85%; }
+        }
+    </style>
+</head>
+<body>
+    <button class="chat-toggle" id="chatToggle">💬</button>
+    
+    <div class="chat-window hidden" id="chatWindow">
+        <div class="chat-header">
+            <h2>Live Chat Support</h2>
+            <div class="chat-header-buttons">
+                <button class="btn-end" id="endChatBtn">END CHAT</button>
+                <button class="btn-close" id="closeBtn">✕</button>
+            </div>
+        </div>
+        
+        <div class="chat-body" id="chatBody">
+            <div class="empty-msg">
+                <div class="empty-msg-icon">💬</div>
+                <div><strong>Welcome!</strong><br>How can we help?</div>
+            </div>
+        </div>
+        
+        <div class="chat-footer">
+            <input type="text" id="msgInput" placeholder="Type message...">
+            <button id="sendBtn">➤</button>
+        </div>
+    </div>
+
+    <script>
+        const chatToggle = document.getElementById('chatToggle');
+        const chatWindow = document.getElementById('chatWindow');
+        const closeBtn = document.getElementById('closeBtn');
+        const endChatBtn = document.getElementById('endChatBtn');
+        const msgInput = document.getElementById('msgInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatBody = document.getElementById('chatBody');
+        
+        let conversationId = null;
+        let isActive = true;
+        
+        // Toggle chat
+        chatToggle.addEventListener('click', () => {
+            chatWindow.classList.toggle('hidden');
+            chatToggle.classList.toggle('hidden');
+            if (!chatWindow.classList.contains('hidden') && !conversationId) {
+                initChat();
+            }
+        });
+        
+        // Close chat
+        closeBtn.addEventListener('click', () => {
+            chatWindow.classList.add('hidden');
+            chatToggle.classList.remove('hidden');
+        });
+        
+        // End chat
+        endChatBtn.addEventListener('click', () => {
+            if (!conversationId) {
+                alert('No active chat');
+                return;
+            }
+            if (!confirm('End this chat?')) return;
+            
+            fetch(`/api/live-chat/end/${conversationId}`, { method: 'PUT' })
+                .then(r => r.json())
+                .then(d => {
+                    isActive = false;
+                    conversationId = null;
+                    chatBody.innerHTML = '<div class="empty-msg"><div style="font-size:32px;margin-bottom:10px;">✓</div>Chat ended</div>';
+                    setTimeout(() => {
+                        chatWindow.classList.add('hidden');
+                        chatToggle.classList.remove('hidden');
+                    }, 2000);
+                })
+                .catch(e => alert('Error: ' + e));
+        });
+        
+        // Send message
+        sendBtn.addEventListener('click', sendMsg);
+        msgInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMsg();
+        });
+        
+        function sendMsg() {
+            const text = msgInput.value.trim();
+            if (!text || !conversationId || !isActive) return;
+            
+            addMsg(text, 'user');
+            msgInput.value = '';
+            
+            fetch('/api/live-chat/send-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ conversationId: conversationId, message: text })
+            })
+            .then(r => r.json())
+            .then(d => loadMsgs())
+            .catch(e => console.error(e));
+        }
+        
+        function initChat() {
+            fetch('/api/live-chat/conversation', { method: 'GET' })
+                .then(r => r.json())
+                .then(d => {
+                    conversationId = d.id;
+                    isActive = true;
+                    chatBody.innerHTML = '';
+                    loadMsgs();
+                })
+                .catch(e => alert('Error: ' + e));
+        }
+        
+        function loadMsgs() {
+            if (!conversationId) return;
+            fetch(`/api/live-chat/messages/${conversationId}`)
+                .then(r => r.json())
+                .then(data => {
+                    chatBody.innerHTML = '';
+                    if (data && data.length > 0) {
+                        data.forEach(m => addMsg(m.message, m.isAdmin ? 'admin' : 'user'));
+                    }
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                })
+                .catch(e => console.error(e));
+        }
+        
+        function addMsg(text, sender) {
+            const div = document.createElement('div');
+            div.className = `message ${sender}`;
+            div.innerHTML = `<div class="msg-bubble">${text}</div>`;
+            chatBody.appendChild(div);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+    </script>
+</body>
+</html>

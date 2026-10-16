@@ -1143,6 +1143,25 @@ input[id^="tracking"]:enabled::placeholder {
 </head>
 <body>
     <!-- Custom Alert Modal -->
+    <!-- User Management Modal -->
+    <div class="modal-overlay" id="userActionOverlay"></div>
+    <div class="custom-modal" id="userActionModal" style="min-width:500px;max-width:600px;">
+        <div id="userActionIcon" style="font-size:4rem;margin-bottom:1rem;">🔐</div>
+        <h3 id="userActionTitle" style="font-size:1.8rem;margin-bottom:1rem;color:#1f2937;">User Action</h3>
+        <p id="userActionMessage" style="color:#6b7280;font-size:1.05rem;margin-bottom:1rem;"></p>
+        <div id="userPasswordArea" style="display:none;margin:1.25rem 0;text-align:left;">
+            <label for="userNewPassword" style="display:block;color:#374151;font-weight:600;margin-bottom:0.5rem;">New Password</label>
+            <input type="password" id="userNewPassword" placeholder="Enter new password"
+                   style="width:100%;padding:0.85rem 1rem;border:1px solid #d1d5db;border-radius:10px;font-size:1rem;box-sizing:border-box;">
+            <div style="color:#6b7280;font-size:0.85rem;margin-top:0.5rem;">Password must be at least 6 characters.</div>
+        </div>
+        <p id="userActionWarning" style="display:none;color:#ef4444;font-weight:600;margin-top:0.5rem;">This action cannot be undone.</p>
+        <div style="display:flex;justify-content:center;gap:0.75rem;margin-top:1.5rem;">
+            <button class="btn" id="userActionCancel" style="background:linear-gradient(135deg,#6b7280 0%,#4b5563 100%);padding:0.8rem 1.5rem;">Cancel</button>
+            <button class="btn" id="userActionConfirm" style="padding:0.8rem 1.5rem;">Confirm</button>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="alertOverlay" onclick="closeCustomAlert()"></div>
     <div class="custom-modal" id="customAlert">
         <div id="alertIcon" style="font-size:4rem;margin-bottom:1rem;">✅</div>
@@ -1749,6 +1768,167 @@ input[id^="tracking"]:enabled::placeholder {
         }
     }
 
+    function escapeUserText(value) {
+        return String(value || '').replace(/'/g, "&#39;");
+    }
+
+    async function resetUserPassword(userId, userName) {
+        const newPassword = prompt(`Enter a new password for ${userName}:`);
+
+        if (newPassword === null) return;
+
+        if (newPassword.trim().length < 6) {
+            showCustomAlert('Invalid Password', 'New password must be at least 6 characters long', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/reset-password`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ newPassword: newPassword })
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+                showCustomAlert('Password Reset ✅', `Password has been reset successfully for ${userName}`, 'success');
+            } else {
+                showCustomAlert('Reset Failed', result.error || 'Failed to reset password', 'error');
+            }
+        } catch (error) {
+            showCustomAlert('Error', 'Error resetting password: ' + error.message, 'error');
+        }
+    }
+
+    function showUserActionModal(options) {
+        return new Promise((resolve) => {
+            const overlay = document.getElementById('userActionOverlay');
+            const modal = document.getElementById('userActionModal');
+            const icon = document.getElementById('userActionIcon');
+            const title = document.getElementById('userActionTitle');
+            const message = document.getElementById('userActionMessage');
+            const warning = document.getElementById('userActionWarning');
+            const passwordArea = document.getElementById('userPasswordArea');
+            const passwordInput = document.getElementById('userNewPassword');
+            const confirmButton = document.getElementById('userActionConfirm');
+            const cancelButton = document.getElementById('userActionCancel');
+
+            icon.textContent = options.icon || '⚠️';
+            title.textContent = options.title;
+            message.textContent = options.message;
+            warning.style.display = options.warning ? 'block' : 'none';
+            passwordArea.style.display = options.password ? 'block' : 'none';
+            passwordInput.value = '';
+            confirmButton.textContent = options.confirmText || 'Confirm';
+            confirmButton.style.background = options.danger
+                ? 'linear-gradient(135deg,#ef4444 0%,#dc2626 100%)'
+                : 'linear-gradient(135deg,#667eea 0%,#764ba2 100%)';
+
+            const finish = (result) => {
+                modal.classList.remove('show');
+                overlay.classList.remove('show');
+                confirmButton.onclick = null;
+                cancelButton.onclick = null;
+                overlay.onclick = null;
+                passwordInput.onkeydown = null;
+                resolve(result);
+            };
+
+            const submit = () => {
+                if (options.password) {
+                    const value = passwordInput.value;
+                    if (value.trim().length < 6) {
+                        showCustomAlert('Invalid Password', 'New password must be at least 6 characters long', 'error');
+                        return;
+                    }
+                    finish(value);
+                } else {
+                    finish(true);
+                }
+            };
+
+            confirmButton.onclick = submit;
+            cancelButton.onclick = () => finish(null);
+            overlay.onclick = () => finish(null);
+            passwordInput.onkeydown = (event) => {
+                if (event.key === 'Enter') submit();
+            };
+
+            overlay.classList.add('show');
+            modal.classList.add('show');
+            if (options.password) setTimeout(() => passwordInput.focus(), 0);
+        });
+    }
+
+    async function resetUserPassword(userId, userName) {
+        const newPassword = await showUserActionModal({
+            icon: '🔐',
+            title: 'Reset Password',
+            message: `Enter a new password for ${userName}.`,
+            password: true,
+            confirmText: 'Reset Password'
+        });
+
+        if (!newPassword) return;
+
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/reset-password`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ newPassword: newPassword })
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+                showCustomAlert('Password Reset ✅', `Password has been reset successfully for ${userName}`, 'success');
+            } else {
+                showCustomAlert('Reset Failed', result.error || 'Failed to reset password', 'error');
+            }
+        } catch (error) {
+            showCustomAlert('Error', 'Error resetting password: ' + error.message, 'error');
+        }
+    }
+
+    async function deleteUser(userId, userName, userEmail) {
+        const confirmed = await showUserActionModal({
+            icon: '🗑️',
+            title: 'Delete User?',
+            message: `Are you sure you want to delete ${userName} (${userEmail})?`,
+            warning: true,
+            danger: true,
+            confirmText: 'Delete User'
+        });
+
+        if (!confirmed) return;
+
+        try {
+            const response = await fetch(`/api/admin/users/${userId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+                showCustomAlert('User Deleted ✅', `${userName} has been permanently deleted`, 'success');
+                loadUsers();
+                loadStats();
+            } else {
+                showCustomAlert('Delete Failed', result.error || 'Failed to delete user', 'error');
+            }
+        } catch (error) {
+            showCustomAlert('Error', 'Error deleting user: ' + error.message, 'error');
+        }
+    }
+
     function displayUsers(users) {
         const html = `
             <div style="overflow-x:auto;">
@@ -1761,6 +1941,7 @@ input[id^="tracking"]:enabled::placeholder {
                             <th>Role</th>
                             <th>Registered Date</th>
                             <th>Total Orders</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1785,6 +1966,14 @@ input[id^="tracking"]:enabled::placeholder {
                                     </td>
                                     <td data-label="Orders">
                                         <strong style="color:#10b981;">${orderCount}</strong>
+                                    </td>
+                                    <td data-label="Actions">
+                                        <button onclick="resetUserPassword(${user.id}, '${escapeUserText(user.name)}')" class="action-btn" style="background:#f59e0b;color:white;">
+                                            Reset Password
+                                        </button>
+                                        <button onclick="deleteUser(${user.id}, '${escapeUserText(user.name)}', '${escapeUserText(user.email)}')" class="action-btn btn-delete">
+                                            Delete User
+                                        </button>
                                     </td>
                                 </tr>
                             `;

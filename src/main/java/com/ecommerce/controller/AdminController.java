@@ -1,6 +1,7 @@
 package com.ecommerce.controller;
 
 import com.ecommerce.model.Order;
+import com.ecommerce.model.User;
 import com.ecommerce.repository.OrderRepository;
 import com.ecommerce.repository.ProductRepository;
 import com.ecommerce.repository.UserRepository;
@@ -10,11 +11,14 @@ import com.ecommerce.service.ShippingLabelService;
 import com.ecommerce.util.CarrierDetector;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +35,9 @@ public class AdminController {
     private final ProductRepository productRepository;
     private final EmailService emailService;  // Changed to final
     private final ShippingLabelService shippingLabelService;  // Changed to final
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     
     @Autowired
     public AdminController(OrderService orderService, 
@@ -47,6 +54,75 @@ public class AdminController {
         this.shippingLabelService = shippingLabelService;  // Initialize
     }
     
+    // ========================================
+    // USER MANAGEMENT ENDPOINTS
+    // ========================================
+
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userRepository.findAll());
+    }
+
+    @PutMapping("/users/{userId}/reset-password")
+    public ResponseEntity<?> resetUserPassword(
+            @PathVariable Long userId,
+            @RequestBody Map<String, String> request) {
+        try {
+            String newPassword = request.get("newPassword");
+
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "New password is required"));
+            }
+
+            if (newPassword.length() < 6) {
+                return ResponseEntity.badRequest().body(Map.of("error", "New password must be at least 6 characters long"));
+            }
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Password reset successfully"
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to reset password: " + e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId, Principal principal) {
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (principal != null && user.getEmail().equalsIgnoreCase(principal.getName())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "You cannot delete your own admin account"));
+            }
+
+            userRepository.delete(user);
+            userRepository.flush();
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "User deleted successfully"
+            ));
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(409).body(Map.of(
+                    "error", "User cannot be deleted because related orders or payment records still exist"
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to delete user: " + e.getMessage()));
+        }
+    }
+
     // ========================================
     // RETURNED ORDERS ENDPOINTS
     // ========================================

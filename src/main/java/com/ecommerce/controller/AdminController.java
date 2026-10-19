@@ -95,6 +95,46 @@ public class AdminController {
         }
     }
 
+    @PutMapping("/users/{userId}")
+    public ResponseEntity<?> updateUserContactDetails(
+            @PathVariable Long userId,
+            @RequestBody Map<String, String> request) {
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            String email = request.get("email");
+            String phoneNumber = request.get("phoneNumber");
+
+            if (email == null || email.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+            }
+
+            String normalizedEmail = email.trim().toLowerCase();
+            boolean emailUsedByAnotherUser = userRepository.findAll().stream()
+                    .anyMatch(existingUser -> !existingUser.getId().equals(userId)
+                            && existingUser.getEmail().equalsIgnoreCase(normalizedEmail));
+
+            if (emailUsedByAnotherUser) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Email is already registered to another user"));
+            }
+
+            user.setEmail(normalizedEmail);
+            user.setPhoneNumber(phoneNumber == null ? null : phoneNumber.trim());
+            User updatedUser = userRepository.save(user);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "User details updated successfully",
+                    "user", updatedUser
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to update user details: " + e.getMessage()));
+        }
+    }
+
     @DeleteMapping("/users/{userId}")
     public ResponseEntity<?> deleteUser(@PathVariable Long userId, Principal principal) {
         try {

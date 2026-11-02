@@ -126,3 +126,21 @@ secrets.yml
 *.crt
 *.p12
 *.jks
+
+# Spring Boot environment-specific configuration
+application-dev.properties
+application-prod.properties
+application-test.properties
+application-private.properties
+application-secret.properties
+
+application-dev.yml
+application-prod.yml
+application-local.yml
+application-secrets.yml
+application-private.yml
+application-secret.yml
+
+# Environment files
+.env.*
+!.env.example

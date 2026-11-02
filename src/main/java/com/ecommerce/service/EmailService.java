@@ -33,6 +33,31 @@ public class EmailService {
     @Value("${app.email.name}")
     private String fromName;
     
+    /** Sends a one-time login verification code to the registered email address. */
+    public void sendMfaCodeEmail(String toEmail, String userName, String code) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(toEmail);
+            helper.setSubject("Your E-Commerce Store login verification code");
+            String safeName = (userName == null || userName.isBlank()) ? "Customer" : userName;
+            String emailContent = String.format(
+                    "<div style='font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px'>" +
+                    "<h2 style='color:#4f46e5'>Login verification</h2>" +
+                    "<p>Hello %s,</p>" +
+                    "<p>Use the following 5-digit code to complete your login:</p>" +
+                    "<div style='font-size:32px;font-weight:700;letter-spacing:8px;padding:18px;background:#f3f4f6;text-align:center'>%s</div>" +
+                    "<p>This code expires in 5 minutes and can be used only once.</p>" +
+                    "<p>If you did not attempt to log in, you can ignore this email.</p>" +
+                    "</div>", safeName, code);
+            helper.setText(emailContent, true);
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to send the verification email. Please try again.", e);
+        }
+    }
+
     // ========== EXISTING EMAIL METHODS (UNCHANGED) ==========
     
     @Async
